@@ -85,6 +85,12 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
 
     private var sourceMatrices: FloatArray = FloatArray(0)
     private var sourceCount: Int = 0
+    private var lastLodX = Float.NaN
+    private var lastLodY = Float.NaN
+    private var lastLodZ = Float.NaN
+    private var lastLodMaxDistance = Float.NaN
+    private var lastLodFullDistance = Float.NaN
+    private var lastLodThinDistant = true
 
     init {
         val vaoIds = IntArray(1)
@@ -140,6 +146,20 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
      */
     fun applyDistanceLod(camera: com.buildlaunchfly.game.math.Vec3, maxDistance: Float, fullDetailDistance: Float, thinDistant: Boolean = true) {
         if (sourceCount == 0) return
+        val dxCamera = camera.x - lastLodX
+        val dyCamera = camera.y - lastLodY
+        val dzCamera = camera.z - lastLodZ
+        if (dxCamera * dxCamera + dyCamera * dyCamera + dzCamera * dzCamera < 4f &&
+            maxDistance == lastLodMaxDistance &&
+            fullDetailDistance == lastLodFullDistance &&
+            thinDistant == lastLodThinDistant
+        ) return
+        lastLodX = camera.x
+        lastLodY = camera.y
+        lastLodZ = camera.z
+        lastLodMaxDistance = maxDistance
+        lastLodFullDistance = fullDetailDistance
+        lastLodThinDistant = thinDistant
         val max2 = maxDistance * maxDistance
         val full2 = fullDetailDistance * fullDetailDistance
         var visible = 0
