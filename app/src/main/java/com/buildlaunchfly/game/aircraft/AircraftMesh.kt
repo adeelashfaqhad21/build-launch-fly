@@ -14,8 +14,8 @@ import com.buildlaunchfly.game.math.Vec3
  *
  * Local axes: forward = -Z, up = +Y, right = +X. 1 unit = 1 metre.
  *
- * Stage 1 fuselage (with canopy) → stage 2 left wing → stage 3 right wing → stage 4 tail →
- * stage 5 propeller → stage 6 winglets, fairings and cowling.
+ * Stage 1 bare fuselage → stage 2 left wing → stage 3 right wing → stage 4 tail →
+ * stage 5 functional propeller → stage 6 canopy, winglets and aerodynamic fairings.
  */
 class AircraftMesh(textures: TextureFactory) {
 
