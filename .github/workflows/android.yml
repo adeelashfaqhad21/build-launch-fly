@@ -63,8 +63,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Compile release APK (unsigned)
-        run: gradle :app:assembleRelease --no-daemon --stacktrace
+      - name: Compile installable QA release APK
+        run: |
+          gradle :app:assembleRelease --no-daemon --stacktrace
+          APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+          if [ -f "$APK" ]; then
+            echo "::error::Release APK is still unsigned; refusing to publish an uninstallable package."
+            exit 1
+          fi
+          find app/build/outputs/apk/release -name "*.apk" -print -exec apksigner verify --verbose {} \;
 
       - name: Collect APK outputs
         run: |
@@ -83,7 +90,7 @@ jobs:
       - name: Upload all APKs
         uses: actions/upload-artifact@v4
         with:
-          name: build-launch-fly-apks
+          name: build-launch-fly-qa-signed-apks
           path: artifacts/*.apk
           if-no-files-found: warn
           retention-days: 30
