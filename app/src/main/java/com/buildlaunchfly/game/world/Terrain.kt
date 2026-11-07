@@ -41,7 +41,7 @@ class Terrain(val definition: WorldDefinition) {
             val riverX = 150f * sin(z * 0.00125f) + 54f * sin(z * 0.0028f + 0.7f)
             val riverDistance = abs(x - riverX)
             val riverWidth = if (definition.id == WorldId.FOREST) 9f else 6.5f
-            val riverBed = definition.waterLevel - 0.8f +
+            val riverBed = definition.waterLevel - definition.heightOffset - 0.8f +
                 (riverDistance / riverWidth) * (riverDistance / riverWidth) * 4.5f
             val bank = 1f - M.smoothStep(riverWidth, riverWidth * 3.2f, riverDistance)
             h = M.lerp(h, riverBed, bank * 0.94f)
@@ -88,7 +88,7 @@ class Terrain(val definition: WorldDefinition) {
             val shoreline = -285f + 78f * sin(z * 0.00145f) + 24f * sin(z * 0.0031f + 0.8f)
             val inland = x - shoreline
             if (inland in 0f..190f) {
-                val beachHeight = definition.waterLevel + 1.2f + (inland / 190f) * 5.8f
+                val beachHeight = definition.waterLevel - definition.heightOffset + 1.2f + (inland / 190f) * 5.8f
                 val beachBlend = 1f - M.smoothStep(0f, 190f, inland)
                 h = M.lerp(h, beachHeight, beachBlend * 0.92f)
             }
