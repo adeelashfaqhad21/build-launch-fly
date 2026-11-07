@@ -79,49 +79,44 @@ class SlingshotMesh(textures: TextureFactory) {
     private fun buildFrameData(): MeshData {
         val b = MeshBuilder()
 
-        // Broad, weighted launch deck with a raised service spine.
-        b.addBox(0f, 0.14f, 0f, 3.45f, 0.16f, 1.55f, 2f)
-        b.addBox(0f, 0.36f, 0.10f, 1.18f, 0.16f, 0.88f, 2f)
-        b.addBox(0f, 0.58f, 0.72f, 0.52f, 0.08f, 0.58f, 2f)
+        // Reference-matched launcher: a compact rear deck, one slim central
+        // lattice tower and two widely spaced elastic support pylons. Keep the
+        // aircraft's forward exit (negative Z) clear of any cross-member.
+        b.addBox(0f, 0.12f, 0.18f, 2.55f, 0.14f, 1.28f, 2f)
+        b.addBox(0f, 0.34f, 0.52f, 0.92f, 0.10f, 0.72f, 2f)
 
-        // Rear-mounted narrow truss mast. The aircraft's forward launch corridor
-        // (negative Z from the carriage) is deliberately kept completely clear.
-        for (x in floatArrayOf(-0.22f, 0.22f)) {
-            b.addBox(x, 1.78f, 1.58f, 0.065f, 1.48f, 0.065f, 2f)
+        // Narrow central mast with visible open X-bracing, rather than a broad
+        // industrial wall behind the aircraft.
+        for (x in floatArrayOf(-0.16f, 0.16f)) {
+            b.addBox(x, 2.05f, 1.48f, 0.045f, 1.82f, 0.045f, 2f)
         }
-        for (y in floatArrayOf(0.48f, 1.35f, 2.22f, 3.05f)) {
-            b.addBox(0f, y, 1.58f, 0.30f, 0.055f, 0.28f, 2f)
+        for (y in floatArrayOf(0.55f, 1.55f, 2.55f, 3.55f)) {
+            b.addBox(0f, y, 1.48f, 0.22f, 0.045f, 0.06f, 2f)
         }
-        // Rear-facing V arms carry the elastic anchors without a crosshead over
-        // the aircraft. Their entire span remains behind the release path.
-        val armLength = 1.72f
-        val armAngle = 0.70f
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, -armAngle, 1f)
-        b.addBox(-0.78f, 3.45f, 1.12f, 0.12f, armLength, 0.14f, 2f)
-        b.pop()
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, armAngle, 1f)
-        b.addBox(0.78f, 3.45f, 1.12f, 0.12f, armLength, 0.14f, 2f)
-        b.pop()
+        for (y in floatArrayOf(1.05f, 2.05f, 3.05f)) {
+            b.pushTrs(0f, y, 1.48f, 0f, 0f, 0.55f, 1f)
+            b.addBox(0f, 0f, 0f, 0.035f, 0.66f, 0.035f, 2f)
+            b.pop()
+            b.pushTrs(0f, y, 1.48f, 0f, 0f, -0.55f, 1f)
+            b.addBox(0f, 0f, 0f, 0.035f, 0.66f, 0.035f, 2f)
+            b.pop()
+        }
 
-        // Machined anchor clamps, prong caps and visible fastener bosses.
-        b.addBox(-3.02f, 4.15f, 0.88f, 0.25f, 0.22f, 0.30f, 2f)
-        b.addBox(3.02f, 4.15f, 0.88f, 0.25f, 0.22f, 0.30f, 2f)
-        b.addSphere(-3.05f, 4.18f, 0.92f, 0.22f, 6, 10)
-        b.addSphere(3.05f, 4.18f, 0.92f, 0.22f, 6, 10)
+        // Outboard elastic pylons reproduce the broad V-shaped sling geometry.
+        for (side in floatArrayOf(-1f, 1f)) {
+            b.addBox(side * 3.05f, 2.15f, 0.92f, 0.085f, 2.02f, 0.085f, 2f)
+            b.addBox(side * 2.70f, 0.48f, 0.90f, 0.52f, 0.10f, 0.18f, 2f)
+            b.addBox(side * 2.82f, 3.95f, 0.92f, 0.30f, 0.12f, 0.16f, 2f)
+            b.addSphere(side * 3.05f, 4.18f, 0.92f, 0.19f, 6, 9)
+            b.pushTrs(side * 2.10f, 1.38f, 0.92f, 0f, 0f, -side * 0.42f, 1f)
+            b.addBox(0f, 0f, 0f, 0.07f, 1.48f, 0.07f, 2f)
+            b.pop()
+        }
 
-        // Hydraulic recoil housings and reinforced lower cross-member.
-        b.addBox(0f, 0.72f, 0.72f, 2.35f, 0.14f, 0.18f, 2f)
-        b.addCylinder(-1.48f, 0.96f, 0.82f, 0.12f, 0.12f, 1.42f, 12, true, true, 1f)
-        b.addCylinder(1.48f, 0.96f, 0.82f, 0.12f, 0.12f, 1.42f, 12, true, true, 1f)
-
-        // Rear diagonal stays transfer launch loads into the deck.
-        b.pushTrs(0f, 0f, 0f, 0.38f, 0f, 0.18f, 1f)
-        b.addCylinder(-1.12f, 1.55f, 0.95f, 0.11f, 0.10f, 2.75f, 8, false, false, 2f)
-        b.pop()
-        b.pushTrs(0f, 0f, 0f, 0.38f, 0f, -0.18f, 1f)
-        b.addCylinder(1.12f, 1.55f, 0.95f, 0.11f, 0.10f, 2.75f, 8, false, false, 2f)
-        b.pop()
-
+        // Low recoil housings and deck braces stay behind the aircraft seat.
+        b.addBox(0f, 0.62f, 0.86f, 1.72f, 0.12f, 0.16f, 2f)
+        b.addCylinder(-1.48f, 0.92f, 0.84f, 0.10f, 0.10f, 1.18f, 10, true, true, 1f)
+        b.addCylinder(1.48f, 0.92f, 0.84f, 0.10f, 0.10f, 1.18f, 10, true, true, 1f)
         return b.build()
     }
 
