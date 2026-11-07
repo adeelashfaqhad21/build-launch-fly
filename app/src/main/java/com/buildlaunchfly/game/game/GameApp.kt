@@ -80,6 +80,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private val aircraftModel = Mat4()
     private val propellerModel = Mat4()
+    private val propellerBladeModels = Array(3) { Mat4() }
     private val slingshotModel = Mat4()
     private val bandLocal = Mat4()
     private val cradleModel = Mat4()
@@ -597,6 +598,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             aircraftModel.set(physics.orientation)
             physics.propellerMatrix(propellerModel)
         }
+        updatePropellerBladeModels(physics.propellerBladePitch)
 
         camera.update()
         sceneRenderer.beginFrame(camera)
@@ -605,6 +607,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
         aircraftMesh.bodyMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
+        aircraftMesh.propellerBladeMesh?.let { blade ->
+            propellerBladeModels.forEach { sceneRenderer.shadowMesh(blade, it) }
+        }
         if (state == GameState.SEATED) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
             setHydraulicModels(rig)
@@ -679,6 +684,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let {
             sceneRenderer.drawMesh(it, aircraftMesh.propellerMaterial, propellerModel)
         }
+        aircraftMesh.propellerBladeMesh?.let { blade ->
+            propellerBladeModels.forEach { sceneRenderer.drawMesh(blade, aircraftMesh.propellerMaterial, it) }
+        }
         val propellerBlur = ((physics.propellerRpm - 850f) / 1700f).coerceIn(0f, 0.34f)
         if (state == GameState.FLIGHT && propellerBlur > 0f) {
             aircraftMesh.propellerBlurMesh?.let {
@@ -688,6 +696,17 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val particleColor = when { definition.snowfall > 0f -> particleColorSnow; definition.id == WorldId.OCEAN -> particleColorSeaSpray; else -> particleColorDust }
         sceneRenderer.flushParticles(particleColor)
+    }
+
+
+    /** Repositions each blade around the shaft and changes its pitch about its span axis. */
+    private fun updatePropellerBladeModels(pitch: Float) {
+        for (index in 0 until propellerBladeModels.size) {
+            propellerBladeModels[index]
+                .set(propellerModel)
+                .rotateZ(index * 2.0943951f)
+                .rotateY(pitch)
+        }
     }
 
     /** Exposed piston length visibly retracts as the elastic carriage is drawn back. */
