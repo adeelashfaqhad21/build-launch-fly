@@ -670,7 +670,14 @@ class GameApp(private val context: Context, private val input: InputState) {
             definition.tintB,
             definition.tintC,
             definition.rockThreshold,
-            definition.snowLine
+            definition.snowLine,
+            when (definition.id) {
+                WorldId.FOREST -> 0.46f
+                WorldId.DESERT -> 0.04f
+                WorldId.SNOW -> 0f
+                WorldId.OCEAN -> 0.12f
+                WorldId.MOUNTAIN -> 0.34f
+            }
         )
 
         sceneRenderer.drawInstanced(currentScene.treeTrunks, currentScene.treeMaterial)
