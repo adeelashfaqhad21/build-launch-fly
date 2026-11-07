@@ -231,13 +231,15 @@ void main() {
 
     // Irregular exposed-earth patches break up uninterrupted green ground cover.
     // The broad field creates connected soil islands; a finer field roughens their edges.
-    float soilField = sin(vWorldPos.x * 0.0057 + sin(vWorldPos.z * 0.0042) * 1.8) *
-                      cos(vWorldPos.z * 0.0051 - vWorldPos.x * 0.0023);
-    float soilDetail = sin(vWorldPos.x * 0.019 + vWorldPos.z * 0.014) *
-                       cos(vWorldPos.z * 0.016 - vWorldPos.x * 0.011);
-    float soilMask = (1.0 - smoothstep(-0.20, 0.52, soilField + soilDetail * 0.12)) *
+    // Overlapping medium and fine fields create broken, natural soil islands instead
+    // of broad smooth bands. Their edges remain irregular at both near and flight scale.
+    float soilField = sin(vWorldPos.x * 0.0105 + sin(vWorldPos.z * 0.0081) * 1.65) *
+                      cos(vWorldPos.z * 0.0094 - vWorldPos.x * 0.0041);
+    float soilDetail = sin(vWorldPos.x * 0.036 + vWorldPos.z * 0.026) *
+                       cos(vWorldPos.z * 0.031 - vWorldPos.x * 0.019);
+    float soilMask = (1.0 - smoothstep(-0.12, 0.38, soilField + soilDetail * 0.22)) *
                      clamp(uSoilStrength, 0.0, 0.65);
-    vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.62, 0.48, 0.34);
+    vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.58, 0.43, 0.30);
     albedo = mix(albedo, exposedEarth, soilMask);
 
     float snowBoundary = uSnowLine + broadNoise * 13.0 + fineNoise * 3.5;
