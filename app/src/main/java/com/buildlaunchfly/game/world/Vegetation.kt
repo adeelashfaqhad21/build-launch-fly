@@ -66,7 +66,7 @@ object Vegetation {
             // tree groups rather than a continuous dark hedge. Close trees retain detail.
             val treeDepth = ((-z) / 3000f).coerceIn(0f, 1f)
             val standBreakup = Noise.fbm01(x * 0.0042f, z * 0.0038f, 2, seed + 43)
-            val thinningThreshold = 0.16f + treeDepth * 0.13f
+            val thinningThreshold = 0.16f + treeDepth * 0.28f
             if (standBreakup < thinningThreshold) continue
 
             // Mature foreground trees must read as full-scale landscape forms from
@@ -119,6 +119,10 @@ object Vegetation {
             // Rocks prefer slopes and ridges.
             val slopeBias = 1.0f - normal.y
             if (rng.nextFloat() > 0.25f + slopeBias * 2.4f) continue
+            // Keep close rock silhouettes substantial while reducing far-field clutter.
+            val rockDepth = ((-z) / 3000f).coerceIn(0f, 1f)
+            if (Noise.fbm01(x * 0.0039f, z * 0.0036f, 2, seed + 991) <
+                0.06f + rockDepth * 0.26f) continue
 
             // Foreground rocks carry readable shape detail; distant rocks shrink toward
             // the horizon to create scale separation without adding extra draw calls.
@@ -204,7 +208,7 @@ object Vegetation {
             // forms and the far ecosystem silhouette to remain legible through haze.
             val shrubDepth = ((-z) / 2850f).coerceIn(0f, 1f)
             val shrubBreakup = Noise.fbm01(x * 0.0051f, z * 0.0047f, 2, seed + 79)
-            if (shrubBreakup < 0.12f + shrubDepth * 0.17f) continue
+            if (shrubBreakup < 0.14f + shrubDepth * 0.30f) continue
 
             val scale = when (def.id) {
                 WorldId.DESERT -> 0.55f + rng.nextFloat() * 0.72f
@@ -294,7 +298,7 @@ object Vegetation {
             val farGrassMask = Noise.fbm01(
                 x * 0.0048f, z * 0.0042f, 2, seed + 307
             )
-            if (farGrassMask < 0.08f + grassDepth * 0.30f) continue
+            if (farGrassMask < 0.12f + grassDepth * 0.43f) continue
 
             val size = when (def.id) {
                 WorldId.DESERT -> 0.30f + rng.nextFloat() * 0.62f
