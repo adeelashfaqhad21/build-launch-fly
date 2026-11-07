@@ -78,6 +78,7 @@ object FlightHudScreen {
         f.label(UiFormat.time(t.flightTimeSeconds), DesignTokens.MARGIN_H + 44f, 34f, UiTextStyle.HUD_LABEL)
 
         drawGimbal(f, 86f, 200f, 44f, t.pitchDegrees, t.rollDegrees)
+        f.label("YAW ${if (t.yawDegrees >= 0f) "+" else ""}${t.yawDegrees.toInt()}°", 86f, 264f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
 
         val banner = f.rect(w / 2f - 150f, 78f, 300f, 22f)
         if (t.stallWarning) {
