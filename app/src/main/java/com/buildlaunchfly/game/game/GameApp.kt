@@ -65,6 +65,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var pull = 0f
     private var stretchActive = false
     private var steerPitch = 0f
+    private var steerYaw = 0f
     private var steerRoll = 0f
     private var flightTime = 0f
     private var resultTimer = 0f
@@ -400,11 +401,15 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         input.consumeDrag(dragScratch)
         val released = input.consumeRelease()
-        steerRoll = (steerRoll + dragScratch[0] * 0.06f).coerceIn(-1f, 1f)
-        steerPitch = (steerPitch - dragScratch[1] * 0.06f).coerceIn(-1f, 1f)
+        if (state == GameState.FLIGHT) {
+            // Horizontal drag commands yaw; vertical drag commands pitch.
+            steerYaw = (steerYaw + dragScratch[0] * 2.8f).coerceIn(-1f, 1f)
+            steerPitch = (steerPitch - dragScratch[1] * 2.8f).coerceIn(-1f, 1f)
+        }
         val decay = (1f - 1.6f * dt).coerceAtLeast(0f)
         steerRoll *= decay
         steerPitch *= decay
+        steerYaw *= decay
 
         when (state) {
             GameState.SEATED -> updateSeated(dt, released)
@@ -438,7 +443,10 @@ class GameApp(private val context: Context, private val input: InputState) {
     private fun updateSeated(dt: Float, released: Boolean) {
         if (input.pointerDown) {
             stretchActive = true
-            pull = (pull + dt * 0.9f).coerceIn(0f, 1f)
+            // Sling tension follows the player's downward drag distance, never elapsed time.
+            if (dragScratch[1] > 0f) {
+                pull = (pull + dragScratch[1] * 2.4f).coerceIn(0f, 1f)
+            }
             audio.setStretch(pull)
         } else if (stretchActive || released) {
             stretchActive = false
@@ -455,6 +463,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val stats = build.stats()
         val ground = currentScene.terrain.height(physics.position.x, physics.position.z)
         flightInput.pitch = steerPitch
+        flightInput.yaw = steerYaw
         flightInput.roll = steerRoll
         physics.update(dt, stats, ground, flightInput)
         flightTime += dt
@@ -484,6 +493,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         physics.launch(speed, profile.launchAngleDegrees.coerceIn(20f, 55f), 0f)
 
         state = GameState.FLIGHT
+        steerPitch = 0f
+        steerYaw = 0f
+        steerRoll = 0f
         flightTime = 0f
         pull = 0f
         maxAltitudeThisFlight = 0f
@@ -535,6 +547,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         physics.reset(seatPosition)
         pull = 0f
         stretchActive = false
+        steerPitch = 0f
+        steerYaw = 0f
+        steerRoll = 0f
         resultTimer = 0f
         state = GameState.SEATED
         paused = false
