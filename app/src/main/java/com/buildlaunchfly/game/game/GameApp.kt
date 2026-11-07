@@ -673,11 +673,9 @@ class GameApp(private val context: Context, private val input: InputState) {
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
         }
-        sceneRenderer.shadowInstanced(currentScene.treeTrunks)
-        sceneRenderer.shadowInstanced(currentScene.treeCanopies)
-        sceneRenderer.shadowInstanced(currentScene.treeCanopyVariants)
-        // Small ground clutter keeps its colour-pass detail but does not cast per-instance
-        // shadows. This avoids a second expensive draw of thousands of low-value objects.
+        // Vegetation remains fully visible in the colour pass, but does not cast
+        // per-instance shadows on mobile. Thousands of tree/rock/grass shadow instances
+        // were a major GPU cost; retain shadows for terrain, aircraft and launcher only.
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
