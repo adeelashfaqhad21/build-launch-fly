@@ -503,7 +503,15 @@ class GameApp(private val context: Context, private val input: InputState) {
             padPosition.z + SlingshotLayout.HOLD_POINT.z
         )
         physics.reset(seatPosition)
-        physics.launch(speed, profile.launchAngleDegrees.coerceIn(20f, 55f), 0f)
+        val damperLevel = sling.levelOf(SlingUpgrade.HYDRAULIC_DAMPER)
+        val damperFraction = damperLevel.toFloat() / SlingshotState.MAX_LEVEL
+        val recoilTurbulence = 0.28f * (1f - damperFraction * 0.92f)
+        physics.launch(
+            speed,
+            profile.launchAngleDegrees.coerceIn(20f, 55f),
+            0f,
+            recoilTurbulence
+        )
 
         state = GameState.FLIGHT
         steerPitch = 0f
@@ -513,8 +521,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         pull = 0f
         maxAltitudeThisFlight = 0f
         lastLaunchStretch = stretch
-        val damperLevel = sling.levelOf(SlingUpgrade.HYDRAULIC_DAMPER)
-        val residualRecoil = 1f - damperLevel.coerceIn(0, SlingshotState.MAX_LEVEL) * 0.045f
+        val residualRecoil = 1f - damperFraction * 0.65f
         cameraDirector.addShake((0.45f + stretch * 0.5f) * residualRecoil)
 
         audio.playRelease(stretch)
