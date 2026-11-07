@@ -162,6 +162,10 @@ The propeller must rotate at an appropriate speed, with suitable sound effects.
 
 The player should feel that aircraft improvements have a genuine impact on flight distance and performance.
 
+**Low-altitude flight challenge:** The aircraft is slingshot-launched and must travel close above the natural terrain. The launch angle is shallow (2°–8°); there are no artificial rings or floating checkpoint obstacles. The player actively controls pitch to maintain a slightly nose-down, speed-preserving attitude while retaining enough lift to clear the ground. Excessive nose-up attitude bleeds airspeed and can cause a stall; excessive nose-down attitude causes a dive or ground impact. Left/right steering is used to avoid naturally occurring terrain and ecosystem features such as trees, buildings, ridges, cliffs, ravines and coastal rocks. Do not use an altitude-holding autopilot; only limited runaway-climb safety assistance is permitted.
+
+**Distance progression:** Slingshot upgrades must measurably improve stored launch energy and release speed. Aircraft upgrades must measurably improve lift, glide efficiency, stability and/or powered thrust according to the installed component. Their combined effect should let a more developed aircraft launched by a better slingshot travel progressively farther. These are real physics effects, not text-only upgrade claims.
+
 The flight camera should maintain a clear view of the aircraft and surrounding landscape.
 
 Camera movement must be smooth and cinematic without making the aircraft difficult to see.
