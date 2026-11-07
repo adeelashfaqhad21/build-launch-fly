@@ -679,6 +679,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let {
             sceneRenderer.drawMesh(it, aircraftMesh.propellerMaterial, propellerModel)
         }
+        val propellerBlur = ((physics.propellerRpm - 850f) / 1700f).coerceIn(0f, 0.34f)
+        if (state == GameState.FLIGHT && propellerBlur > 0f) {
+            aircraftMesh.propellerBlurMesh?.let {
+                sceneRenderer.drawPropellerBlur(it, propellerModel, propellerBlur)
+            }
+        }
 
         val particleColor = when { definition.snowfall > 0f -> particleColorSnow; definition.id == WorldId.OCEAN -> particleColorSeaSpray; else -> particleColorDust }
         sceneRenderer.flushParticles(particleColor)
