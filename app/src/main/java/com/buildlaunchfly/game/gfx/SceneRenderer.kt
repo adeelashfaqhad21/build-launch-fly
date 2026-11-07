@@ -154,7 +154,8 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         tintB: Vec3,
         tintC: Vec3,
         rockThreshold: Float,
-        snowLine: Float
+        snowLine: Float,
+        soilStrength: Float = 0f
     ) {
         val cam = camera ?: return
         terrainProgram.use()
@@ -175,6 +176,7 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         terrainProgram.set("uTintC", tintC)
         terrainProgram.set("uRockThreshold", rockThreshold)
         terrainProgram.set("uSnowLine", snowLine)
+        terrainProgram.set("uSoilStrength", soilStrength.coerceIn(0f, 0.65f))
 
         mesh.draw()
 
