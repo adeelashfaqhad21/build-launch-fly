@@ -295,7 +295,10 @@ class WorldScene(
         val rockSet = Vegetation.scatterRocks(terrain, definition, rockCount, definition.seed)
         rocks = InstancedMesh("rocks", rockData, rockSet.count.coerceAtLeast(1))
         if (rockSet.count > 0) rocks.setInstances(rockSet.matrices, rockSet.count)
-        naturalObstacleProxies = buildNaturalObstacleProxies(treeSet.matrices, treeSet.count, rockSet.matrices, rockSet.count)
+        naturalObstacleProxies = buildNaturalObstacleProxies(
+            treeSet.matrices, treeSet.count, rockSet.matrices, rockSet.count,
+            settlementGeometry.obstacles
+        )
 
         val grassCount = (definition.grassCount * scale).toInt()
         if (grassCount > 0) {
@@ -357,9 +360,10 @@ class WorldScene(
         trees: FloatArray,
         treeCount: Int,
         rocks: FloatArray,
-        rockCount: Int
+        rockCount: Int,
+        settlements: FloatArray
     ): FloatArray {
-        val result = FloatArray((treeCount + rockCount) * 5)
+        val result = FloatArray((treeCount + rockCount) * 5 + settlements.size)
         var out = 0
         for (index in 0 until treeCount) {
             val i = index * 16
@@ -377,6 +381,10 @@ class WorldScene(
             result[out++] = rocks[i + 14]
             result[out++] = maxOf(rocks[i], rocks[i + 10]) * 0.78f + 0.35f
             result[out++] = rocks[i + 5] * 0.82f + 0.35f
+        }
+        if (settlements.isNotEmpty()) {
+            System.arraycopy(settlements, 0, result, out, settlements.size)
+            out += settlements.size
         }
         return if (out == result.size) result else result.copyOf(out)
     }
