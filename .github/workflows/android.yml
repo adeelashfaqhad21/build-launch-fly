@@ -40,7 +40,7 @@ jobs:
             echo "::error::Android sdkmanager was not found under $SDK_ROOT"
             exit 1
           fi
-          yes | "$SDKMANAGER" --licenses >/dev/null
+          # setup-android already accepted licenses; do not pipe yes under pipefail.
           "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
           test -d "$SDK_ROOT/platforms/android-34"
           test -d "$SDK_ROOT/build-tools/34.0.0"
