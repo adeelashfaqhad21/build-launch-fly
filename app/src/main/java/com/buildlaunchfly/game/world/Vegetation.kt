@@ -69,12 +69,14 @@ object Vegetation {
             val thinningThreshold = 0.16f + treeDepth * 0.13f
             if (standBreakup < thinningThreshold) continue
 
+            // Mature foreground trees must read as full-scale landscape forms from
+            // the low chase camera, not as miniature repeated shrubs.
             val height = when (def.id) {
-                WorldId.DESERT -> 2.2f + rng.nextFloat() * 3.2f
-                WorldId.SNOW -> 3.2f + rng.nextFloat() * 4.8f
-                WorldId.OCEAN -> 3.0f + rng.nextFloat() * 5.2f
-                WorldId.MOUNTAIN -> 3.6f + rng.nextFloat() * 6.0f
-                WorldId.FOREST -> 4.2f + rng.nextFloat() * 6.8f
+                WorldId.DESERT -> 2.8f + rng.nextFloat() * 4.0f
+                WorldId.SNOW -> 4.0f + rng.nextFloat() * 6.0f
+                WorldId.OCEAN -> 4.5f + rng.nextFloat() * 6.5f
+                WorldId.MOUNTAIN -> 5.0f + rng.nextFloat() * 9.0f
+                WorldId.FOREST -> 8.0f + rng.nextFloat() * 14.0f
             }
             // Independent crown footprint prevents a repeated row of identical tree stamps.
             // Broadleaf stands vary from narrow birches to wide Scots-pine-like crowns;
@@ -121,7 +123,7 @@ object Vegetation {
             // Foreground rocks carry readable shape detail; distant rocks shrink toward
             // the horizon to create scale separation without adding extra draw calls.
             val depth = ((-z) / 3000f).coerceIn(0f, 1f)
-            val size = (0.9f + rng.nextFloat() * 3.4f) * (1.43f - depth * 0.78f)
+            val size = (1.2f + rng.nextFloat() * 4.0f) * (1.62f - depth * 0.82f)
             val rotX = (rng.nextFloat() - 0.5f) * 0.4f
             val rotY = rng.nextFloat() * 6.2831855f
             val rotZ = (rng.nextFloat() - 0.5f) * 0.4f
