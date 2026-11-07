@@ -25,6 +25,8 @@ class AircraftMesh(textures: TextureFactory) {
         private set
     var propellerMesh: Mesh? = null
         private set
+    var propellerBladeMesh: Mesh? = null
+        private set
     var propellerBlurMesh: Mesh? = null
         private set
 
@@ -66,6 +68,7 @@ class AircraftMesh(textures: TextureFactory) {
         bodyMesh?.dispose()
         canopyMesh?.dispose()
         propellerMesh?.dispose()
+        propellerBladeMesh?.dispose()
         propellerBlurMesh?.dispose()
 
         bodyMesh = Mesh("aircraftBody", buildBodyData(build))
@@ -75,7 +78,12 @@ class AircraftMesh(textures: TextureFactory) {
             null
         }
         propellerMesh = if (build.isInstalled(PartSlot.PROPELLER)) {
-            Mesh("aircraftPropeller", buildPropellerData(build))
+            Mesh("aircraftPropellerHub", buildPropellerData(build))
+        } else {
+            null
+        }
+        propellerBladeMesh = if (build.isInstalled(PartSlot.PROPELLER)) {
+            Mesh("aircraftPropellerBlade", buildPropellerBladeData(build))
         } else {
             null
         }
@@ -92,10 +100,12 @@ class AircraftMesh(textures: TextureFactory) {
         bodyMesh?.dispose()
         canopyMesh?.dispose()
         propellerMesh?.dispose()
+        propellerBladeMesh?.dispose()
         propellerBlurMesh?.dispose()
         bodyMesh = null
         canopyMesh = null
         propellerMesh = null
+        propellerBladeMesh = null
         propellerBlurMesh = null
         signature = ""
     }
@@ -174,6 +184,19 @@ class AircraftMesh(textures: TextureFactory) {
         return b.build()
     }
 
+    private fun buildPropellerBladeData(build: AircraftBuild): MeshData {
+        val b = MeshBuilder()
+        val tier = build.tierOf(PartSlot.PROPELLER)
+        val bladeWidth = if (tier >= 2) 0.070f else 0.055f
+        val span = if (tier >= 2) 1.18f else 1.02f
+        // Root is positioned just beyond the pitch collar; the span axis is local +Y.
+        b.addEllipsoid(0f, 0.34f, 0f, bladeWidth * 1.5f, 0.13f, 0.045f, 5, 8)
+        b.addBox(0f, 0.34f + span * 0.48f, 0f, bladeWidth, span * 0.50f, 0.020f)
+        b.addBox(0f, 0.34f + span * 0.91f, 0f, bladeWidth * 0.68f, span * 0.15f, 0.015f)
+        b.addEllipsoid(0f, 0.34f + span * 1.04f, 0f, bladeWidth * 0.70f, 0.055f, 0.018f, 5, 7)
+        return b.build()
+    }
+
     private fun buildPropellerData(build: AircraftBuild): MeshData {
         val b = MeshBuilder()
         val tier = build.tierOf(PartSlot.PROPELLER)
@@ -191,17 +214,8 @@ class AircraftMesh(textures: TextureFactory) {
             b.pushTrs(0f, 0f, 0f, 0f, 0f, angle, 1f)
             b.addCylinder(0f, 0.17f, 0f, 0.105f, 0.105f, 0.12f, 10)
             b.addBox(0f, 0.29f, 0f, 0.035f, 0.09f, 0.035f)
-            val bladeLength = if (tier >= 2) 0.62f else 0.54f
-            val bladeWidth = if (tier >= 2) 0.070f else 0.055f
-            // The broad blade and narrower outer section form a tapered planform.
-            // The blade is deliberately built in the same radial transform as its collar.
-            b.addBox(0f, 0.34f + bladeLength * 0.88f, 0f, bladeWidth, bladeLength * 0.88f, 0.018f)
-            b.addBox(0f, 0.34f + bladeLength * 1.62f, 0f, bladeWidth * 0.66f, bladeLength * 0.13f, 0.014f)
-            if (tier >= 2) {
-                // Forged-carbon tapered tip and reinforced root.
-                b.addEllipsoid(0f, 0.34f + bladeLength * 1.76f, 0f, bladeWidth * 0.72f, 0.018f, 0.024f, 4, 6)
-                b.addEllipsoid(0f, 0.40f, 0f, bladeWidth * 1.45f, 0.09f, 0.055f, 5, 7)
-            }
+            // Blade geometry is a separate mesh so each blade can change pitch around
+            // its own radial axis while the whole propeller spins around the shaft.
             b.pop()
         }
 
