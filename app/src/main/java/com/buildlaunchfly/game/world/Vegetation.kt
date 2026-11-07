@@ -63,13 +63,19 @@ object Vegetation {
                 WorldId.DESERT -> 2.2f + rng.nextFloat() * 3.2f
                 WorldId.SNOW -> 3.2f + rng.nextFloat() * 4.8f
                 WorldId.OCEAN -> 3.0f + rng.nextFloat() * 5.2f
-                else -> 3.4f + rng.nextFloat() * 5.8f
+                WorldId.MOUNTAIN -> 3.6f + rng.nextFloat() * 6.0f
+                WorldId.FOREST -> 4.2f + rng.nextFloat() * 6.8f
             }
-            val width = height * (0.27f + rng.nextFloat() * 0.22f)
+            // Independent crown footprint prevents a repeated row of identical tree stamps.
+            // Broadleaf stands vary from narrow birches to wide Scots-pine-like crowns;
+            // coastal trees receive a little more directional lean from persistent sea wind.
+            val widthX = height * (0.22f + rng.nextFloat() * 0.30f)
+            val widthZ = height * (0.20f + rng.nextFloat() * 0.32f)
             val rotY = rng.nextFloat() * 6.2831855f
-            val leanX = (rng.nextFloat() - 0.5f) * 0.045f
-            val leanZ = (rng.nextFloat() - 0.5f) * 0.045f
-            matrix.setTrs(x, h, z, leanX, rotY, leanZ, width, height, width)
+            val windLean = if (def.id == WorldId.OCEAN) 0.095f else 0.055f
+            val leanX = (rng.nextFloat() - 0.5f) * windLean
+            val leanZ = (rng.nextFloat() - 0.5f) * windLean
+            matrix.setTrs(x, h, z, leanX, rotY, leanZ, widthX, height, widthZ)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
