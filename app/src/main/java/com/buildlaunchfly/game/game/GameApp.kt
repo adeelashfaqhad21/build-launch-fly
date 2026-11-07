@@ -729,7 +729,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             setHydraulicModels(rig, slingDraw)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicLeftModel)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicRightModel)
-            val cradle = rig.holdPoint(slingDraw)
+            val cradle = rig.holdPoint(slingDraw, profile.launchAngleDegrees)
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.drawMesh(rig.cradleMesh, rig.cradleMaterial, cradleModel)
 
@@ -834,6 +834,6 @@ class GameApp(private val context: Context, private val input: InputState) {
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
         private const val SLING_RECOIL_DURATION = 0.42f
         // Larger hero framing: the aircraft must read as the primary subject in launch and chase views.
-        private const val AIRCRAFT_HERO_SCALE = 1.48f
+        private const val AIRCRAFT_HERO_SCALE = 1.62f
     }
 }
