@@ -127,6 +127,25 @@ class Terrain(val definition: WorldDefinition) {
         return h + definition.heightOffset
     }
 
+    /**
+     * True inside a deep, exposed main glacier fracture. Kept consistent with the
+     * crevasse field used by [baseHeight], so gameplay milestones use the rendered terrain.
+     */
+    fun isCrevasseZone(x: Float, z: Float): Boolean {
+        if (definition.id != WorldId.SNOW) return false
+        val h = baseHeight(x, z)
+        val elevationMask = M.smoothStep(
+            definition.heightOffset + 12f,
+            definition.heightOffset + 42f,
+            h
+        )
+        if (elevationMask < 0.55f) return false
+        val flow = z * 0.0035f + sin(x * 0.0022f) * 1.15f
+        val mainWave = abs(sin((x * 0.045f + sin(flow) * 1.6f).toDouble()).toFloat())
+        val mainCrack = 1f - M.smoothStep(0.012f, 0.092f, mainWave)
+        return mainCrack >= 0.5f
+    }
+
     fun height(x: Float, z: Float): Float {
         var h = baseHeight(x, z)
         val distSq = x * x + z * z
