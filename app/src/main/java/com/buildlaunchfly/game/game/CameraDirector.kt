@@ -38,15 +38,15 @@ class CameraDirector(private val camera: Camera) {
         // Launch view is centred on the slingshot axis, directly behind the cradle.
         desiredPosition.set(
             padPosition.x,
-            padPosition.y + 3.8f,
-            padPosition.z + 10.5f + pull * 0.8f
+            padPosition.y + 3.35f,
+            padPosition.z + 8.0f + pull * 0.65f
         )
         desiredTarget.set(
             aircraftPosition.x,
             aircraftPosition.y + 0.35f,
             aircraftPosition.z - 7.0f
         )
-        follow(dt, 7.5f)
+        follow(dt, 9.5f)
     }
 
     fun updateFlight(aircraftPosition: Vec3, velocity: Vec3, speed: Float, dt: Float) {
