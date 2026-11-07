@@ -17,6 +17,7 @@ class PlayerProfile {
     var bestAltitude: Float = 0f
     var flights: Int = 0
     var totalDistance: Float = 0f
+    var glacierCrevasseCrossed: Boolean = false
 
     /** Ballistic launch elevation, 20°..55° per design.md §6 Screen 3. */
     var launchAngleDegrees: Float = 24f
@@ -110,6 +111,7 @@ class PlayerProfile {
         root.put("bestAltitude", bestAltitude.toDouble())
         root.put("flights", flights)
         root.put("totalDistance", totalDistance.toDouble())
+        root.put("glacierCrevasseCrossed", glacierCrevasseCrossed)
         root.put("launchAngle", launchAngleDegrees.toDouble())
         root.put("selectedWorld", selectedWorld.name)
 
@@ -150,6 +152,7 @@ class PlayerProfile {
                 profile.bestAltitude = root.optDouble("bestAltitude", 0.0).toFloat()
                 profile.flights = root.optInt("flights", 0)
                 profile.totalDistance = root.optDouble("totalDistance", 0.0).toFloat()
+                profile.glacierCrevasseCrossed = root.optBoolean("glacierCrevasseCrossed", false)
                 profile.launchAngleDegrees =
                     root.optDouble("launchAngle", 24.0).toFloat().coerceIn(20f, 55f)
 
