@@ -66,7 +66,7 @@ class WorldScene(
             else -> 0.92f
         }
 
-        terrainMesh = Mesh("terrain", TerrainMesh.build(terrain))
+        terrainMesh = Mesh("terrain", TerrainMesh.build(terrain, detailLevel))
         waterMesh = if (definition.hasWater) Mesh("water", buildWaterData()) else null
 
         val trunkData = buildTrunkData()
