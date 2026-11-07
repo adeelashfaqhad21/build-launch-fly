@@ -166,23 +166,31 @@ class AircraftMesh(textures: TextureFactory) {
         val b = MeshBuilder()
         val tier = build.tierOf(PartSlot.PROPELLER)
 
-        // Spinner + hub, oriented along Z.
+        // Spinner, thrust washer and stepped pitch-control hub, all coaxial with the shaft.
         b.pushTrs(0f, 0f, 0f, M.HALF_PI, 0f, 0f, 1f)
-        b.addCylinder(0f, 0f, 0f, 0.09f, 0.13f, 0.22f, 10)
+        b.addCylinder(0f, 0f, 0f, 0.09f, 0.13f, 0.22f, 12)
+        b.addCylinder(0f, 0.10f, 0f, 0.17f, 0.17f, 0.055f, 12)
+        b.addCylinder(0f, -0.11f, 0f, 0.125f, 0.125f, 0.06f, 12)
         b.pop()
-
-        // Three-blade propeller, evenly spaced at 120 degrees. The whole mesh rotates
-        // around the shaft from FlightPhysics.propellerAngle during flight.
+        // The three collars and their radial pitch links make the variable-pitch
+        // mechanism readable as hardware rather than three blades glued to a spinner.
         for (blade in 0 until 3) {
             val angle = blade * (M.TWO_PI / 3f)
             b.pushTrs(0f, 0f, 0f, 0f, 0f, angle, 1f)
+            b.addCylinder(0f, 0.17f, 0f, 0.105f, 0.105f, 0.12f, 10)
+            b.addBox(0f, 0.29f, 0f, 0.035f, 0.09f, 0.035f)
             val bladeLength = if (tier >= 2) 0.62f else 0.54f
             val bladeWidth = if (tier >= 2) 0.070f else 0.055f
-            b.addBox(0f, bladeLength, 0f, bladeWidth, bladeLength * 0.92f, 0.022f)
+            // A modest built-in blade twist provides a visible aerodynamic pitch profile.
+            b.pushTrs(0f, 0.34f, 0f, 0f, 0.16f, 0f, 1f)
+            b.addBox(0f, bladeLength * 0.88f, 0f, bladeWidth, bladeLength * 0.88f, 0.018f)
+            b.addBox(0f, bladeLength * 1.62f, 0f, bladeWidth * 0.66f, bladeLength * 0.13f, 0.014f)
             if (tier >= 2) {
-                // Stage 6: wider forged-carbon blade roots and tapered-looking tip caps.
-                b.addEllipsoid(0f, bladeLength * 1.72f, 0f, bladeWidth * 0.82f, 0.018f, 0.026f, 4, 6)
+                // Forged-carbon tapered tip and reinforced root.
+                b.addEllipsoid(0f, bladeLength * 1.76f, 0f, bladeWidth * 0.72f, 0.018f, 0.024f, 4, 6)
+                b.addEllipsoid(0f, 0.06f, 0f, bladeWidth * 1.45f, 0.09f, 0.055f, 5, 7)
             }
+            b.pop()
             b.pop()
         }
 
