@@ -630,6 +630,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         } else {
             aircraftModel.set(physics.orientation).scale(1.22f)
             physics.propellerMatrix(propellerModel)
+            propellerModel.scale(1.22f)
         }
         updatePropellerBladeModels(physics.propellerBladePitch)
 
@@ -654,6 +655,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
         sceneRenderer.shadowInstanced(currentScene.bushes)
+        sceneRenderer.shadowInstanced(currentScene.bushesVariantB)
+        sceneRenderer.shadowInstanced(currentScene.bushesVariantC)
         sceneRenderer.shadowInstanced(currentScene.rocks)
         sceneRenderer.endShadowPass()
 
@@ -674,6 +677,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         sceneRenderer.drawInstanced(currentScene.treeCanopies, currentScene.canopyMaterial)
         sceneRenderer.drawInstanced(currentScene.rocks, currentScene.rockMaterial)
         sceneRenderer.drawInstanced(currentScene.bushes, currentScene.bushMaterial)
+        sceneRenderer.drawInstanced(currentScene.bushesVariantB, currentScene.bushMaterial)
+        sceneRenderer.drawInstanced(currentScene.bushesVariantC, currentScene.bushMaterial)
         currentScene.grass?.let { sceneRenderer.drawInstanced(it, currentScene.grassMaterial) }
         sceneRenderer.drawInstanced(currentScene.birdsMesh, currentScene.birdMaterial)
         sceneRenderer.drawInstanced(currentScene.animalsMesh, currentScene.animalMaterial)
