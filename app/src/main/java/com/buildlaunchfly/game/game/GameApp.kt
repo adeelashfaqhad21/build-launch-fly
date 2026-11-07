@@ -416,10 +416,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         val cancelled = input.consumeCancel()
         if (state == GameState.FLIGHT) {
             // Horizontal drag commands yaw; vertical drag commands pitch.
-            steerYaw = (steerYaw + dragScratch[0] * 2.8f).coerceIn(-1f, 1f)
-            steerPitch = (steerPitch - dragScratch[1] * 2.8f).coerceIn(-1f, 1f)
+            steerYaw = (steerYaw + dragScratch[0] * 3.8f).coerceIn(-1f, 1f)
+            // Screen Y grows downward: a downward swipe commands a positive pitch
+            // (nose up), while an upward swipe commands nose down.
+            steerPitch = (steerPitch + dragScratch[1] * 3.8f).coerceIn(-1f, 1f)
         }
-        val decay = (1f - 1.6f * dt).coerceAtLeast(0f)
+        val decay = (1f - 0.85f * dt).coerceAtLeast(0f)
         steerRoll *= decay
         steerPitch *= decay
         steerYaw *= decay
@@ -617,12 +619,12 @@ class GameApp(private val context: Context, private val input: InputState) {
                 padPosition.y + hold.y,
                 padPosition.z + hold.z,
                 0.10f * pull, 0f, 0f,
-                1f
+                1.22f
             )
             propellerModel.set(aircraftModel)
             propellerModel.translate(0f, 0f, -1.62f)
         } else {
-            aircraftModel.set(physics.orientation)
+            aircraftModel.set(physics.orientation).scale(1.22f)
             physics.propellerMatrix(propellerModel)
         }
         updatePropellerBladeModels(physics.propellerBladePitch)
