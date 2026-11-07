@@ -63,6 +63,33 @@ object SlingshotWorkshopScreen {
         y = row(f, r, "DRAW LENGTH", "%.2f m".format(state.drawLengthMeters()), y)
         y = row(f, r, "BAND THICKNESS", "x%.2f".format(state.bandThickness()), y)
         row(f, r, "POWER RATING", UiFormat.percent(state.powerRating()), y)
+        drawTensionGrid(f, r, state)
+    }
+
+    /** Compact live upgrade readout: each cell represents one of twelve capacity steps. */
+    private fun drawTensionGrid(f: UiFrame, panel: RectF, state: SlingshotState) {
+        val strength = state.levelOf(SlingUpgrade.BAND_STRENGTH).coerceIn(0, SlingshotState.MAX_LEVEL)
+        val elasticity = state.levelOf(SlingUpgrade.BAND_ELASTICITY).coerceIn(0, SlingshotState.MAX_LEVEL)
+        val left = panel.left + 12f
+        val right = panel.right - 12f
+        val cellGap = 2f
+        val cellWidth = (right - left - cellGap * (SlingshotState.MAX_LEVEL - 1)) / SlingshotState.MAX_LEVEL
+        val labelY = panel.bottom - 28f
+        f.label("TENSION CAPACITY", left, labelY, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
+
+        val strengthY = panel.bottom - 19f
+        val returnY = panel.bottom - 9f
+        for (index in 0 until SlingshotState.MAX_LEVEL) {
+            val x = left + index * (cellWidth + cellGap)
+            val activeStrength = index < strength
+            val activeReturn = index < elasticity
+            val strengthColor = if (activeStrength) DesignTokens.COLOR_COIN_GOLD
+                else DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.12f)
+            val returnColor = if (activeReturn) DesignTokens.COLOR_PRIMARY_GLOW
+                else DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.12f)
+            f.solid(RectF(x, strengthY, x + cellWidth, strengthY + 4f), 1.5f, strengthColor)
+            f.solid(RectF(x, returnY, x + cellWidth, returnY + 4f), 1.5f, returnColor)
+        }
     }
 
     private fun row(f: UiFrame, panel: RectF, label: String, value: String, y: Float): Float {
