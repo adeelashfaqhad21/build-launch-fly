@@ -35,17 +35,18 @@ class CameraDirector(private val camera: Camera) {
     }
 
     fun updateSeated(padPosition: Vec3, aircraftPosition: Vec3, pull: Float, dt: Float) {
+        // Launch view is centred on the slingshot axis, directly behind the cradle.
         desiredPosition.set(
-            padPosition.x + 6.4f,
-            padPosition.y + 2.6f,
-            padPosition.z + 7.2f + pull * 1.5f
+            padPosition.x,
+            padPosition.y + 3.8f,
+            padPosition.z + 10.5f + pull * 0.8f
         )
         desiredTarget.set(
             aircraftPosition.x,
-            aircraftPosition.y - 0.2f,
-            aircraftPosition.z - 5.0f
+            aircraftPosition.y + 0.35f,
+            aircraftPosition.z - 7.0f
         )
-        follow(dt, 3.2f)
+        follow(dt, 7.5f)
     }
 
     fun updateFlight(aircraftPosition: Vec3, velocity: Vec3, speed: Float, dt: Float) {
@@ -57,17 +58,19 @@ class CameraDirector(private val camera: Camera) {
             dirY = velocity.y / speed
             dirZ = velocity.z / speed
         }
+        // Tight chase framing keeps the aircraft large and the terrain immediately
+        // ahead/below legible instead of shrinking the world into a distant panorama.
         desiredPosition.set(
-            aircraftPosition.x - dirX * 15.5f,
-            aircraftPosition.y - dirY * 15.5f + 5.8f,
-            aircraftPosition.z - dirZ * 15.5f
+            aircraftPosition.x - dirX * 7.2f,
+            aircraftPosition.y - dirY * 7.2f + 2.35f,
+            aircraftPosition.z - dirZ * 7.2f
         )
         desiredTarget.set(
-            aircraftPosition.x + dirX * 7f,
-            aircraftPosition.y + 0.8f,
-            aircraftPosition.z + dirZ * 7f
+            aircraftPosition.x + dirX * 8.5f,
+            aircraftPosition.y - 0.65f,
+            aircraftPosition.z + dirZ * 8.5f
         )
-        follow(dt, 4.0f)
+        follow(dt, 9.0f)
     }
 
     fun updateResults(focus: Vec3, time: Float, dt: Float) {
