@@ -9,7 +9,8 @@ enum class AchievementMetric {
     TOTAL_DISTANCE,
     FLIGHTS,
     WORLD_DISTANCE,
-    WORLDS_UNLOCKED
+    WORLDS_UNLOCKED,
+    GLACIER_CREVASSE_CROSSED
 }
 
 class Achievement(
@@ -46,11 +47,11 @@ object AchievementCatalog {
         Achievement(
             id = "glacier_master",
             title = "Glacier Master",
-            description = "Fly 1,500 m across the glacier reach.",
-            metric = AchievementMetric.WORLD_DISTANCE,
-            target = 1500f,
+            description = "Cross an exposed glacier crevasse zone.",
+            metric = AchievementMetric.GLACIER_CREVASSE_CROSSED,
+            target = 1f,
             reward = 300,
-            world = WorldId.SNOW
+            unit = ""
         ),
         Achievement(
             id = "long_hauler",
@@ -91,6 +92,8 @@ object AchievementCatalog {
             AchievementMetric.WORLD_DISTANCE ->
                 profile.bestPerWorld[achievement.world ?: WorldId.FOREST] ?: 0f
             AchievementMetric.WORLDS_UNLOCKED -> profile.unlockedWorlds.size.toFloat()
+            AchievementMetric.GLACIER_CREVASSE_CROSSED ->
+                if (profile.glacierCrevasseCrossed) 1f else 0f
         }
     }
 
