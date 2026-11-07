@@ -277,7 +277,7 @@ object ProfileScreen {
         )
         f.panel(r)
 
-        f.label("Capt. Alexander", r.left + 20f, r.top + 30f, UiTextStyle.H1)
+        f.label("PILOT PROFILE", r.left + 20f, r.top + 30f, UiTextStyle.H1)
         f.label(
             "${profile.pilotRankTitle()} \u2022 Level ${profile.pilotLevel()}",
             r.left + 20f,
