@@ -75,8 +75,8 @@ class WorldScene(
         bushMesh = Mesh("bush", bushData)
 
         treeMaterial = Material(
-            albedo = textures.bark,
-            tint = Vec3(0.82f, 0.76f, 0.68f),
+            albedo = if (definition.id == WorldId.DESERT) textures.leaf else textures.bark,
+            tint = if (definition.id == WorldId.DESERT) Vec3(0.34f, 0.54f, 0.29f) else Vec3(0.82f, 0.76f, 0.68f),
             roughness = 0.92f,
             metallic = 0f,
             uvScale = 2f
@@ -261,14 +261,29 @@ class WorldScene(
 
     private fun buildCanopyData(): MeshData {
         val builder = MeshBuilder()
-        if (definition.pineTrees) {
-            builder.addCone(0f, 0.30f, 0f, 0.52f, 0.9f, 9, 1.5f)
-            builder.addCone(0f, 0.72f, 0f, 0.40f, 0.75f, 9, 1.5f)
-            builder.addCone(0f, 1.08f, 0f, 0.26f, 0.60f, 8, 1.5f)
-        } else {
-            builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
-            builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
-            builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+        when {
+            definition.id == WorldId.DESERT -> {
+                // Saguaro silhouette: two raised arms with elbows, not a generic tree crown.
+                builder.addCylinder(0f, 0.72f, 0f, 0.14f, 0.12f, 1.45f, 10, false, false, 1f)
+                builder.pushTrs(-0.22f, 0.72f, 0f, 0f, 0f, 1.5707963f, 1f)
+                builder.addCylinder(0f, 0f, 0f, 0.10f, 0.10f, 0.46f, 8, false, false, 1f)
+                builder.pop()
+                builder.addCylinder(-0.48f, 0.90f, 0f, 0.095f, 0.09f, 0.62f, 8, false, false, 1f)
+                builder.pushTrs(0.24f, 0.66f, 0f, 0f, 0f, 1.5707963f, 1f)
+                builder.addCylinder(0f, 0f, 0f, 0.10f, 0.10f, 0.42f, 8, false, false, 1f)
+                builder.pop()
+                builder.addCylinder(0.45f, 0.85f, 0f, 0.09f, 0.085f, 0.55f, 8, false, false, 1f)
+            }
+            definition.pineTrees -> {
+                builder.addCone(0f, 0.30f, 0f, 0.52f, 0.9f, 9, 1.5f)
+                builder.addCone(0f, 0.72f, 0f, 0.40f, 0.75f, 9, 1.5f)
+                builder.addCone(0f, 1.08f, 0f, 0.26f, 0.60f, 8, 1.5f)
+            }
+            else -> {
+                builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
+                builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
+                builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+            }
         }
         return builder.build()
     }
