@@ -194,9 +194,13 @@ object Vegetation {
             }
             // Stronger independent axis variation changes each shrub's height, spread and silhouette.
             // The low-frequency habitat mask still controls clustering; transforms avoid repeated copies.
-            val sx = scale * (0.58f + rng.nextFloat() * 0.92f)
-            val sy = scale * (0.72f + rng.nextFloat() * 0.78f)
-            val sz = scale * (0.60f + rng.nextFloat() * 0.90f)
+            // Establish a readable near-to-far understory scale gradient. Nearby
+            // plants keep their silhouette; distant clumps recede without extra geometry.
+            val depth = ((-z) / 2750f).coerceIn(0f, 1f)
+            val depthScale = 1.18f - depth * 0.48f
+            val sx = scale * depthScale * (0.58f + rng.nextFloat() * 0.92f)
+            val sy = scale * depthScale * (0.72f + rng.nextFloat() * 0.78f)
+            val sz = scale * depthScale * (0.60f + rng.nextFloat() * 0.90f)
             val leanX = (rng.nextFloat() - 0.5f) * 0.18f
             val leanZ = (rng.nextFloat() - 0.5f) * 0.18f
             matrix.setTrs(x, h, z, leanX, rng.nextFloat() * 6.2831855f, leanZ, sx, sy, sz)
