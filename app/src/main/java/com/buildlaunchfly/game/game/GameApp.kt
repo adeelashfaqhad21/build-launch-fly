@@ -660,6 +660,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
         }
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
+        sceneRenderer.shadowInstanced(currentScene.treeCanopies)
+        sceneRenderer.shadowInstanced(currentScene.treeCanopyVariants)
         sceneRenderer.shadowInstanced(currentScene.bushes)
         sceneRenderer.shadowInstanced(currentScene.bushesVariantB)
         sceneRenderer.shadowInstanced(currentScene.bushesVariantC)
@@ -689,6 +691,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         sceneRenderer.drawInstanced(currentScene.treeTrunks, currentScene.treeMaterial)
         sceneRenderer.drawInstanced(currentScene.treeCanopies, currentScene.canopyMaterial)
+        sceneRenderer.drawInstanced(currentScene.treeCanopyVariants, currentScene.canopyMaterial)
         sceneRenderer.drawInstanced(currentScene.rocks, currentScene.rockMaterial)
         sceneRenderer.drawInstanced(currentScene.bushes, currentScene.bushMaterial)
         sceneRenderer.drawInstanced(currentScene.bushesVariantB, currentScene.bushMaterial)
