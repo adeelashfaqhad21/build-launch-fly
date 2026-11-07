@@ -83,6 +83,25 @@ class Terrain(val definition: WorldDefinition) {
             h -= crackMask * elevationMask * 1.15f
         }
 
+        if (definition.id == WorldId.OCEAN) {
+            // A continuous, gently curving shoreline: shallow beach shelf, then weathered sea cliffs.
+            val shoreline = -285f + 78f * sin(z * 0.00145f) + 24f * sin(z * 0.0031f + 0.8f)
+            val inland = x - shoreline
+            if (inland in 0f..190f) {
+                val beachHeight = definition.waterLevel + 1.2f + (inland / 190f) * 5.8f
+                val beachBlend = 1f - M.smoothStep(0f, 190f, inland)
+                h = M.lerp(h, beachHeight, beachBlend * 0.92f)
+            }
+            val cliffBand = M.smoothStep(185f, 260f, inland) *
+                (1f - M.smoothStep(520f, 720f, inland))
+            val cliffNoise = Noise.fbm2(x * 0.004f, z * 0.006f, 3, 2f, 0.55f, s + 117)
+            h += cliffBand * (13f + cliffNoise * 8f)
+            // Erosion gullies descend from the cliff top toward the beach.
+            val gullyLine = shoreline + 230f + 22f * sin(z * 0.006f + cliffNoise * 2f)
+            val gully = abs(x - gullyLine)
+            h -= (1f - M.smoothStep(2.5f, 12f, gully)) * cliffBand * 4.2f
+        }
+
         // Shallow valley along the launch corridor.
         val corridor = kotlin.math.exp((-(x * x) / (260f * 260f)).toDouble()).toFloat()
         h -= corridor * 6f
