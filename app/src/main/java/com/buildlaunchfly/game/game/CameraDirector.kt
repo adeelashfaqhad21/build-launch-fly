@@ -60,16 +60,16 @@ class CameraDirector(private val camera: Camera) {
         }
         // Close, low rear chase: keep the aircraft dominant while showing the terrain
         // directly ahead. A short follow distance avoids the distant spectator-camera feel.
-        val chaseDistance = 4.35f
+        val chaseDistance = 3.85f
         desiredPosition.set(
             aircraftPosition.x - dirX * chaseDistance,
-            aircraftPosition.y - dirY * chaseDistance + 1.35f,
+            aircraftPosition.y - dirY * chaseDistance + 1.15f,
             aircraftPosition.z - dirZ * chaseDistance
         )
         desiredTarget.set(
-            aircraftPosition.x + dirX * 4.8f,
+            aircraftPosition.x + dirX * 4.25f,
             aircraftPosition.y - 0.20f,
-            aircraftPosition.z + dirZ * 4.8f
+            aircraftPosition.z + dirZ * 4.25f
         )
         follow(dt, 12.5f)
     }
