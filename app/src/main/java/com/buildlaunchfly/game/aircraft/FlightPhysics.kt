@@ -44,6 +44,8 @@ class FlightPhysics {
         private set
     var propellerRpm = 0f
         private set
+    var propellerBladePitch = 0.12f
+        private set
 
     var throttle = 1f
 
@@ -70,6 +72,7 @@ class FlightPhysics {
         distance = 0f
         maxSpeed = 0f
         propellerRpm = 0f
+        propellerBladePitch = 0.12f
         state = FlightState.READY
         start.set(origin)
         updateOrientation()
@@ -163,10 +166,14 @@ class FlightPhysics {
             val windmill = speed * 40f
             val targetRpm = maxOf(windmill, stats.maxRpm * throttle)
             propellerRpm = M.lerp(propellerRpm, targetRpm, M.clamp(2f * dt, 0f, 1f))
+            val rpmFraction = M.clamp(propellerRpm / maxOf(stats.maxRpm, 1f), 0f, 1f)
+            val targetBladePitch = 0.10f + rpmFraction * 0.34f
+            propellerBladePitch = M.lerp(propellerBladePitch, targetBladePitch, M.clamp(2.8f * dt, 0f, 1f))
             propellerAngle += propellerRpm / 60f * M.TWO_PI * dt
             if (propellerAngle > M.TWO_PI) propellerAngle -= M.TWO_PI
         } else {
             propellerRpm = 0f
+            propellerBladePitch = M.lerp(propellerBladePitch, 0.12f, M.clamp(2f * dt, 0f, 1f))
         }
 
         // Ground contact: decide between a landing and a crash.
