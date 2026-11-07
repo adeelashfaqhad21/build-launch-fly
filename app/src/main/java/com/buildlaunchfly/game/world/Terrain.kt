@@ -138,7 +138,34 @@ class Terrain(val definition: WorldDefinition) {
             }
         }
 
-        // Shallow valley along the launch corridor.
+        // Distant landform shoulders establish a readable skyline behind the playable
+        // terrain. Their broad, low-amplitude profiles sit beyond the near flight corridor;
+        // the existing world-specific height fields determine each ecosystem's character.
+        val distance = (-z).coerceAtLeast(0f)
+        val farLayer = M.smoothStep(780f, 1380f, distance) *
+            (1f - M.smoothStep(2860f, 3480f, distance))
+        val skylineWarp = Noise.fbm2(
+            x * 0.0017f + s * 0.00013f,
+            z * 0.0013f, 2, 2f, 0.5f, s + 211
+        )
+        val shoulderNoise = Noise.fbm2(
+            x * 0.0032f + skylineWarp * 0.42f,
+            z * 0.0021f - skylineWarp * 0.24f,
+            3, 2f, 0.5f, s + 227
+        )
+        val shoulderProfile = (0.58f + shoulderNoise * 0.42f).coerceIn(0.12f, 1.0f)
+        val lateralEnvelope = 1f - M.smoothStep(520f, 1380f, abs(x))
+        val skylineAmplitude = when (definition.id) {
+            WorldId.FOREST -> 9.5f
+            WorldId.DESERT -> 14f
+            WorldId.SNOW -> 23f
+            WorldId.OCEAN -> 12f
+            WorldId.MOUNTAIN -> 28f
+        }
+        h += farLayer * lateralEnvelope * shoulderProfile * skylineAmplitude
+
+        // Shallow valley along the launch corridor. The distant shoulder mask fades in
+        // outside this corridor so the aircraft's first seconds remain unobstructed.
         val corridor = kotlin.math.exp((-(x * x) / (260f * 260f)).toDouble()).toFloat()
         h -= corridor * 6f
 
