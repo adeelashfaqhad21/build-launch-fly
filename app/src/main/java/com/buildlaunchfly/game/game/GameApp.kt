@@ -90,6 +90,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val hydraulicRightModel = Mat4()
     private val leftBand = Mat4()
     private val rightBand = Mat4()
+    private val worldIdentity = Mat4()
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
     private val focusPoint = Vec3()
@@ -700,13 +701,19 @@ class GameApp(private val context: Context, private val input: InputState) {
             definition.snowLine,
             when (definition.id) {
                 // Forest meadows and mountain pastures need visible bare-earth islands.
-                WorldId.FOREST -> 0.62f
+                WorldId.FOREST -> 0.65f
                 WorldId.DESERT -> 0.04f
                 WorldId.SNOW -> 0f
                 WorldId.OCEAN -> 0.18f
-                WorldId.MOUNTAIN -> 0.48f
+                WorldId.MOUNTAIN -> 0.62f
             }
         )
+
+        // One batched pass per settlement material keeps the inhabited world legible
+        // without a draw call for every hut, cabin, igloo or coastal house.
+        sceneRenderer.drawMesh(currentScene.settlementWallsMesh, currentScene.settlementWallMaterial, worldIdentity)
+        sceneRenderer.drawMesh(currentScene.settlementRoofsMesh, currentScene.settlementRoofMaterial, worldIdentity)
+        sceneRenderer.drawMesh(currentScene.settlementDetailsMesh, currentScene.settlementDetailMaterial, worldIdentity)
 
         sceneRenderer.drawInstanced(currentScene.treeTrunks, currentScene.treeMaterial)
         sceneRenderer.drawInstanced(currentScene.treeCanopies, currentScene.canopyMaterial)

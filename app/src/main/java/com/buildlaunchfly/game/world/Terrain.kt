@@ -216,6 +216,26 @@ class Terrain(val definition: WorldDefinition) {
         h += farLayer * lateralEnvelope * shoulderProfile *
             ecosystemSilhouette * skylineAmplitude
 
+        // Branching natural ravines create real lowland routes and raised shoulders.
+        // They are deliberately outside the first launch stretch and fade irregularly
+        // into the existing landform so they do not look like a straight trench.
+        if (definition.id == WorldId.FOREST || definition.id == WorldId.MOUNTAIN) {
+            val ravineCenter = 138f * sin(z * 0.00165f + 0.4f) +
+                46f * sin(z * 0.0043f + 1.1f)
+            val ravineDistance = abs(x - ravineCenter)
+            val ravineWidth = 16f + 11f * Noise.fbm01(x * 0.003f, z * 0.002f, 2, s + 319)
+            val ravineMask = (1f - M.smoothStep(5f, ravineWidth, ravineDistance)) *
+                M.smoothStep(260f, 520f, -z) *
+                (1f - M.smoothStep(3000f, 3520f, -z))
+            val depth = if (definition.id == WorldId.MOUNTAIN) 13.5f else 8.5f
+            h -= ravineMask * depth
+            val shoulder = kotlin.math.exp(
+                (-((ravineDistance - ravineWidth * 1.25f) *
+                    (ravineDistance - ravineWidth * 1.25f)) / 420.0).toDouble()
+            ).toFloat()
+            h += shoulder * ravineMask * 2.2f
+        }
+
         // Shallow valley along the launch corridor. The distant shoulder mask fades in
         // outside this corridor so the aircraft's first seconds remain unobstructed.
         val corridor = kotlin.math.exp((-(x * x) / (260f * 260f)).toDouble()).toFloat()

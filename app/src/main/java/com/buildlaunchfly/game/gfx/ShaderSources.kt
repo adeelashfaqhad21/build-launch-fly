@@ -276,8 +276,13 @@ void main() {
     float soilField = terrainFbm(terrainUv * 0.0068);
     float soilDetail = terrainNoise(terrainUv * 0.027) * 0.72 +
                        terrainNoise(terrainUv * 0.061) * 0.28;
-    float soilMask = (1.0 - smoothstep(-0.12, 0.38, soilField + soilDetail * 0.22)) *
+    float soilMask = (1.0 - smoothstep(-0.06, 0.46, soilField + soilDetail * 0.30)) *
                      clamp(uSoilStrength, 0.0, 0.65);
+    // A second, broader erosion field breaks up large uninterrupted grass/snow
+    // material regions at flight scale without drawing artificial contour lines.
+    float erosionField = terrainFbm(terrainUv * 0.00135 + vec2(17.3, -9.1));
+    float erosionPatch = smoothstep(-0.22, 0.34, erosionField + broadNoise * 0.30);
+    soilMask = max(soilMask, erosionPatch * clamp(uSoilStrength * 0.34, 0.0, 0.24));
     vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.58, 0.43, 0.30);
     albedo = mix(albedo, exposedEarth, soilMask);
 

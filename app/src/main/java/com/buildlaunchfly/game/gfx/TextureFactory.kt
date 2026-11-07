@@ -84,14 +84,17 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
     }
 
     private fun grassTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
-        val broad = Noise.fbm2(u * 4f, v * 4f, 3, 2f, 0.5f, seed)
-        val blades = Noise.fbm2(u * 26f, v * 60f, 3, 2f, 0.55f, seed + 11)
-        val fine = Noise.value2(u * 140f, v * 140f, seed + 23)
-        val patch = Noise.fbm2(u * 1.7f, v * 1.7f, 2, 2f, 0.5f, seed + 37)
+        // Broad, irregular colour patches dominate; short blade-scale noise is
+        // deliberately restrained so the terrain does not read as a tiled green carpet.
+        val broad = Noise.fbm2(u * 3.2f, v * 3.2f, 4, 2f, 0.52f, seed)
+        val blades = Noise.fbm2(u * 17f, v * 29f, 3, 2f, 0.58f, seed + 11)
+        val fine = Noise.value2(u * 118f, v * 118f, seed + 23)
+        val patch = Noise.fbm2(u * 1.25f, v * 1.25f, 3, 2f, 0.5f, seed + 37)
+        val dryPatch = M.smoothStep(0.08f, 0.52f, patch + broad * 0.42f)
 
-        val r = 0.20f + broad * 0.05f + patch * 0.045f + blades * 0.03f
-        val g = 0.36f + broad * 0.09f + patch * 0.075f + blades * 0.06f + fine * 0.02f
-        val b = 0.13f + broad * 0.04f + fine * 0.012f
+        val r = 0.22f + broad * 0.065f + dryPatch * 0.075f + blades * 0.018f
+        val g = 0.32f + broad * 0.075f + patch * 0.045f - dryPatch * 0.055f + blades * 0.028f + fine * 0.012f
+        val b = 0.14f + broad * 0.035f + dryPatch * 0.018f + fine * 0.010f
         rgb(r, g, b)
     }
 
@@ -120,22 +123,28 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
     }
 
     private fun snowTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
-        val broad = Noise.fbm2(u * 5f, v * 5f, 4, 2f, 0.5f, seed + 131)
-        val crust = Noise.fbm2(u * 22f, v * 22f, 3, 2f, 0.55f, seed + 149)
-        val sparkle = if (Noise.value2(u * 220f, v * 220f, seed + 157) > 0.86f) 0.12f else 0f
+        // Powder, wind-packed crust and scattered ice crystals. Avoid regular
+        // stripe/ripple motifs: snow should read as a soft, irregular frozen surface.
+        val broad = Noise.fbm2(u * 4.2f, v * 4.2f, 4, 2f, 0.52f, seed + 131)
+        val crust = Noise.fbm2(u * 17f, v * 17f, 4, 2f, 0.56f, seed + 149)
+        val micro = Noise.value2(u * 96f, v * 96f, seed + 153)
+        val crystal = if (Noise.value2(u * 190f, v * 190f, seed + 157) > 0.91f) 0.055f else 0f
+        val windPack = M.smoothStep(-0.12f, 0.48f, broad + crust * 0.24f)
 
-        val lum = 0.90f + broad * 0.045f + crust * 0.03f + sparkle
+        val lum = 0.875f + broad * 0.052f + crust * 0.026f + micro * 0.012f + crystal + windPack * 0.012f
         rgb(lum, lum * 0.99f, M.saturate(lum * 1.02f))
     }
 
     private fun iceTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
-        val vein = 1f - M.smoothStep(
-            0.02f, 0.14f,
-            kotlin.math.abs(Noise.fbm2(u * 6f, v * 6f, 4, 2f, 0.5f, seed + 173))
-        )
-        val grain = Noise.fbm2(u * 30f, v * 30f, 3, 2f, 0.5f, seed + 181)
-        val base = 0.74f + grain * 0.05f
-        val lum = base * (1f - vein * 0.35f)
+        // Branching, warped fracture veins rather than parallel painted lines.
+        val warpX = Noise.fbm2(u * 4f, v * 4f, 3, 2f, 0.5f, seed + 171) * 0.075f
+        val warpY = Noise.fbm2(u * 4f + 7f, v * 4f - 3f, 3, 2f, 0.5f, seed + 172) * 0.075f
+        val fracture = Noise.fbm2((u + warpX) * 10f, (v + warpY) * 10f, 4, 2f, 0.52f, seed + 173)
+        val vein = 1f - M.smoothStep(0.035f, 0.15f, kotlin.math.abs(fracture))
+        val grain = Noise.fbm2(u * 24f, v * 24f, 3, 2f, 0.5f, seed + 181)
+        val facets = Noise.value2(u * 72f, v * 72f, seed + 183)
+        val base = 0.75f + grain * 0.045f + facets * 0.012f
+        val lum = base * (1f - vein * 0.22f)
         rgb(lum * 0.88f, lum * 0.96f, lum * 1.05f)
     }
 

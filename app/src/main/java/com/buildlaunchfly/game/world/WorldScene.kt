@@ -23,6 +23,9 @@ class WorldScene(
     val terrain = Terrain(definition)
     val terrainMesh: Mesh
     val waterMesh: Mesh?
+    val settlementWallsMesh: Mesh
+    val settlementRoofsMesh: Mesh
+    val settlementDetailsMesh: Mesh
 
     val treeTrunkMesh: Mesh
     val treeCanopyMesh: Mesh
@@ -37,6 +40,9 @@ class WorldScene(
     val bushMaterial: Material
     val birdMaterial: Material
     val animalMaterial: Material
+    val settlementWallMaterial: Material
+    val settlementRoofMaterial: Material
+    val settlementDetailMaterial: Material
 
     val treeTrunks: InstancedMesh
     val treeCanopies: InstancedMesh
@@ -68,6 +74,49 @@ class WorldScene(
 
         terrainMesh = Mesh("terrain", TerrainMesh.build(terrain, detailLevel))
         waterMesh = if (definition.hasWater) Mesh("water", buildWaterData()) else null
+
+        // Small, ecosystem-specific settlements are authored as three static meshes.
+        // They add inhabited landmarks without introducing per-building draw calls.
+        val settlementGeometry = SettlementMeshes.build(terrain, definition, detailLevel)
+        settlementWallsMesh = Mesh("settlementWalls", settlementGeometry.walls)
+        settlementRoofsMesh = Mesh("settlementRoofs", settlementGeometry.roofs)
+        settlementDetailsMesh = Mesh("settlementDetails", settlementGeometry.details)
+        settlementWallMaterial = Material(
+            albedo = when (definition.id) {
+                WorldId.FOREST, WorldId.MOUNTAIN -> textures.bark
+                WorldId.DESERT, WorldId.OCEAN -> textures.surface(SurfaceKind.SAND)
+                WorldId.SNOW -> textures.surface(SurfaceKind.SNOW)
+            },
+            tint = when (definition.id) {
+                WorldId.FOREST -> Vec3(0.76f, 0.62f, 0.44f)
+                WorldId.DESERT -> Vec3(0.91f, 0.70f, 0.48f)
+                WorldId.SNOW -> Vec3(0.66f, 0.72f, 0.78f)
+                WorldId.OCEAN -> Vec3(0.84f, 0.78f, 0.63f)
+                WorldId.MOUNTAIN -> Vec3(0.67f, 0.62f, 0.54f)
+            },
+            roughness = 0.92f
+        )
+        settlementRoofMaterial = Material(
+            albedo = when (definition.id) {
+                WorldId.DESERT, WorldId.OCEAN -> textures.surface(SurfaceKind.ROCK)
+                WorldId.SNOW -> textures.surface(SurfaceKind.SNOW)
+                else -> textures.bark
+            },
+            tint = when (definition.id) {
+                WorldId.FOREST -> Vec3(0.38f, 0.25f, 0.18f)
+                WorldId.DESERT -> Vec3(0.66f, 0.40f, 0.25f)
+                WorldId.SNOW -> Vec3(0.88f, 0.94f, 1.00f)
+                WorldId.OCEAN -> Vec3(0.38f, 0.48f, 0.56f)
+                WorldId.MOUNTAIN -> Vec3(0.34f, 0.28f, 0.22f)
+            },
+            roughness = 0.86f
+        )
+        settlementDetailMaterial = Material(
+            albedo = textures.metal,
+            tint = Vec3(0.20f, 0.24f, 0.27f),
+            roughness = 0.72f,
+            metallic = 0.08f
+        )
 
         val trunkData = buildTrunkData()
         val canopyData = buildCanopyData(0)
@@ -292,6 +341,9 @@ class WorldScene(
     fun dispose() {
         terrainMesh.dispose()
         waterMesh?.dispose()
+        settlementWallsMesh.dispose()
+        settlementRoofsMesh.dispose()
+        settlementDetailsMesh.dispose()
         treeTrunkMesh.dispose()
         treeCanopyMesh.dispose()
         treeCanopyVariantMesh.dispose()
