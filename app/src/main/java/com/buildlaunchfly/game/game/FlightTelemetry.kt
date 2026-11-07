@@ -10,6 +10,7 @@ class FlightTelemetry(
     val airspeedKmh: Float = 0f,
     val pitchDegrees: Float = 0f,
     val rollDegrees: Float = 0f,
+    val yawDegrees: Float = 0f,
     val stallWarning: Boolean = false,
     val verticalSpeed: Float = 0f,
     val flightTimeSeconds: Float = 0f
