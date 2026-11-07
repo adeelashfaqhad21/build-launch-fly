@@ -391,7 +391,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             pitchDegrees = physics.pitch * 57.29578f,
             rollDegrees = physics.roll * 57.29578f,
             yawDegrees = physics.yaw * 57.29578f,
-            stallWarning = physics.pitch > 0.38f && speed < 17f && state == GameState.FLIGHT,
+            stallWarning = physics.stallIntensity > 0.28f && state == GameState.FLIGHT,
+            stallIntensity = physics.stallIntensity,
             verticalSpeed = physics.velocity.y,
             flightTimeSeconds = flightTime
         )
