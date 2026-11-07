@@ -81,7 +81,7 @@ class AircraftMesh(textures: TextureFactory) {
         }
         propellerBlurMesh = if (build.isInstalled(PartSlot.PROPELLER)) {
             val blur = MeshBuilder()
-            blur.addEllipsoid(0f, 0f, 0f, 0.82f, 0.82f, 0.006f, 12, 24)
+            blur.addEllipsoid(0f, 0f, 0f, 1.48f, 1.48f, 0.006f, 16, 32)
             Mesh("aircraftPropellerBlurDisc", blur.build())
         } else {
             null
