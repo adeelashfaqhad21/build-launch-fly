@@ -27,6 +27,10 @@ class AudioEngine {
     @Volatile
     private var ambience = AmbienceStyle.FOREST
 
+    /** Ambient beds stay off in menus; world ambience fades in with actual flight. */
+    @Volatile
+    private var ambienceEnabled = false
+
     @Volatile
     private var airspeed = 0f
 
@@ -133,6 +137,10 @@ class AudioEngine {
 
     fun setAmbience(style: AmbienceStyle) {
         ambience = style
+    }
+
+    fun setAmbienceEnabled(enabled: Boolean) {
+        ambienceEnabled = enabled
     }
 
     fun setFlight(airspeed01: Float, prop01: Float, active: Boolean) {
@@ -277,7 +285,7 @@ class AudioEngine {
                 }
 
                 val mixed = (
-                    ambienceSample * ambienceVolume +
+                    (if (ambienceEnabled) ambienceSample * ambienceVolume else 0f) +
                         engineSample * engineVolume +
                         fxCueSample
                     ) * masterVolume
