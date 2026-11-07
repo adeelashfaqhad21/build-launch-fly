@@ -166,7 +166,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val padY = scene?.terrain?.padHeight ?: 6f
         padPosition.set(0f, padY, 0f)
-        val restingPoint = slingMesh?.holdPoint(0f) ?: SlingshotLayout.HOLD_POINT
+        val restingPoint = slingMesh?.holdPoint(0f, profile.launchAngleDegrees) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
             padPosition.x + restingPoint.x,
             padPosition.y + restingPoint.y,
@@ -207,7 +207,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         applyEnvironment(definition, sceneRenderer)
         padPosition.set(0f, newScene.terrain.padHeight, 0f)
-        val restingPoint = slingMesh?.holdPoint(0f) ?: SlingshotLayout.HOLD_POINT
+        val restingPoint = slingMesh?.holdPoint(0f, profile.launchAngleDegrees) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
             padPosition.x + restingPoint.x,
             padPosition.y + restingPoint.y,
@@ -519,7 +519,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val speed = sling.launchSpeed(stretch, stats.mass)
         // Spawn the aircraft at the carriage's real drawn-back position so release
         // begins from the elastic's stored position rather than snapping forward.
-        val releasePoint = slingMesh?.holdPoint(stretch) ?: SlingshotLayout.HOLD_POINT
+        val releasePoint = slingMesh?.holdPoint(stretch, profile.launchAngleDegrees) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
             padPosition.x + releasePoint.x,
             padPosition.y + releasePoint.y,
@@ -624,12 +624,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (state == GameState.SEATED) {
-            val hold = rig.holdPoint(pull)
+            val hold = rig.holdPoint(pull, profile.launchAngleDegrees)
             aircraftModel.setTrs(
                 padPosition.x + hold.x,
                 padPosition.y + hold.y,
                 padPosition.z + hold.z,
-                0.10f * pull, 0f, 0f,
+                Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat() + 0.10f * pull, 0f, 0f,
                 AIRCRAFT_HERO_SCALE
             )
             propellerModel.set(aircraftModel)
@@ -656,8 +656,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             setHydraulicModels(rig, slingDraw)
             sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicLeftModel)
             sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicRightModel)
-            val cradle = rig.holdPoint(slingDraw)
-            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
+            val cradle = rig.holdPoint(slingDraw, profile.launchAngleDegrees)
+            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
         }
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
@@ -717,7 +717,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicLeftModel)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicRightModel)
             val cradle = rig.holdPoint(slingDraw)
-            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
+            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.drawMesh(rig.cradleMesh, rig.cradleMaterial, cradleModel)
 
             rig.thicknessBoost = slingStateBandBoost()
