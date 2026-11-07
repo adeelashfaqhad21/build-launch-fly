@@ -82,6 +82,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val propellerModel = Mat4()
     private val slingshotModel = Mat4()
     private val bandLocal = Mat4()
+    private val cradleModel = Mat4()
     private val leftBand = Mat4()
     private val rightBand = Mat4()
     private val seatPosition = Vec3()
@@ -595,7 +596,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
         aircraftMesh.bodyMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
-        if (state == GameState.SEATED) sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+        if (state == GameState.SEATED) {
+            sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+            val cradle = rig.holdPoint(pull)
+            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
+            sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
+        }
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
         sceneRenderer.shadowInstanced(currentScene.bushes)
         sceneRenderer.shadowInstanced(currentScene.rocks)
@@ -634,6 +640,9 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (state == GameState.SEATED) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
+            val cradle = rig.holdPoint(pull)
+            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
+            sceneRenderer.drawMesh(rig.cradleMesh, rig.cradleMaterial, cradleModel)
 
             rig.thicknessBoost = slingStateBandBoost()
             applyBandTint(rig, pull)
