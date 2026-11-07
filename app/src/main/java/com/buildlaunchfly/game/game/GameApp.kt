@@ -597,6 +597,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         if (state == GameState.SEATED) sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
+        sceneRenderer.shadowInstanced(currentScene.bushes)
         sceneRenderer.shadowInstanced(currentScene.rocks)
         sceneRenderer.endShadowPass()
 
@@ -616,6 +617,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         sceneRenderer.drawInstanced(currentScene.treeTrunks, currentScene.treeMaterial)
         sceneRenderer.drawInstanced(currentScene.treeCanopies, currentScene.canopyMaterial)
         sceneRenderer.drawInstanced(currentScene.rocks, currentScene.rockMaterial)
+        sceneRenderer.drawInstanced(currentScene.bushes, currentScene.bushMaterial)
         currentScene.grass?.let { sceneRenderer.drawInstanced(it, currentScene.grassMaterial) }
         sceneRenderer.drawInstanced(currentScene.birdsMesh, currentScene.birdMaterial)
         sceneRenderer.drawInstanced(currentScene.animalsMesh, currentScene.animalMaterial)
