@@ -191,8 +191,8 @@ class WorldScene(
 
         birds = Wildlife.Birds(
             birdCount,
-            Vec3(0f, terrain.padHeight + 20f, -220f),
-            definition.seed
+            terrain,
+            definition
         )
         animals = Wildlife.GroundAnimals(
             animalCount,
