@@ -204,6 +204,7 @@ uniform vec3 uTintB;
 uniform vec3 uTintC;
 uniform float uRockThreshold;
 uniform float uSnowLine;
+uniform float uSoilStrength;
 
 out vec4 fragColor;
 
@@ -227,6 +228,17 @@ void main() {
     // Steeper faces expose more rock; shallow shelves retain their dominant ground cover.
     rockMask = clamp(rockMask + smoothstep(0.34, 0.82, slope) * 0.18, 0.0, 1.0);
     vec3 albedo = mix(a, b, rockMask);
+
+    // Irregular exposed-earth patches break up uninterrupted green ground cover.
+    // The broad field creates connected soil islands; a finer field roughens their edges.
+    float soilField = sin(vWorldPos.x * 0.0057 + sin(vWorldPos.z * 0.0042) * 1.8) *
+                      cos(vWorldPos.z * 0.0051 - vWorldPos.x * 0.0023);
+    float soilDetail = sin(vWorldPos.x * 0.019 + vWorldPos.z * 0.014) *
+                       cos(vWorldPos.z * 0.016 - vWorldPos.x * 0.011);
+    float soilMask = (1.0 - smoothstep(-0.20, 0.52, soilField + soilDetail * 0.12)) *
+                     clamp(uSoilStrength, 0.0, 0.65);
+    vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.62, 0.48, 0.34);
+    albedo = mix(albedo, exposedEarth, soilMask);
 
     float snowBoundary = uSnowLine + broadNoise * 13.0 + fineNoise * 3.5;
     float highMask = smoothstep(snowBoundary - 8.0, snowBoundary + 52.0, vWorldPos.y);
