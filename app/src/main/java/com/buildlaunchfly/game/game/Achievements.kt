@@ -29,17 +29,17 @@ object AchievementCatalog {
         Achievement(
             id = "cloud_piercer",
             title = "Cloud Piercer",
-            description = "Reach 400 m above the terrain in any realm.",
+            description = "Reach 1,000 m above the terrain in any realm.",
             metric = AchievementMetric.BEST_ALTITUDE,
-            target = 400f,
+            target = 1000f,
             reward = 250
         ),
         Achievement(
             id = "desert_falcon",
             title = "Desert Falcon",
-            description = "Fly 1,500 m in the amber dunes.",
+            description = "Fly 5,000 m in the amber dunes.",
             metric = AchievementMetric.WORLD_DISTANCE,
-            target = 1500f,
+            target = 5000f,
             reward = 300,
             world = WorldId.DESERT
         ),
