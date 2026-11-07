@@ -63,6 +63,7 @@ class FlightPhysics {
     private val accel = Vec3()
     private val tmp = Vec3()
     private val propLocal = Mat4()
+    private var altitudeCeilingBrake = 0f
 
     fun reset(origin: Vec3) {
         position.set(origin)
@@ -163,8 +164,24 @@ class FlightPhysics {
 
         updateOrientation()
 
+        // The slingshot aircraft is a low-level glider, not a high-altitude plane.
+        // Add a progressive ceiling force once it climbs above the local terrain band;
+        // this preserves natural launch arcs while preventing unrealistic thousands-
+        // of-feet climbs. A final hard safety cap prevents numerical overshoot.
+        val altitudeBeforeStep = position.y - terrainHeight
+        if (altitudeBeforeStep > 18f) {
+            val excess = altitudeBeforeStep - 18f
+            val climbBrake = (excess * 0.72f + velocity.y.coerceAtLeast(0f) * 1.45f)
+                .coerceAtMost(34f)
+            // Applied below after gravity is initialized.
+            altitudeCeilingBrake = climbBrake
+        } else {
+            altitudeCeilingBrake = 0f
+        }
+
         // Integrate accelerations.
         accel.set(0f, -9.81f, 0f)
+        accel.y -= altitudeCeilingBrake
         accel.addScaled(forward, thrustAccel)
         accel.addScaled(up, liftAccel)
         if (speed > 1e-4f) {
@@ -216,9 +233,9 @@ class FlightPhysics {
 
 
         // Soft ceiling keeps the aircraft inside the rendered world.
-        val ceiling = terrainHeight + 300f
+        val ceiling = terrainHeight + 42f
         if (position.y > ceiling) {
-            position.y = terrainHeight + 260f
+            position.y = ceiling
             if (velocity.y > 0f) velocity.y = 0f
         }
     }
