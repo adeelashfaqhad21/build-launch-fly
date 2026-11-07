@@ -646,10 +646,10 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         // Camera-relative mobile LOD: preserve full nearby silhouettes and reduce
         // distant clutter before both shadow and colour passes.
-        currentScene.treeTrunks.applyDistanceLod(camera.position, 1250f, 520f)
-        currentScene.treeCanopies.applyDistanceLod(camera.position, 1250f, 520f)
-        currentScene.treeCanopyVariants.applyDistanceLod(camera.position, 1250f, 520f)
-        currentScene.rocks.applyDistanceLod(camera.position, 780f, 260f)
+        currentScene.treeTrunks.applyDistanceLod(camera.position, 1250f, 520f, false)
+        currentScene.treeCanopies.applyDistanceLod(camera.position, 1250f, 520f, false)
+        currentScene.treeCanopyVariants.applyDistanceLod(camera.position, 1250f, 520f, false)
+        currentScene.rocks.applyDistanceLod(camera.position, 780f, 260f, false)
         currentScene.bushes.applyDistanceLod(camera.position, 560f, 180f)
         currentScene.bushesVariantB.applyDistanceLod(camera.position, 560f, 180f)
         currentScene.bushesVariantC.applyDistanceLod(camera.position, 560f, 180f)
