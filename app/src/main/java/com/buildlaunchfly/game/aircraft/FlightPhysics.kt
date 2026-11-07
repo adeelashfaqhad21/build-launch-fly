@@ -105,7 +105,7 @@ class FlightPhysics {
         // Slingshot launch should carry the aircraft forward, not throw it skyward.
         // The launcher angle supplies only a modest initial climb; the pilot must
         // manage pitch to trade altitude for airspeed during the low-level run.
-        velocity.y += speed * 0.035f
+        velocity.y += speed * 0.012f
         state = FlightState.FLYING
         distance = 0f
     }
