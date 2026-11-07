@@ -207,7 +207,7 @@ object WorldCatalog {
         roughness = 1.5f,
         duneStrength = 0f,
         heightOffset = -16f,
-        waterLevel = 0f,
+        waterLevel = -18f,
         hasWater = true,
         waterDeep = Vec3(0.03f, 0.15f, 0.28f),
         waterShallow = Vec3(0.10f, 0.42f, 0.46f),
