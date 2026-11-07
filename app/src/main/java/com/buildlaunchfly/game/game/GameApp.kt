@@ -491,7 +491,6 @@ class GameApp(private val context: Context, private val input: InputState) {
             currentScene.terrain.isCrevasseZone(physics.position.x, physics.position.z)
         ) {
             profile.glacierCrevasseCrossed = true
-            hud?.onCoinsChanged(profile.coins)
         }
 
         audio.setFlight(
