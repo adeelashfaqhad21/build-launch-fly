@@ -420,16 +420,89 @@ class WorldScene(
 
     private fun buildBirdData(): MeshData {
         val builder = MeshBuilder()
-        builder.addBox(0f, 0f, 0f, 0.05f, 0.05f, 0.24f)
-        builder.addBox(0.30f, 0f, 0f, 0.30f, 0.012f, 0.09f)
-        builder.addBox(-0.30f, 0f, 0f, 0.30f, 0.012f, 0.09f)
+        builder.addEllipsoid(0f, 0f, 0f, 0.075f, 0.065f, 0.22f, 5, 7)
+        builder.addCone(0f, 0.015f, -0.25f, 0.035f, 0.16f, 5, 0.65f)
+        when (definition.id) {
+            WorldId.OCEAN -> {
+                // Gull: long swept wings with slightly raised tips.
+                builder.pushTrs(0f, 0f, 0f, 0f, 0f, 0.08f, 1f)
+                builder.addBox(0.31f, 0.015f, 0f, 0.31f, 0.018f, 0.075f)
+                builder.addBox(-0.31f, 0.015f, 0f, 0.31f, 0.018f, 0.075f)
+                builder.pop()
+            }
+            WorldId.MOUNTAIN -> {
+                // Alpine eagle: broad primary feathers and a fanned tail.
+                builder.addBox(0.30f, 0f, 0f, 0.34f, 0.025f, 0.12f)
+                builder.addBox(-0.30f, 0f, 0f, 0.34f, 0.025f, 0.12f)
+                for (feather in 0 until 3) {
+                    builder.addEllipsoid(0.42f + feather * 0.07f, -0.01f, 0.10f, 0.10f, 0.018f, 0.09f, 4, 5)
+                    builder.addEllipsoid(-0.42f - feather * 0.07f, -0.01f, 0.10f, 0.10f, 0.018f, 0.09f, 4, 5)
+                }
+            }
+            WorldId.SNOW -> {
+                // Compact ptarmigan-like profile with rounded wings.
+                builder.addEllipsoid(0.22f, -0.015f, 0f, 0.24f, 0.045f, 0.14f, 5, 7)
+                builder.addEllipsoid(-0.22f, -0.015f, 0f, 0.24f, 0.045f, 0.14f, 5, 7)
+            }
+            WorldId.DESERT -> {
+                // Broad soaring desert raptor wings.
+                builder.addBox(0.32f, 0f, 0f, 0.36f, 0.018f, 0.14f)
+                builder.addBox(-0.32f, 0f, 0f, 0.36f, 0.018f, 0.14f)
+                builder.addCone(0f, 0f, 0.28f, 0.11f, 0.28f, 5, 0.65f)
+            }
+            WorldId.FOREST -> {
+                // Swallow: tapered, swept wings and forked tail.
+                builder.addBox(0.26f, 0f, -0.02f, 0.28f, 0.014f, 0.075f)
+                builder.addBox(-0.26f, 0f, -0.02f, 0.28f, 0.014f, 0.075f)
+                builder.addCone(0.07f, 0f, 0.28f, 0.025f, 0.22f, 4, 0.5f)
+                builder.addCone(-0.07f, 0f, 0.28f, 0.025f, 0.22f, 4, 0.5f)
+            }
+        }
         return builder.build()
     }
 
     private fun buildAnimalData(): MeshData {
         val builder = MeshBuilder()
-        builder.addEllipsoid(0f, 0.48f, 0f, 0.26f, 0.22f, 0.52f, 5, 8)
-        builder.addEllipsoid(0f, 0.66f, -0.42f, 0.15f, 0.15f, 0.20f, 4, 7)
+        when (definition.id) {
+            WorldId.DESERT -> {
+                // Dromedary-like desert grazer with a distinct single hump and long neck.
+                builder.addEllipsoid(0f, 0.52f, 0f, 0.30f, 0.25f, 0.58f, 6, 9)
+                builder.addEllipsoid(0.02f, 0.78f, 0.02f, 0.20f, 0.25f, 0.23f, 5, 7)
+                builder.addCylinder(0f, 0.82f, -0.43f, 0.075f, 0.065f, 0.55f, 6, false, false)
+                builder.addEllipsoid(0f, 1.12f, -0.68f, 0.12f, 0.13f, 0.16f, 5, 7)
+            }
+            WorldId.SNOW -> {
+                // Arctic fox: low body, deep chest, short legs and bushy tail.
+                builder.addEllipsoid(0f, 0.38f, 0f, 0.28f, 0.24f, 0.48f, 6, 9)
+                builder.addEllipsoid(0f, 0.49f, -0.39f, 0.17f, 0.17f, 0.19f, 5, 7)
+                builder.addCone(0f, 0.34f, 0.52f, 0.16f, 0.42f, 5, 0.75f)
+                builder.addCone(-0.09f, 0.69f, -0.46f, 0.055f, 0.20f, 4, 0.7f)
+                builder.addCone(0.09f, 0.69f, -0.46f, 0.055f, 0.20f, 4, 0.7f)
+            }
+            WorldId.OCEAN -> {
+                // Resting seal silhouette on the coastal rocks.
+                builder.addEllipsoid(0f, 0.36f, 0f, 0.30f, 0.24f, 0.60f, 7, 10)
+                builder.addEllipsoid(0f, 0.49f, -0.48f, 0.18f, 0.18f, 0.22f, 6, 8)
+                builder.addEllipsoid(0.20f, 0.20f, 0.48f, 0.12f, 0.08f, 0.28f, 5, 7)
+                builder.addEllipsoid(-0.20f, 0.20f, 0.48f, 0.12f, 0.08f, 0.28f, 5, 7)
+            }
+            WorldId.MOUNTAIN -> {
+                // Ibex-like alpine grazer with swept-back horns.
+                builder.addEllipsoid(0f, 0.48f, 0f, 0.28f, 0.23f, 0.52f, 6, 9)
+                builder.addEllipsoid(0f, 0.68f, -0.42f, 0.15f, 0.16f, 0.18f, 5, 7)
+                builder.addCone(-0.10f, 0.92f, -0.43f, 0.055f, 0.38f, 5, 0.65f)
+                builder.addCone(0.10f, 0.92f, -0.43f, 0.055f, 0.38f, 5, 0.65f)
+            }
+            WorldId.FOREST -> {
+                // Roe deer-like body with neck and small antlers.
+                builder.addEllipsoid(0f, 0.48f, 0f, 0.26f, 0.22f, 0.52f, 6, 9)
+                builder.addEllipsoid(0f, 0.67f, -0.42f, 0.15f, 0.15f, 0.20f, 5, 7)
+                builder.addCylinder(0f, 0.74f, -0.48f, 0.045f, 0.04f, 0.22f, 5, false, false)
+                builder.addCone(-0.09f, 0.91f, -0.45f, 0.025f, 0.22f, 4, 0.55f)
+                builder.addCone(0.09f, 0.91f, -0.45f, 0.025f, 0.22f, 4, 0.55f)
+            }
+        }
+        // Shared four-leg stance.
         builder.addBox(0.16f, 0.20f, 0.30f, 0.05f, 0.20f, 0.05f)
         builder.addBox(-0.16f, 0.20f, 0.30f, 0.05f, 0.20f, 0.05f)
         builder.addBox(0.16f, 0.20f, -0.30f, 0.05f, 0.20f, 0.05f)
