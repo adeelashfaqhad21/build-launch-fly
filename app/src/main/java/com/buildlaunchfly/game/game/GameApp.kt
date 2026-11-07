@@ -644,6 +644,19 @@ class GameApp(private val context: Context, private val input: InputState) {
         camera.update()
         sceneRenderer.beginFrame(camera)
 
+        // Camera-relative mobile LOD: preserve full nearby silhouettes and reduce
+        // distant clutter before both shadow and colour passes.
+        currentScene.treeTrunks.applyDistanceLod(camera.position, 1250f, 520f)
+        currentScene.treeCanopies.applyDistanceLod(camera.position, 1250f, 520f)
+        currentScene.treeCanopyVariants.applyDistanceLod(camera.position, 1250f, 520f)
+        currentScene.rocks.applyDistanceLod(camera.position, 780f, 260f)
+        currentScene.bushes.applyDistanceLod(camera.position, 560f, 180f)
+        currentScene.bushesVariantB.applyDistanceLod(camera.position, 560f, 180f)
+        currentScene.bushesVariantC.applyDistanceLod(camera.position, 560f, 180f)
+        currentScene.grass?.applyDistanceLod(camera.position, 210f, 70f)
+        currentScene.birdsMesh.applyDistanceLod(camera.position, 720f, 240f)
+        currentScene.animalsMesh.applyDistanceLod(camera.position, 520f, 180f)
+
         val shadowFocus = if (state == GameState.SEATED) seatPosition else physics.position
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
         aircraftMesh.bodyMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
