@@ -330,9 +330,17 @@ class WorldScene(
                 builder.addCone(0f, 1.08f, 0f, 0.26f, 0.60f, 8, 1.5f)
             }
             else -> {
-                builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
-                builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
-                builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+                // Temperate broadleaf canopy: offset foliage masses form a broken,
+                // asymmetric crown instead of the familiar three-ball lollipop.
+                builder.addEllipsoid(0f, 1.02f, 0f, 0.43f, 0.62f, 0.42f, 7, 10)
+                builder.addEllipsoid(0.30f, 0.78f, 0.10f, 0.34f, 0.40f, 0.33f, 6, 9)
+                builder.addEllipsoid(-0.31f, 0.83f, -0.16f, 0.32f, 0.46f, 0.30f, 6, 9)
+                builder.addEllipsoid(0.06f, 1.38f, -0.20f, 0.29f, 0.36f, 0.31f, 6, 8)
+                builder.addEllipsoid(-0.12f, 0.60f, 0.22f, 0.31f, 0.28f, 0.34f, 6, 8)
+                // Small outer lobes break the silhouette at mid-distance while keeping
+                // the canopy connected enough to read as one mature tree.
+                builder.addEllipsoid(0.52f, 0.92f, -0.18f, 0.19f, 0.28f, 0.21f, 5, 7)
+                builder.addEllipsoid(-0.50f, 0.70f, 0.18f, 0.20f, 0.27f, 0.22f, 5, 7)
             }
         }
         return builder.build()
