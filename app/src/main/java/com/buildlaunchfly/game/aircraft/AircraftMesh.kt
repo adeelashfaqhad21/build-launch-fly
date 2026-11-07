@@ -25,6 +25,8 @@ class AircraftMesh(textures: TextureFactory) {
         private set
     var propellerMesh: Mesh? = null
         private set
+    var propellerBlurMesh: Mesh? = null
+        private set
 
     private var signature = ""
 
@@ -64,6 +66,7 @@ class AircraftMesh(textures: TextureFactory) {
         bodyMesh?.dispose()
         canopyMesh?.dispose()
         propellerMesh?.dispose()
+        propellerBlurMesh?.dispose()
 
         bodyMesh = Mesh("aircraftBody", buildBodyData(build))
         canopyMesh = if (hasAdvancedAirframe(build)) {
@@ -76,15 +79,24 @@ class AircraftMesh(textures: TextureFactory) {
         } else {
             null
         }
+        propellerBlurMesh = if (build.isInstalled(PartSlot.PROPELLER)) {
+            val blur = MeshBuilder()
+            blur.addEllipsoid(0f, 0f, 0f, 0.82f, 0.82f, 0.006f, 12, 24)
+            Mesh("aircraftPropellerBlurDisc", blur.build())
+        } else {
+            null
+        }
     }
 
     fun dispose() {
         bodyMesh?.dispose()
         canopyMesh?.dispose()
         propellerMesh?.dispose()
+        propellerBlurMesh?.dispose()
         bodyMesh = null
         canopyMesh = null
         propellerMesh = null
+        propellerBlurMesh = null
         signature = ""
     }
 
