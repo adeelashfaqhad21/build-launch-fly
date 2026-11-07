@@ -131,8 +131,9 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addBox(0f, 0.10f, 0f, 0.78f, 0.10f, 1.02f, 2f)
         b.addBox(-0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
         b.addBox(0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
-        // No raised nose stop: the aircraft propeller/nose must have a clear forward exit.
-        b.addBox(0f, 0.24f, 0.86f, 0.54f, 0.12f, 0.10f, 2f)
+        // Keep the forward launch corridor completely unobstructed. The padded
+        // bed and side cheeks retain the fuselage during draw without a crossbar
+        // intersecting the nose, propeller or wing-root clearance envelope.
         return b.build()
     }
 
