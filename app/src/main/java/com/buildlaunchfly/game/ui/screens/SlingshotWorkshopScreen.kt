@@ -112,7 +112,7 @@ object SlingshotWorkshopScreen {
         val state = f.app.slingshotState
         val coins = f.app.playerProfile.coins
         var y = r.top + 34f
-        val rowHeight = 30f
+        val rowHeight = 24f
 
         for (type in SlingUpgrade.values()) {
             drawRow(f, r, type, state, coins, y, rowHeight)
