@@ -430,16 +430,18 @@ carousel binds to.
 | Brief Requirement | Status | Implementation in Master Design Suite |
 |---|---|---|
 | **Fully Editable Files** (Sec 1, 10) | Verified | Design tokens in `gfx/DesignTokens.kt`, UI primitives in `ui/`, complete screen suite |
-| **Realistic Quality Benchmark** (Sec 2) | Verified | High-definition PBR material tokens, natural lighting, shadow treatments, atmospheric depth |
+| **Realistic Quality Benchmark** (Sec 2) | Partial | High-definition PBR material tokens, natural lighting, shadow treatments, atmospheric depth |
 | **Landscape 16:9 Android Format** (Sec 2, 9) | Verified | 640×360 dp design space scaling to 1920×1080, safe zones for punch-holes & gestures |
-| **Forest Ecosystem** (Sec 3.1) | Verified | Undulating slopes, multi-tier canopy, visible soil, haze, water body |
-| **Desert Ecosystem** (Sec 3.2) | Verified | Dunes with slipfaces, wadis, sparse flora, red rock, dust |
-| **Snow/Glacier Ecosystem** (Sec 3.3) | Verified | Jagged peaks, ice, frozen water, conifers, blowing spindrift |
-| **Ocean/Coastal Ecosystem** (Sec 3.4) | Verified | Coastal cliffs, quartz beaches, wave shading, sea stacks, coastal pines |
-| **Mountain/Countryside Ecosystem** (Sec 3.5) | Verified | Alpine terraces, valleys, talus slopes, Rayleigh haze |
-| **No Simple Flat Planes / Natural Composition** (Sec 4, 5) | Verified | 4-layer composition: Foreground, Midground, Background, Sky |
-| **Sky, Sunlight, Clouds & Atmosphere** (Sec 6) | Verified | Distinct atmospheric properties, light scattering, cloud formations for all 5 realms |
-| **Aircraft Progressive Development** (Sec 8) | Verified | Exact 6-stage progression from wingless body to wings, tail, rotating propeller, upgrades |
-| **Kinetic Slingshot Workshop** (Sec 8) | Verified | Stretched elastics with amber→cyan tension tint, heavy launch frame, angle/elevation controls |
-| **Complete UI Screens Suite** (Sec 9) | Verified | All 10 mandatory landscape screens implemented with live data and tokens |
+| **Forest Ecosystem** (Sec 3.1) | Partial | Undulating slopes, multi-tier canopy, visible soil, haze, water body |
+| **Desert Ecosystem** (Sec 3.2) | Partial | Dunes with slipfaces, wadis, sparse flora, red rock, dust |
+| **Snow/Glacier Ecosystem** (Sec 3.3) | Partial | Jagged peaks, ice, frozen water, conifers, blowing spindrift |
+| **Ocean/Coastal Ecosystem** (Sec 3.4) | Partial | Coastal cliffs, quartz beaches, wave shading, sea stacks, coastal pines |
+| **Mountain/Countryside Ecosystem** (Sec 3.5) | Partial | Alpine terraces, valleys, talus slopes, Rayleigh haze |
+| **No Simple Flat Planes / Natural Composition** (Sec 4, 5) | Partial | 4-layer composition: Foreground, Midground, Background, Sky |
+| **Sky, Sunlight, Clouds & Atmosphere** (Sec 6) | Partial | Distinct atmospheric properties, light scattering, cloud formations for all 5 realms |
+| **Aircraft Progressive Development** (Sec 8) | Partial | Exact 6-stage progression from wingless body to wings, tail, rotating propeller, upgrades |
+| **Kinetic Slingshot Workshop** (Sec 8) | Partial | Stretched elastics with amber→cyan tension tint, heavy launch frame, angle/elevation controls |
+| **Complete UI Screens Suite** (Sec 9) | Partial | All 10 mandatory landscape screens implemented with live data and tokens |
 | **Developer Hand-Off Clarity** (Sec 10, 11, 12) | Verified | Clean separation of design vs code; 3D locator conventions and Kotlin models |
+
+**Verification note:** `Partial` means source structures or procedural implementations exist, but full requirement-by-requirement visual validation on target Android hardware has not been completed. `Verified` must not be interpreted as proof of AAA visual fidelity or device-level acceptance. The propeller's high-speed alpha motion-blur disc remains an explicit implementation gap.
