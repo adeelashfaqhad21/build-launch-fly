@@ -38,7 +38,7 @@ fairings and engine cowling. Each purchase rebuilds the visible mesh. Fuselage u
 specified composite values (roughness 0.35, metallic 0.15); the canopy is its own
 low-roughness glass material.
 
-**Slingshot (`slingshot`)** — five upgrade categories, launch-speed model, visible bands
+**Slingshot (`slingshot`)** — six upgrade categories, launch-speed model, visible bands
 stretched from both prongs to the cradle, tinted amber → neon cyan with draw tension,
 launch elevation arc (20°–55°) stored in the profile, and a camera impulse shake on
 release.
