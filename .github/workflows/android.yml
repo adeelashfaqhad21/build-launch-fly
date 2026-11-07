@@ -4,6 +4,9 @@ name: Android Build
 # Run manually from the Actions tab when a milestone is ready for verification.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - fix/hero-aircraft-reference-framing
 
 jobs:
   build:
