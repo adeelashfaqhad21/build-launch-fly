@@ -13,8 +13,8 @@ import kotlin.math.sqrt
 object SlingshotLayout {
     const val SEAT_HEIGHT = 3.05f
     // Wide, elevated anchor points create the unmistakable V-shaped sling silhouette.
-    val LEFT_PRONG = Vec3(-3.05f, 4.18f, -0.18f)
-    val RIGHT_PRONG = Vec3(3.05f, 4.18f, -0.18f)
+    val LEFT_PRONG = Vec3(-3.05f, 4.18f, 0.92f)
+    val RIGHT_PRONG = Vec3(3.05f, 4.18f, 0.92f)
     val HOLD_POINT = Vec3(0f, 3.05f, 0f)
     val BASE = Vec3(0f, 0f, 0f)
 }
@@ -104,10 +104,10 @@ class SlingshotMesh(textures: TextureFactory) {
         b.pop()
 
         // Machined anchor clamps, prong caps and visible fastener bosses.
-        b.addBox(-3.02f, 4.15f, -0.12f, 0.25f, 0.22f, 0.30f, 2f)
-        b.addBox(3.02f, 4.15f, -0.12f, 0.25f, 0.22f, 0.30f, 2f)
-        b.addSphere(-3.05f, 4.18f, -0.18f, 0.22f, 6, 10)
-        b.addSphere(3.05f, 4.18f, -0.18f, 0.22f, 6, 10)
+        b.addBox(-3.02f, 4.15f, 0.88f, 0.25f, 0.22f, 0.30f, 2f)
+        b.addBox(3.02f, 4.15f, 0.88f, 0.25f, 0.22f, 0.30f, 2f)
+        b.addSphere(-3.05f, 4.18f, 0.92f, 0.22f, 6, 10)
+        b.addSphere(3.05f, 4.18f, 0.92f, 0.22f, 6, 10)
 
         // Hydraulic recoil housings and reinforced lower cross-member.
         b.addBox(0f, 0.72f, 0.72f, 2.35f, 0.14f, 0.18f, 2f)
