@@ -208,6 +208,35 @@ uniform float uSoilStrength;
 
 out vec4 fragColor;
 
+// Smooth, non-periodic-looking world-space value noise for material boundaries.
+// Interpolated lattice values avoid the obvious repeating sine bands on long flights.
+float terrainHash(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return fract(sin(p.x + p.y) * 43758.5453);
+}
+
+float terrainNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = terrainHash(i);
+    float b = terrainHash(i + vec2(1.0, 0.0));
+    float c = terrainHash(i + vec2(0.0, 1.0));
+    float d = terrainHash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 2.0 - 1.0;
+}
+
+float terrainFbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.58;
+    for (int octave = 0; octave < 3; ++octave) {
+        value += terrainNoise(p) * amplitude;
+        p *= 2.03;
+        amplitude *= 0.5;
+    }
+    return value;
+}
+
 void main() {
     vec3 n = normalize(vNormal);
     float upness = clamp(n.y, 0.0, 1.0);
@@ -218,10 +247,10 @@ void main() {
 
     // Break up material boundaries with broad world-space variation so slope and
     // elevation transitions read as geology rather than clean shader bands.
-    float broadNoise = sin(vWorldPos.x * 0.0041 + sin(vWorldPos.z * 0.0033) * 1.7) *
-                      cos(vWorldPos.z * 0.0047 - vWorldPos.x * 0.0019);
-    float fineNoise = sin(vWorldPos.x * 0.021 + vWorldPos.z * 0.013) *
-                     cos(vWorldPos.z * 0.018 - vWorldPos.x * 0.009);
+    vec2 terrainUv = vWorldPos.xz;
+    float broadNoise = terrainFbm(terrainUv * 0.0028);
+    float fineNoise = terrainNoise(terrainUv * 0.0145) * 0.72 +
+                      terrainNoise(terrainUv * 0.031) * 0.28;
     float slope = 1.0 - upness;
     float rockBoundary = uRockThreshold + broadNoise * 0.075 + fineNoise * 0.018;
     float rockMask = 1.0 - smoothstep(rockBoundary - 0.27, rockBoundary + 0.025, upness);
@@ -233,10 +262,9 @@ void main() {
     // The broad field creates connected soil islands; a finer field roughens their edges.
     // Overlapping medium and fine fields create broken, natural soil islands instead
     // of broad smooth bands. Their edges remain irregular at both near and flight scale.
-    float soilField = sin(vWorldPos.x * 0.0105 + sin(vWorldPos.z * 0.0081) * 1.65) *
-                      cos(vWorldPos.z * 0.0094 - vWorldPos.x * 0.0041);
-    float soilDetail = sin(vWorldPos.x * 0.036 + vWorldPos.z * 0.026) *
-                       cos(vWorldPos.z * 0.031 - vWorldPos.x * 0.019);
+    float soilField = terrainFbm(terrainUv * 0.0068);
+    float soilDetail = terrainNoise(terrainUv * 0.027) * 0.72 +
+                       terrainNoise(terrainUv * 0.061) * 0.28;
     float soilMask = (1.0 - smoothstep(-0.12, 0.38, soilField + soilDetail * 0.22)) *
                      clamp(uSoilStrength, 0.0, 0.65);
     vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.58, 0.43, 0.30);
