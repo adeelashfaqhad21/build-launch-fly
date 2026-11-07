@@ -28,9 +28,6 @@ class WorldScene(
     val treeCanopyMesh: Mesh
     val rockMesh: Mesh
     val grassMesh: Mesh?
-    val bushMesh: Mesh
-    val bushMeshVariantB: Mesh
-    val bushMeshVariantC: Mesh
 
     val treeMaterial: Material
     val canopyMaterial: Material
@@ -80,9 +77,6 @@ class WorldScene(
         treeTrunkMesh = Mesh("treeTrunk", trunkData)
         treeCanopyMesh = Mesh("treeCanopy", canopyData)
         rockMesh = Mesh("rock", rockData)
-        bushMesh = Mesh("bushA", bushData)
-        bushMeshVariantB = Mesh("bushB", bushDataB)
-        bushMeshVariantC = Mesh("bushC", bushDataC)
 
         treeMaterial = Material(
             albedo = textures.bark,
@@ -262,9 +256,6 @@ class WorldScene(
         treeTrunkMesh.dispose()
         treeCanopyMesh.dispose()
         rockMesh.dispose()
-        bushMesh.dispose()
-        bushMeshVariantB.dispose()
-        bushMeshVariantC.dispose()
         grassMesh?.dispose()
         treeTrunks.dispose()
         treeCanopies.dispose()
