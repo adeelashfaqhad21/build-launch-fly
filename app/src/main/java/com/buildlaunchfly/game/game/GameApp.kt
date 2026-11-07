@@ -384,10 +384,13 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     fun update(dtSeconds: Float) {
         if (!initialized) return
+
+        // Queued UI actions may rebuild scenes or textures, so they run before any
+        // per-frame references are captured.
+        drainActions()
+
         val sceneRenderer = renderer ?: return
         val currentScene = scene ?: return
-
-        drainActions()
 
         if (paused) return
 
