@@ -47,6 +47,10 @@ class FlightPhysics {
     var propellerBladePitch = 0.12f
         private set
 
+    /** 0..1 aerodynamic stall severity, driven by excessive angle of attack and low speed. */
+    var stallIntensity = 0f
+        private set
+
     var throttle = 1f
 
     val orientation = Mat4()
@@ -73,6 +77,7 @@ class FlightPhysics {
         maxSpeed = 0f
         propellerRpm = 0f
         propellerBladePitch = 0.12f
+        stallIntensity = 0f
         state = FlightState.READY
         start.set(origin)
         updateOrientation()
@@ -119,20 +124,31 @@ class FlightPhysics {
         }
         val flightPathAngle = kotlin.math.asin(M.clamp(tmp.y, -1f, 1f))
 
-        // Angle of attack drives lift; a stalled alpha is clamped.
+        // Angle of attack drives lift. Beyond the critical angle the wing separates:
+        // lift collapses, drag rises and the nose naturally drops. This makes a sustained
+        // nose-high attitude a real stall rather than a HUD-only warning.
         val alpha = M.wrapAngle(pitch - flightPathAngle)
-        val liftCoefficient = M.clamp(2f * M.PI.toFloat() * alpha * 0.55f, -1.1f, 1.1f)
+        val criticalAlpha = 0.245f // ~14 degrees
+        val excessAlpha = ((kotlin.math.abs(alpha) - criticalAlpha) / 0.30f).coerceIn(0f, 1f)
+        val lowSpeedFactor = (1f - speed / 23f).coerceIn(0f, 1f)
+        val stallTarget = maxOf(excessAlpha, lowSpeedFactor * (kotlin.math.abs(alpha) / criticalAlpha).coerceIn(0f, 1f))
+        stallIntensity = M.lerp(stallIntensity, stallTarget, M.clamp(2.8f * dt, 0f, 1f))
 
+        val linearLift = M.clamp(2f * M.PI.toFloat() * alpha * 0.55f, -1.1f, 1.1f)
+        val liftCoefficient = linearLift * (1f - stallIntensity * 0.78f)
         val rho = 1.14f
         val v2 = speed * speed
 
         val liftAccel = 0.5f * rho * v2 * stats.wingArea * liftCoefficient * stats.lift / stats.mass
-        val dragAccel = 0.5f * rho * v2 * stats.dragArea / stats.mass
+        val baseDragAccel = 0.5f * rho * v2 * stats.dragArea / stats.mass
+        val dragAccel = baseDragAccel * (1f + stallIntensity * 1.65f)
         val thrustAccel = stats.thrust / stats.mass * throttle
 
-        // Stability: the airframe drifts toward the flight path angle.
+        // Stability: the airframe drifts toward the flight path. A stalled wing also
+        // develops a gentle nose-down pitching moment so recovery requires active input.
         val stabilityGain = 0.8f + stats.stability
-        val targetPitchRate = input.pitch * 1.15f + (flightPathAngle - pitch) * stabilityGain * 0.9f
+        val stallNoseDrop = stallIntensity * 1.35f
+        val targetPitchRate = input.pitch * 1.15f + (flightPathAngle - pitch) * stabilityGain * 0.9f - stallNoseDrop
         pitchRate = M.lerp(pitchRate, targetPitchRate, M.clamp(6f * dt, 0f, 1f))
         pitch = M.clamp(pitch + pitchRate * dt, -1.1f, 1.1f)
 
