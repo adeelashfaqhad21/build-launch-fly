@@ -81,8 +81,8 @@ object AircraftCatalog {
         PartUpgrade(
             PartSlot.WING_RIGHT, 2, "wing_right_2", "Right Wing Mk II",
             "Matched, longer Mk II wing with a refined aerofoil for stronger balanced lift and longer glides.",
-            price = 1500, lift = 1.32f, dragArea = 0.075f, thrust = 0f,
-            mass = 5.2f, stability = 0.18f, maxRpm = 0f
+            price = 1500, lift = 0.82f, dragArea = -0.045f, thrust = 0f,
+            mass = 1.5f, stability = 0.18f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.TAIL, 2, "tail_2", "Tail Assembly Mk II",
