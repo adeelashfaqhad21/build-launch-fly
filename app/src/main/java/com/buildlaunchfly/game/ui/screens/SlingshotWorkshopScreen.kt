@@ -21,7 +21,7 @@ object SlingshotWorkshopScreen {
         drawUpgrades(f, f.rect(w - DesignTokens.MARGIN_H - 320f, contentTop + 8f, 320f, 190f))
 
         val angle = f.app.playerProfile.launchAngleDegrees
-        f.label("LAUNCH ELEVATION ARC", DesignTokens.MARGIN_H, contentTop + 214f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
+        f.label("LOW-ALTITUDE LAUNCH ELEVATION", DesignTokens.MARGIN_H, contentTop + 214f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
         f.label(
             "${angle.toInt()}\u00b0",
             DesignTokens.MARGIN_H + 196f,
@@ -32,9 +32,9 @@ object SlingshotWorkshopScreen {
         )
         f.slider(
             f.rect(DesignTokens.MARGIN_H, contentTop + 222f, 196f, 16f),
-            ((angle - 20f) / 35f).coerceIn(0f, 1f)
+            ((angle - 2f) / 6f).coerceIn(0f, 1f)
         ) { fraction ->
-            f.app.playerProfile.launchAngleDegrees = 20f + fraction * 35f
+            f.app.playerProfile.launchAngleDegrees = 2f + fraction * 6f
             f.app.requestSaveProfile()
         }
 
