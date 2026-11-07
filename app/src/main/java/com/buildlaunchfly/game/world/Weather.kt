@@ -49,7 +49,7 @@ class WeatherSystem(private val definition: WorldDefinition) {
                 if (y[i] < cy - BOX * 0.6f) {
                     y[i] = cy + BOX * 0.6f
                     x[i] = cx + (rng.nextFloat() * 2f - 1f) * BOX
-                    z[i] = cz + (kotlin.random.Random.nextFloat() * 2f - 1f) * BOX
+                    z[i] = cz + (rng.nextFloat() * 2f - 1f) * BOX
                 }
                 particles.emit(x[i], y[i], z[i], 0.35f)
             } else if (seaSpray) {
