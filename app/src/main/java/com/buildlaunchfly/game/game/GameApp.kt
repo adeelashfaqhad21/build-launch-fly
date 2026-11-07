@@ -424,12 +424,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         val cancelled = input.consumeCancel()
         if (state == GameState.FLIGHT) {
             // Horizontal drag commands yaw; vertical drag commands pitch.
-            steerYaw = (steerYaw + dragScratch[0] * 3.8f).coerceIn(-1f, 1f)
+            steerYaw = (steerYaw + dragScratch[0] * 5.2f).coerceIn(-1f, 1f)
             // Screen Y grows downward: a downward swipe commands a positive pitch
             // (nose up), while an upward swipe commands nose down.
-            steerPitch = (steerPitch + dragScratch[1] * 3.8f).coerceIn(-1f, 1f)
+            steerPitch = (steerPitch + dragScratch[1] * 5.2f).coerceIn(-1f, 1f)
         }
-        val decay = (1f - 0.85f * dt).coerceAtLeast(0f)
+        val decay = (1f - 1.8f * dt).coerceAtLeast(0f)
         steerRoll *= decay
         steerPitch *= decay
         steerYaw *= decay
@@ -676,10 +676,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
         sceneRenderer.shadowInstanced(currentScene.treeCanopies)
         sceneRenderer.shadowInstanced(currentScene.treeCanopyVariants)
-        sceneRenderer.shadowInstanced(currentScene.bushes)
-        sceneRenderer.shadowInstanced(currentScene.bushesVariantB)
-        sceneRenderer.shadowInstanced(currentScene.bushesVariantC)
-        sceneRenderer.shadowInstanced(currentScene.rocks)
+        // Small ground clutter keeps its colour-pass detail but does not cast per-instance
+        // shadows. This avoids a second expensive draw of thousands of low-value objects.
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
