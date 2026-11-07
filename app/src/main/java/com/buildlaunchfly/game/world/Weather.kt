@@ -48,7 +48,7 @@ class WeatherSystem(private val definition: WorldDefinition) {
                 z[i] += cos(time * 0.53f + phase[i]) * 0.45f * dt
                 if (y[i] < cy - BOX * 0.6f) {
                     y[i] = cy + BOX * 0.6f
-                    x[i] = cx + (kotlin.random.Random.nextFloat() * 2f - 1f) * BOX
+                    x[i] = cx + (rng.nextFloat() * 2f - 1f) * BOX
                     z[i] = cz + (kotlin.random.Random.nextFloat() * 2f - 1f) * BOX
                 }
                 particles.emit(x[i], y[i], z[i], 0.35f)
