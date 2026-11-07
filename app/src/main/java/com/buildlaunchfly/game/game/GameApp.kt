@@ -503,6 +503,13 @@ class GameApp(private val context: Context, private val input: InputState) {
         flightInput.yaw = steerYaw
         flightInput.roll = steerRoll
         physics.update(dt, stats, ground, flightInput)
+        if (physics.state == FlightState.FLYING &&
+            currentScene.collidesWithNaturalObstacle(
+                physics.position.x, physics.position.y, physics.position.z
+            )
+        ) {
+            physics.crash()
+        }
         flightTime += dt
 
         val altitude = (physics.position.y - ground).coerceAtLeast(0f)
