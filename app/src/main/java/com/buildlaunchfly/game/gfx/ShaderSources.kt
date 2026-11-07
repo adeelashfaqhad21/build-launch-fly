@@ -221,17 +221,28 @@ void main() {
     vec2 uv = vWorldPos.xz * 0.035;
     vec3 n1 = texture(uNormals, uv + vec2(uTime * 0.012, uTime * 0.019)).xyz * 2.0 - 1.0;
     vec3 n2 = texture(uNormals, uv * 1.73 - vec2(uTime * 0.008, uTime * 0.015)).xyz * 2.0 - 1.0;
-    vec3 n = normalize(vec3(n1.x + n2.x, 3.4, n1.z + n2.z));
+    // Two normal-map frequencies plus directional geometric wavelets keep the
+    // surface readable at both close river scale and distant ocean scale.
+    float waveA = sin(vWorldPos.x * 0.032 + uTime * 0.72) *
+                  cos(vWorldPos.z * 0.021 - uTime * 0.48);
+    float waveB = sin(vWorldPos.x * 0.011 - vWorldPos.z * 0.017 + uTime * 0.31);
+    vec3 n = normalize(vec3(n1.x + n2.x + waveA * 0.16 + waveB * 0.12,
+                            3.15, n1.z + n2.z + waveA * 0.12 - waveB * 0.14));
 
     vec3 v = normalize(uCameraPos - vWorldPos);
-    float fresnel = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 4.0);
-    vec3 base = mix(uDeepColor, uShallowColor, fresnel);
+    float viewFacing = clamp(dot(n, v), 0.0, 1.0);
+    float fresnel = pow(1.0 - viewFacing, 4.0);
+    float shoreMix = clamp(0.5 + waveA * 0.22 + waveB * 0.12, 0.0, 1.0);
+    vec3 base = mix(uShallowColor, uDeepColor, shoreMix * 0.72);
+    base = mix(base, uShallowColor, fresnel * 0.55);
 
     vec3 h = normalize(normalize(uSunDir) + v);
     float spec = pow(max(dot(n, h), 0.0), 220.0);
+    float crest = smoothstep(0.62, 0.92, waveA * 0.65 + waveB * 0.35);
+    vec3 foam = vec3(0.72, 0.84, 0.86) * crest * (1.0 - viewFacing) * 0.18;
 
     vec3 reflection = uSkyColor * fresnel * 0.45 * uReflections;
-    vec3 color = base + uSunColor * spec * 1.4 + reflection;
+    vec3 color = base + uSunColor * spec * 1.4 + reflection + foam;
     color = applyFog(color, vWorldPos);
     fragColor = vec4(applyTonemap(color), 0.93);
 }
@@ -274,9 +285,21 @@ void main() {
     sky += uSunColor * pow(sunDot, 220.0) * 1.6;
     sky += uSunColor * pow(sunDot, 6.0) * 0.10;
 
-    float band = sin(d.x * 5.0 + uTime * 0.02) * sin(d.z * 3.6 - uTime * 0.013);
-    float cloud = smoothstep(0.55, 0.92, band) * smoothstep(0.03, 0.30, h) * 0.4;
-    sky = mix(sky, vec3(1.0), cloud);
+    // Multi-scale procedural cloud field. Project the view ray onto a high cloud layer,
+    // then combine broad masses with finer breakup so clouds do not read as a single sine band.
+    vec2 cloudUv = d.xz / max(h + 0.16, 0.16) * 0.42;
+    cloudUv += vec2(uTime * 0.0018, -uTime * 0.0011);
+    float cloudLarge = sin(cloudUv.x * 1.7 + sin(cloudUv.y * 1.2)) *
+                       sin(cloudUv.y * 1.5 - cos(cloudUv.x * 0.8));
+    float cloudFine = sin(cloudUv.x * 5.2 + cloudUv.y * 2.7) *
+                      cos(cloudUv.y * 4.6 - cloudUv.x * 1.9);
+    float cloudShape = cloudLarge * 0.72 + cloudFine * 0.18;
+    float cloudMask = smoothstep(0.08, 0.48, cloudShape) *
+                      smoothstep(0.015, 0.22, h) *
+                      (1.0 - smoothstep(0.72, 0.98, h));
+    float cloudLight = 0.78 + 0.22 * clamp(sunDot, 0.0, 1.0);
+    vec3 cloudColor = mix(vec3(0.62, 0.70, 0.78), vec3(1.0, 0.98, 0.94), cloudLight);
+    sky = mix(sky, cloudColor, cloudMask * 0.58);
 
     vec3 mapped = sky / (sky + vec3(1.0));
     fragColor = vec4(pow(max(mapped, vec3(0.0)), vec3(1.0 / 2.2)), 1.0);
