@@ -177,7 +177,7 @@ class WorldScene(
             val grassData = buildGrassData()
             grassMesh = Mesh("grass", grassData)
             val grassSet = Vegetation.scatterGrass(
-                terrain, definition, grassCount, definition.seed, 0f, -40f, 170f
+                terrain, definition, grassCount, definition.seed
             )
             grass = InstancedMesh("grass", grassData, grassSet.count.coerceAtLeast(1))
             if (grassSet.count > 0) grass.setInstances(grassSet.matrices, grassSet.count)
