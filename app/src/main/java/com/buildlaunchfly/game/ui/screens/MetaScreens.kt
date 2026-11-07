@@ -346,14 +346,10 @@ object PauseScreen {
         )
 
         val buttonWidth = r.width() - 40f
-        f.button(f.rect(r.left + 20f, r.top + 76f, buttonWidth, 30f), "RESUME", UiButtonStyle.PRIMARY) {
+        f.button(f.rect(r.left + 20f, r.top + 84f, buttonWidth, 34f), "RESUME FLIGHT", UiButtonStyle.PRIMARY) {
             f.nav.setPaused(false)
         }
-        f.button(f.rect(r.left + 20f, r.top + 112f, buttonWidth, 26f), "SETTINGS", UiButtonStyle.SECONDARY) {
-            f.nav.setPaused(false)
-            f.nav.go(UiScreen.SETTINGS)
-        }
-        f.button(f.rect(r.left + 20f, r.top + 142f, buttonWidth, 26f), "QUIT TO MENU", UiButtonStyle.DANGER) {
+        f.button(f.rect(r.left + 20f, r.top + 128f, buttonWidth, 30f), "QUIT TO MENU", UiButtonStyle.DANGER) {
             f.nav.setPaused(false)
             f.app.requestReturnToMenu()
             f.nav.go(UiScreen.MENU)
