@@ -487,6 +487,12 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val altitude = (physics.position.y - ground).coerceAtLeast(0f)
         if (altitude > maxAltitudeThisFlight) maxAltitudeThisFlight = altitude
+        if (!profile.glacierCrevasseCrossed &&
+            currentScene.terrain.isCrevasseZone(physics.position.x, physics.position.z)
+        ) {
+            profile.glacierCrevasseCrossed = true
+            hud?.onCoinsChanged(profile.coins)
+        }
 
         audio.setFlight(
             physics.speedFactor(),
