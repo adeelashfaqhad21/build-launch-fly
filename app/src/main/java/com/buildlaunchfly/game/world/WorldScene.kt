@@ -158,18 +158,32 @@ class WorldScene(
         val treeCount = (definition.treeCount * scale).toInt()
         val treeSet = Vegetation.scatterTrees(terrain, definition, treeCount, definition.seed)
         val treeCapacity = treeSet.count.coerceAtLeast(1)
-        val primaryTreeMatrices = FloatArray(treeSet.count * 16 / 2 + 16)
-        val variantTreeMatrices = FloatArray(treeSet.count * 16 / 2 + 16)
+        // Keep species in natural stands rather than alternating tree types one-by-one.
+        // A low-frequency field creates broad groves and transition edges across each habitat.
+        val primaryTreeMatrices = FloatArray(treeSet.count * 16)
+        val variantTreeMatrices = FloatArray(treeSet.count * 16)
         var primaryTreeCount = 0
         var variantTreeCount = 0
         for (index in 0 until treeSet.count) {
             val source = index * 16
-            if (index % 2 == 0) {
-                System.arraycopy(treeSet.matrices, source, primaryTreeMatrices, primaryTreeCount * 16, 16)
-                primaryTreeCount++
-            } else {
+            val x = treeSet.matrices[source + 12]
+            val z = treeSet.matrices[source + 14]
+            val speciesField = com.buildlaunchfly.game.gfx.Noise.fbm01(
+                x * 0.0018f, z * 0.0018f, 2, definition.seed + 401
+            )
+            val variantShare = when (definition.id) {
+                WorldId.FOREST -> 0.49f // birch groves break up broadleaf woodland
+                WorldId.DESERT -> 0.38f // scattered multi-arm cactus stands
+                WorldId.SNOW -> 0.43f // compact spruce pockets below the tree line
+                WorldId.OCEAN -> 0.48f // wind-shaped coastal tree clusters
+                WorldId.MOUNTAIN -> 0.52f // fir stands among open alpine meadows
+            }
+            if (speciesField > 0.50f - (variantShare - 0.5f)) {
                 System.arraycopy(treeSet.matrices, source, variantTreeMatrices, variantTreeCount * 16, 16)
                 variantTreeCount++
+            } else {
+                System.arraycopy(treeSet.matrices, source, primaryTreeMatrices, primaryTreeCount * 16, 16)
+                primaryTreeCount++
             }
         }
         treeTrunks = InstancedMesh("treeTrunks", trunkData, treeCapacity)
