@@ -241,6 +241,13 @@ class FlightPhysics {
         }
     }
 
+    /** Ends an active flight after contact with a natural world obstacle. */
+    fun crash() {
+        if (state != FlightState.FLYING) return
+        state = FlightState.CRASHED
+        velocity.scale(0.18f)
+    }
+
     private fun updateOrientation() {
         val cp = kotlin.math.cos(pitch)
         forward.set(
