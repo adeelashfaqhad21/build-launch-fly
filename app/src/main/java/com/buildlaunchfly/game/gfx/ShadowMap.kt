@@ -6,7 +6,7 @@ import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
 
 /** Depth-only framebuffer used for the single directional shadow cascade. */
-class ShadowMap(val size: Int = 1536) {
+class ShadowMap(val size: Int = 1024) {
 
     var fbo: Int = 0
         private set
