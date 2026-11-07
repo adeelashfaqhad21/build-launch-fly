@@ -181,16 +181,15 @@ class AircraftMesh(textures: TextureFactory) {
             b.addBox(0f, 0.29f, 0f, 0.035f, 0.09f, 0.035f)
             val bladeLength = if (tier >= 2) 0.62f else 0.54f
             val bladeWidth = if (tier >= 2) 0.070f else 0.055f
-            // A modest built-in blade twist provides a visible aerodynamic pitch profile.
-            b.pushTrs(0f, 0.34f, 0f, 0f, 0.16f, 0f, 1f)
-            b.addBox(0f, bladeLength * 0.88f, 0f, bladeWidth, bladeLength * 0.88f, 0.018f)
-            b.addBox(0f, bladeLength * 1.62f, 0f, bladeWidth * 0.66f, bladeLength * 0.13f, 0.014f)
+            // The broad blade and narrower outer section form a tapered planform.
+            // The blade is deliberately built in the same radial transform as its collar.
+            b.addBox(0f, 0.34f + bladeLength * 0.88f, 0f, bladeWidth, bladeLength * 0.88f, 0.018f)
+            b.addBox(0f, 0.34f + bladeLength * 1.62f, 0f, bladeWidth * 0.66f, bladeLength * 0.13f, 0.014f)
             if (tier >= 2) {
                 // Forged-carbon tapered tip and reinforced root.
-                b.addEllipsoid(0f, bladeLength * 1.76f, 0f, bladeWidth * 0.72f, 0.018f, 0.024f, 4, 6)
-                b.addEllipsoid(0f, 0.06f, 0f, bladeWidth * 1.45f, 0.09f, 0.055f, 5, 7)
+                b.addEllipsoid(0f, 0.34f + bladeLength * 1.76f, 0f, bladeWidth * 0.72f, 0.018f, 0.024f, 4, 6)
+                b.addEllipsoid(0f, 0.40f, 0f, bladeWidth * 1.45f, 0.09f, 0.055f, 5, 7)
             }
-            b.pop()
             b.pop()
         }
 
