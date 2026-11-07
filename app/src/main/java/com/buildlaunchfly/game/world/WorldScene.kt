@@ -196,8 +196,8 @@ class WorldScene(
         )
         animals = Wildlife.GroundAnimals(
             animalCount,
-            Vec3(0f, terrain.padHeight, -90f),
-            definition.seed
+            terrain,
+            definition
         )
 
         birdsMesh = InstancedMesh("birds", buildBirdData(), birdCount.coerceAtLeast(1))
