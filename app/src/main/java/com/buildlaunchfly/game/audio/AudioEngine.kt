@@ -226,7 +226,7 @@ class AudioEngine {
                 when (ambience) {
                     AmbienceStyle.FOREST -> {
                         ambienceSample += windLow * 0.22f
-                        if (rng.nextFloat() < 0.00035f) {
+                        if (ambienceEnabled && rng.nextFloat() < 0.00035f) {
                             chirpEnvelope = 0.5f
                             chirpPhase = 0f
                         }
