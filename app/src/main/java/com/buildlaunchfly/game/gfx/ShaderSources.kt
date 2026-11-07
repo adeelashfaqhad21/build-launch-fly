@@ -336,13 +336,35 @@ void main() {
                        sin(cloudUv.y * 1.5 - cos(cloudUv.x * 0.8));
     float cloudFine = sin(cloudUv.x * 5.2 + cloudUv.y * 2.7) *
                       cos(cloudUv.y * 4.6 - cloudUv.x * 1.9);
-    float cloudShape = cloudLarge * 0.72 + cloudFine * 0.18;
+    float cloudDetail = sin(cloudUv.x * 10.4 - cloudUv.y * 6.3) *
+                        cos(cloudUv.y * 8.1 + cloudUv.x * 3.7);
+    float cloudShape = cloudLarge * 0.68 + cloudFine * 0.22 + cloudDetail * 0.07;
+    float horizonFade = smoothstep(-0.035, 0.20, h);
     float cloudMask = smoothstep(0.08, 0.48, cloudShape) *
-                      smoothstep(0.015, 0.22, h) *
+                      smoothstep(0.012, 0.20, h) *
                       (1.0 - smoothstep(0.72, 0.98, h));
-    float cloudLight = 0.78 + 0.22 * clamp(sunDot, 0.0, 1.0);
-    vec3 cloudColor = mix(vec3(0.62, 0.70, 0.78), vec3(1.0, 0.98, 0.94), cloudLight);
-    sky = mix(sky, cloudColor, cloudMask * 0.58);
+    float cloudLight = 0.72 + 0.28 * clamp(sunDot, 0.0, 1.0);
+    float cloudUnderside = 0.82 + 0.18 * smoothstep(-0.1, 0.65, h);
+    vec3 cloudColor = mix(vec3(0.48, 0.57, 0.68), vec3(1.0, 0.985, 0.95), cloudLight);
+    cloudColor *= cloudUnderside;
+    sky = mix(sky, cloudColor, cloudMask * 0.62);
+
+    // A separate high, broken cirrus layer adds scale and altitude without another texture.
+    vec2 cirrusUv = d.xz / max(h + 0.24, 0.24) * 1.35;
+    cirrusUv += vec2(-uTime * 0.00055, uTime * 0.00032);
+    float cirrusWave = sin(cirrusUv.x * 2.4 + sin(cirrusUv.y * 1.8)) *
+                       cos(cirrusUv.y * 5.6 - cirrusUv.x * 0.7);
+    float cirrusThreads = sin(cirrusUv.y * 17.0 + cirrusUv.x * 2.2);
+    float cirrus = smoothstep(0.52, 0.82, cirrusWave + cirrusThreads * 0.12) *
+                   smoothstep(0.24, 0.58, h) * (1.0 - smoothstep(0.78, 0.98, h));
+    sky = mix(sky, vec3(0.88, 0.91, 0.96), cirrus * 0.16);
+
+    // Atmospheric horizon haze softens distant layers and gives low-angle light more depth.
+    float haze = (1.0 - smoothstep(0.0, 0.28, abs(h))) * horizonFade;
+    vec3 hazeColor = mix(uHorizon, uSunColor, pow(sunDot, 5.0) * 0.12);
+    sky = mix(sky, hazeColor, haze * 0.18);
+    float sunHalo = pow(sunDot, 14.0) * 0.055 + pow(sunDot, 42.0) * 0.075;
+    sky += uSunColor * sunHalo;
 
     vec3 mapped = sky / (sky + vec3(1.0));
     fragColor = vec4(pow(max(mapped, vec3(0.0)), vec3(1.0 / 2.2)), 1.0);
