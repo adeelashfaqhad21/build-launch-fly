@@ -176,7 +176,7 @@ object WorldCatalog {
         tintB = Vec3(0.70f, 0.72f, 0.78f),
         tintC = Vec3(0.88f, 0.95f, 1.02f),
         rockThreshold = 0.62f,
-        snowLine = -100f,
+        snowLine = 58f,
         treeCount = 900,
         rockCount = 1100,
         grassCount = 0,

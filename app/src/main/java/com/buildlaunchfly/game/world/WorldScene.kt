@@ -7,6 +7,7 @@ import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.ParticleRenderer
+import com.buildlaunchfly.game.gfx.SurfaceKind
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.Vec3
 

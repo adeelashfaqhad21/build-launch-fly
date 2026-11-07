@@ -683,6 +683,11 @@ class GameApp(private val context: Context, private val input: InputState) {
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
         }
+        // Small settlements cast grounded silhouettes so houses and igloos sit
+        // naturally on the terrain instead of appearing to float above it.
+        sceneRenderer.shadowMesh(currentScene.settlementWallsMesh, worldIdentity)
+        sceneRenderer.shadowMesh(currentScene.settlementRoofsMesh, worldIdentity)
+
         // Vegetation remains fully visible in the colour pass, but does not cast
         // per-instance shadows on mobile. Thousands of tree/rock/grass shadow instances
         // were a major GPU cost; retain shadows for terrain, aircraft and launcher only.
