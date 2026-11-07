@@ -404,6 +404,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         input.consumeDrag(dragScratch)
         val released = input.consumeRelease()
+        val cancelled = input.consumeCancel()
         if (state == GameState.FLIGHT) {
             // Horizontal drag commands yaw; vertical drag commands pitch.
             steerYaw = (steerYaw + dragScratch[0] * 2.8f).coerceIn(-1f, 1f)
@@ -415,7 +416,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         steerYaw *= decay
 
         when (state) {
-            GameState.SEATED -> updateSeated(dt, released)
+            GameState.SEATED -> updateSeated(dt, released, cancelled)
             GameState.FLIGHT -> updateFlight(dt, currentScene)
             GameState.RESULTS -> {
                 resultTimer += dt
@@ -443,13 +444,17 @@ class GameApp(private val context: Context, private val input: InputState) {
         currentScene.update(dt, time, camera, sceneRenderer.particles)
     }
 
-    private fun updateSeated(dt: Float, released: Boolean) {
+    private fun updateSeated(dt: Float, released: Boolean, cancelled: Boolean) {
+        if (cancelled) {
+            stretchActive = false
+            pull = 0f
+            audio.setStretch(0f)
+            return
+        }
         if (input.pointerDown) {
             stretchActive = true
-            // Sling tension follows the player's downward drag distance, never elapsed time.
-            if (dragScratch[1] > 0f) {
-                pull = (pull + dragScratch[1] * 2.4f).coerceIn(0f, 1f)
-            }
+            // Signed vertical drag lets the player increase or ease sling tension while held.
+            pull = (pull + dragScratch[1] * 2.4f).coerceIn(0f, 1f)
             audio.setStretch(pull)
         } else if (stretchActive || released) {
             stretchActive = false
