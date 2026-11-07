@@ -513,7 +513,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         pull = 0f
         maxAltitudeThisFlight = 0f
         lastLaunchStretch = stretch
-        cameraDirector.addShake(0.45f + stretch * 0.5f)
+        val damperLevel = sling.levelOf(SlingUpgrade.HYDRAULIC_DAMPER)
+        val residualRecoil = 1f - damperLevel.coerceIn(0, SlingshotState.MAX_LEVEL) * 0.045f
+        cameraDirector.addShake((0.45f + stretch * 0.5f) * residualRecoil)
 
         audio.playRelease(stretch)
         hud?.onLaunched(stretch, speed)
