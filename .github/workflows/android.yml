@@ -1,9 +1,8 @@
 name: Android Build
 
+# Build only at deliberate milestones to conserve Actions minutes.
+# Run manually from the Actions tab when a milestone is ready for verification.
 on:
-  push:
-    branches: [ '**' ]
-  pull_request:
   workflow_dispatch:
 
 jobs:
