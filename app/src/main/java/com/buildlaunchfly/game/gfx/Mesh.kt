@@ -85,6 +85,8 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
 
     private var sourceMatrices: FloatArray = FloatArray(0)
     private var sourceCount: Int = 0
+    private val visibleIndices = IntArray(capacity.coerceAtLeast(1))
+    private var lastVisibleCount = -1
     private var lastLodX = Float.NaN
     private var lastLodY = Float.NaN
     private var lastLodZ = Float.NaN
@@ -135,6 +137,7 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
     fun setInstances(matrices: FloatArray, count: Int) {
         sourceMatrices = matrices
         sourceCount = count.coerceIn(0, capacity)
+        lastVisibleCount = -1
         System.arraycopy(matrices, 0, uploadBuffer, 0, sourceCount * 16)
         uploadVisible(sourceCount)
     }
@@ -163,6 +166,7 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
         val max2 = maxDistance * maxDistance
         val full2 = fullDetailDistance * fullDetailDistance
         var visible = 0
+        var selectionChanged = false
         for (index in 0 until sourceCount) {
             val offset = index * 16
             val dx = sourceMatrices[offset + 12] - camera.x
@@ -177,9 +181,19 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
                 val keepEvery = if (distance2 > full2 + (max2 - full2) * 0.58f) 3 else 2
                 if (index % keepEvery != 0) continue
             }
+            if (visible >= capacity) break
+            if (visible >= lastVisibleCount || visibleIndices[visible] != index) {
+                selectionChanged = true
+            }
+            visibleIndices[visible] = index
             System.arraycopy(sourceMatrices, offset, uploadBuffer, visible * 16, 16)
             visible++
         }
+        if (visible != lastVisibleCount) selectionChanged = true
+        // Camera movement often leaves the visible set unchanged. Avoid a redundant
+        // GPU buffer upload until an instance enters/leaves the LOD selection.
+        if (!selectionChanged) return
+        lastVisibleCount = visible
         uploadVisible(visible)
     }
 
