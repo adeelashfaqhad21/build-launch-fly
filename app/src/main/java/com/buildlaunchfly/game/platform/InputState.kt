@@ -18,6 +18,7 @@ class InputState {
     private var pendingDragX = 0f
     private var pendingDragY = 0f
     private var pendingRelease = false
+    private var pendingCancel = false
 
     fun onTouch(event: MotionEvent, width: Int, height: Int) {
         val safeWidth = width.coerceAtLeast(1)
@@ -41,10 +42,17 @@ class InputState {
                     lastX = event.x
                     lastY = event.y
                 }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                MotionEvent.ACTION_UP -> {
                     pointerDown = false
                     hasLast = false
                     pendingRelease = true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    pointerDown = false
+                    hasLast = false
+                    pendingDragX = 0f
+                    pendingDragY = 0f
+                    pendingCancel = true
                 }
                 else -> {
                     // Additional pointers are ignored until the gesture design lands.
@@ -67,6 +75,15 @@ class InputState {
         synchronized(lock) {
             val value = pendingRelease
             pendingRelease = false
+            pendingCancel = false
+            return value
+        }
+    }
+
+    fun consumeCancel(): Boolean {
+        synchronized(lock) {
+            val value = pendingCancel
+            pendingCancel = false
             return value
         }
     }
