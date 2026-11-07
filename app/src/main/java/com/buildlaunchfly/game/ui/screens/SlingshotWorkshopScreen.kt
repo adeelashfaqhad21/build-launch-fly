@@ -55,11 +55,11 @@ object SlingshotWorkshopScreen {
         val state = f.app.slingshotState
         val stats = f.app.aircraftBuild.stats()
         val speed = state.launchSpeed(1f, stats.mass)
-        val impulse = speed * stats.mass
+        val momentum = speed * stats.mass
 
         var y = r.top + 48f
         y = row(f, r, "BASE VELOCITY", "%d km/h".format((speed * 3.6f).toInt()), y)
-        y = row(f, r, "IMPULSE FORCE", "%,d N".format(impulse.toInt()), y)
+        y = row(f, r, "LAUNCH MOMENTUM", "%,d kg·m/s".format(momentum.toInt()), y)
         y = row(f, r, "DRAW LENGTH", "%.2f m".format(state.drawLengthMeters()), y)
         y = row(f, r, "BAND THICKNESS", "x%.2f".format(state.bandThickness()), y)
         row(f, r, "POWER RATING", UiFormat.percent(state.powerRating()), y)
