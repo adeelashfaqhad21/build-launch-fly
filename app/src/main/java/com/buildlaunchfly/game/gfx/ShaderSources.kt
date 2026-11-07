@@ -368,6 +368,33 @@ uniform float uTime;
 
 out vec4 fragColor;
 
+float skyHash(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return fract(sin(p.x + p.y) * 43758.5453);
+}
+
+float skyNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = skyHash(i);
+    float b = skyHash(i + vec2(1.0, 0.0));
+    float c = skyHash(i + vec2(0.0, 1.0));
+    float d = skyHash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+float skyFbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.57;
+    for (int octave = 0; octave < 4; ++octave) {
+        value += skyNoise(p) * amplitude;
+        p *= 2.02;
+        amplitude *= 0.5;
+    }
+    return value / 0.92;
+}
+
 void main() {
     vec3 d = normalize(vDir - uCameraPos);
     float h = clamp(d.y, -1.0, 1.0);
@@ -385,13 +412,15 @@ void main() {
     // then combine broad masses with finer breakup so clouds do not read as a single sine band.
     vec2 cloudUv = d.xz / max(h + 0.16, 0.16) * 0.42;
     cloudUv += vec2(uTime * 0.0018, -uTime * 0.0011);
-    float cloudLarge = sin(cloudUv.x * 1.7 + sin(cloudUv.y * 1.2)) *
-                       sin(cloudUv.y * 1.5 - cos(cloudUv.x * 0.8));
-    float cloudFine = sin(cloudUv.x * 5.2 + cloudUv.y * 2.7) *
-                      cos(cloudUv.y * 4.6 - cloudUv.x * 1.9);
-    float cloudDetail = sin(cloudUv.x * 10.4 - cloudUv.y * 6.3) *
-                        cos(cloudUv.y * 8.1 + cloudUv.x * 3.7);
-    float cloudShape = cloudLarge * 0.68 + cloudFine * 0.22 + cloudDetail * 0.07;
+    vec2 cloudWarp = vec2(
+        skyFbm(cloudUv * 0.72 + vec2(4.7, 1.3)),
+        skyFbm(cloudUv * 0.72 + vec2(9.2, 6.1))
+    ) - 0.5;
+    vec2 cloudDomain = cloudUv + cloudWarp * 0.34;
+    float cloudLarge = skyFbm(cloudDomain * 1.35);
+    float cloudFine = skyNoise(cloudDomain * 5.1) * 0.24;
+    float cloudDetail = skyNoise(cloudDomain * 11.8) * 0.09;
+    float cloudShape = cloudLarge * 0.67 + cloudFine + cloudDetail;
     float horizonFade = smoothstep(-0.035, 0.20, h);
     float cloudMask = smoothstep(0.08, 0.48, cloudShape) *
                       smoothstep(0.012, 0.20, h) *
