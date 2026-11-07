@@ -76,22 +76,29 @@ class WorldScene(
 
         treeMaterial = Material(
             albedo = textures.bark,
-            tint = if (definition.id == WorldId.DESERT) Vec3(0.48f, 0.62f, 0.34f) else Vec3(0.82f, 0.76f, 0.68f),
+            tint = when (definition.id) {
+                WorldId.FOREST -> Vec3(0.76f, 0.66f, 0.52f) // damp temperate bark
+                WorldId.DESERT -> Vec3(0.72f, 0.56f, 0.38f) // sun-bleached woody stems
+                WorldId.SNOW -> Vec3(0.62f, 0.58f, 0.54f) // dark conifer trunks against snow
+                WorldId.OCEAN -> Vec3(0.70f, 0.62f, 0.48f) // salt-weathered coastal wood
+                WorldId.MOUNTAIN -> Vec3(0.68f, 0.58f, 0.44f) // alpine bark
+            },
             roughness = 0.92f,
             metallic = 0f,
-            uvScale = 2f
+            uvScale = 2.6f
         )
         canopyMaterial = Material(
             albedo = textures.leaf,
             tint = when (definition.id) {
-                WorldId.SNOW -> Vec3(0.82f, 0.91f, 1.02f)
-                WorldId.DESERT -> Vec3(0.76f, 0.92f, 0.58f)
-                WorldId.OCEAN -> Vec3(0.82f, 1.02f, 0.76f)
-                else -> Vec3(1f, 1f, 1f)
+                WorldId.FOREST -> Vec3(0.82f, 1.00f, 0.66f) // layered temperate foliage
+                WorldId.SNOW -> Vec3(0.48f, 0.66f, 0.58f) // dark evergreen needles
+                WorldId.DESERT -> Vec3(0.70f, 0.82f, 0.48f) // muted drought-tolerant greens
+                WorldId.OCEAN -> Vec3(0.72f, 0.92f, 0.66f) // wind-shaped coastal canopy
+                WorldId.MOUNTAIN -> Vec3(0.66f, 0.86f, 0.58f) // highland conifer and meadow edge
             },
-            roughness = 0.85f,
+            roughness = 0.88f,
             metallic = 0f,
-            uvScale = 2.5f
+            uvScale = 2.8f
         )
         rockMaterial = Material(
             albedo = textures.surface(if (definition.id == WorldId.SNOW) definition.surfaceC else definition.surfaceB),
