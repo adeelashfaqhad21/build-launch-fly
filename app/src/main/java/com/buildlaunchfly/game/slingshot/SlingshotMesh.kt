@@ -26,13 +26,22 @@ class SlingshotMesh(textures: TextureFactory) {
 
     val frameMesh: Mesh
     val bandMesh: Mesh
+    val cradleMesh: Mesh
 
     val frameMaterial = Material(
-        albedo = textures.bark,
-        tint = Vec3(0.62f, 0.46f, 0.32f),
-        roughness = 0.78f,
-        metallic = 0f,
+        albedo = textures.metal,
+        tint = Vec3(0.40f, 0.48f, 0.56f),
+        roughness = 0.42f,
+        metallic = 0.68f,
         uvScale = 2.2f
+    )
+
+    val cradleMaterial = Material(
+        albedo = textures.metal,
+        tint = Vec3(0.18f, 0.25f, 0.32f),
+        roughness = 0.34f,
+        metallic = 0.78f,
+        uvScale = 1.5f
     )
 
     val bandMaterial = Material(
@@ -53,6 +62,7 @@ class SlingshotMesh(textures: TextureFactory) {
     init {
         frameMesh = Mesh("slingshotFrame", buildFrameData())
         bandMesh = Mesh("slingshotBand", buildBandData())
+        cradleMesh = Mesh("slingshotCradle", buildCradleData())
     }
 
     private fun buildFrameData(): MeshData {
@@ -78,6 +88,11 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addSphere(-2.02f, 3.60f, 0f, 0.20f, 5, 8)
         b.addSphere(2.02f, 3.60f, 0f, 0.20f, 5, 8)
 
+        // Hydraulic recoil damper housings and reinforced lower cross-member.
+        b.addBox(0f, 0.62f, 0.08f, 2.18f, 0.12f, 0.16f, 2f)
+        b.addCylinder(-1.48f, 0.92f, 0.62f, 0.105f, 0.105f, 1.28f, 10, true, true, 1f)
+        b.addCylinder(1.48f, 0.92f, 0.62f, 0.105f, 0.105f, 1.28f, 10, true, true, 1f)
+
         // Back stays.
         b.pushTrs(0f, 0f, 0f, 0.42f, 0f, 0.10f, 1f)
         b.addCylinder(-1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
@@ -86,6 +101,17 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addCylinder(1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
         b.pop()
 
+        return b.build()
+    }
+
+    /** Aircraft carriage: padded cradle bed, raised side cheeks and a quick-release nose stop. */
+    private fun buildCradleData(): MeshData {
+        val b = MeshBuilder()
+        b.addBox(0f, 0.10f, 0f, 0.78f, 0.10f, 1.02f, 2f)
+        b.addBox(-0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
+        b.addBox(0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
+        b.addBox(0f, 0.28f, -0.88f, 0.48f, 0.18f, 0.12f, 2f)
+        b.addBox(0f, 0.24f, 0.86f, 0.54f, 0.12f, 0.10f, 2f)
         return b.build()
     }
 
@@ -156,6 +182,7 @@ class SlingshotMesh(textures: TextureFactory) {
     fun dispose() {
         frameMesh.dispose()
         bandMesh.dispose()
+        cradleMesh.dispose()
     }
 
     companion object {
