@@ -97,7 +97,13 @@ class WorldScene(
         )
         grassMaterial = Material(
             albedo = textures.leaf,
-            tint = Vec3(0.92f, 1.08f, 0.72f),
+            tint = when (definition.id) {
+                WorldId.DESERT -> Vec3(0.88f, 0.76f, 0.48f)
+                WorldId.OCEAN -> Vec3(0.72f, 0.94f, 0.68f)
+                WorldId.MOUNTAIN -> Vec3(0.78f, 1.02f, 0.70f)
+                WorldId.SNOW -> Vec3(0.76f, 0.88f, 0.82f)
+                WorldId.FOREST -> Vec3(0.64f, 0.94f, 0.48f)
+            },
             roughness = 0.90f,
             metallic = 0f,
             uvScale = 1f
@@ -332,15 +338,52 @@ class WorldScene(
 
     private fun buildGrassData(): MeshData {
         val builder = MeshBuilder()
-        // Two crossed quads anchored at the ground plane.
-        builder.addQuad(
-            Vec3(-0.26f, 0f, 0f), Vec3(0.26f, 0f, 0f),
-            Vec3(0.26f, 0.52f, 0f), Vec3(-0.26f, 0.52f, 0f)
-        )
-        builder.addQuad(
-            Vec3(0f, 0f, -0.26f), Vec3(0f, 0f, 0.26f),
-            Vec3(0f, 0.52f, 0.26f), Vec3(0f, 0.52f, -0.26f)
-        )
+        when (definition.id) {
+            WorldId.FOREST -> {
+                // Fern rosette: a central rachis with paired, tapering leaflets on each frond.
+                builder.addCylinder(0f, 0.22f, 0f, 0.025f, 0.018f, 0.44f, 5, false, false)
+                for (frond in 0 until 7) {
+                    val yaw = frond * 0.8975979f
+                    builder.pushTrs(0f, 0.12f, 0f, 0f, yaw, -0.62f + (frond % 3) * 0.08f, 1f)
+                    builder.addCylinder(0f, 0.34f, 0f, 0.018f, 0.010f, 0.68f, 5, false, false)
+                    for (leaflet in 0 until 4) {
+                        val side = if (leaflet % 2 == 0) -1f else 1f
+                        val y = 0.12f + leaflet * 0.14f
+                        builder.addEllipsoid(side * (0.10f + leaflet * 0.018f), y, 0f,
+                            0.16f, 0.035f, 0.065f, 4, 6)
+                    }
+                    builder.pop()
+                }
+            }
+            WorldId.DESERT -> {
+                // Sparse dry grass tufts with narrow, wind-leaning blades.
+                for (blade in 0 until 5) {
+                    val yaw = blade * 1.256637f
+                    builder.pushTrs(0f, 0f, 0f, 0f, yaw, -0.30f, 1f)
+                    builder.addCone(0f, 0.32f, 0f, 0.055f, 0.68f, 5)
+                    builder.pop()
+                }
+            }
+            WorldId.OCEAN -> {
+                // Coastal marram grass: long arching blades in a compact dune clump.
+                for (blade in 0 until 8) {
+                    val yaw = blade * 0.785398f
+                    builder.pushTrs(0f, 0f, 0f, 0f, yaw, -0.42f, 1f)
+                    builder.addCone(0f, 0.43f, 0f, 0.045f, 0.86f, 5)
+                    builder.pop()
+                }
+            }
+            WorldId.MOUNTAIN -> {
+                // Alpine bunchgrass with a small, dense crown of upright blades.
+                for (blade in 0 until 9) {
+                    val yaw = blade * 0.698132f
+                    builder.pushTrs(0f, 0f, 0f, 0f, yaw, -0.18f, 1f)
+                    builder.addCone(0f, 0.30f, 0f, 0.045f, 0.60f + (blade % 3) * 0.10f, 5)
+                    builder.pop()
+                }
+            }
+            WorldId.SNOW -> Unit
+        }
         return builder.build()
     }
 
