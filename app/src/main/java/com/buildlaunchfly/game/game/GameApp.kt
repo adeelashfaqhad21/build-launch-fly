@@ -735,11 +735,11 @@ class GameApp(private val context: Context, private val input: InputState) {
 
             rig.thicknessBoost = slingStateBandBoost()
             applyBandTint(rig, slingDraw)
-            rig.leftBandMatrix(slingDraw, bandLocal)
+            rig.leftBandMatrix(slingDraw, bandLocal, profile.launchAngleDegrees)
             leftBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
 
-            rig.rightBandMatrix(slingDraw, bandLocal)
+            rig.rightBandMatrix(slingDraw, bandLocal, profile.launchAngleDegrees)
             rightBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
         }
