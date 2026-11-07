@@ -10,26 +10,26 @@ package com.buildlaunchfly.game.gfx
 object DesignTokens {
 
     // ---- Primary aviation palette ----------------------------------------
-    const val COLOR_PRIMARY_AERO = 0xFF0284C7.toInt()
-    const val COLOR_PRIMARY_GLOW = 0xFF38BDF8.toInt()
-    const val COLOR_PRIMARY_DEEP = 0xFF03254C.toInt()
+    val COLOR_PRIMARY_AERO: Int = 0xFF0284C7.toInt()
+    val COLOR_PRIMARY_GLOW: Int = 0xFF38BDF8.toInt()
+    val COLOR_PRIMARY_DEEP: Int = 0xFF03254C.toInt()
 
     // ---- Currency & status accents ---------------------------------------
-    const val COLOR_COIN_GOLD = 0xFFF59E0B.toInt()
-    const val COLOR_COIN_GOLD_GLOW = 0x66FBBF24
-    const val COLOR_SUCCESS = 0xFF10B981.toInt()
-    const val COLOR_HAZARD = 0xFFEF4444.toInt()
+    val COLOR_COIN_GOLD: Int = 0xFFF59E0B.toInt()
+    val COLOR_COIN_GOLD_GLOW: Int = 0x66FBBF24
+    val COLOR_SUCCESS: Int = 0xFF10B981.toInt()
+    val COLOR_HAZARD: Int = 0xFFEF4444.toInt()
 
     // ---- Glassmorphism surfaces ------------------------------------------
-    const val SURFACE_HUD_BG = 0xB80A0F1D.toInt()   // 72% #0A0F1D
-    const val SURFACE_MODAL_BG = 0xE0050814.toInt() // 88% #050814
-    const val GLASS_BORDER = 0x2E38BDF8             // 18% #38BDF8
-    const val GLASS_HIGHLIGHT = 0x14FFFFFF          // 8% white
+    val SURFACE_HUD_BG: Int = 0xB80A0F1D.toInt()   // 72% #0A0F1D
+    val SURFACE_MODAL_BG: Int = 0xE0050814.toInt() // 88% #050814
+    val GLASS_BORDER: Int = 0x2E38BDF8             // 18% #38BDF8
+    val GLASS_HIGHLIGHT: Int = 0x14FFFFFF          // 8% white
 
     // ---- Text ------------------------------------------------------------
-    const val TEXT_PRIMARY = 0xFFFFFFFF.toInt()
-    const val TEXT_MUTED = 0xB3ABB7C4.toInt()
-    const val TEXT_INVERSE = 0xFF06121F.toInt()
+    val TEXT_PRIMARY: Int = 0xFFFFFFFF.toInt()
+    val TEXT_MUTED: Int = 0xB3ABB7C4.toInt()
+    val TEXT_INVERSE: Int = 0xFF06121F.toInt()
 
     // ---- Typography (dp) --------------------------------------------------
     const val TYPE_DISPLAY_HERO = 36f
