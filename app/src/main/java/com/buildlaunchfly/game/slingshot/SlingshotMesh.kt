@@ -12,8 +12,9 @@ import kotlin.math.sqrt
 /** Fixed local geometry of the launching rig. All values are relative to the pad origin. */
 object SlingshotLayout {
     const val SEAT_HEIGHT = 3.05f
-    val LEFT_PRONG = Vec3(-2.05f, 3.62f, 0f)
-    val RIGHT_PRONG = Vec3(2.05f, 3.62f, 0f)
+    // Wide, elevated anchor points create the unmistakable V-shaped sling silhouette.
+    val LEFT_PRONG = Vec3(-3.05f, 4.18f, -0.18f)
+    val RIGHT_PRONG = Vec3(3.05f, 4.18f, -0.18f)
     val HOLD_POINT = Vec3(0f, 3.05f, 0f)
     val BASE = Vec3(0f, 0f, 0f)
 }
@@ -78,37 +79,57 @@ class SlingshotMesh(textures: TextureFactory) {
     private fun buildFrameData(): MeshData {
         val b = MeshBuilder()
 
-        // Ground plate.
-        b.addBox(0f, 0.14f, 0f, 2.7f, 0.14f, 1.0f, 2f)
-        b.addBox(0f, 0.34f, 0f, 1.1f, 0.22f, 0.7f, 2f)
+        // Broad, weighted launch deck with a raised service spine.
+        b.addBox(0f, 0.14f, 0f, 3.45f, 0.16f, 1.55f, 2f)
+        b.addBox(0f, 0.36f, 0.10f, 1.18f, 0.16f, 0.88f, 2f)
+        b.addBox(0f, 0.58f, 0.72f, 0.52f, 0.08f, 0.58f, 2f)
 
-        // Two uprights leaning slightly outward.
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.10f, 1f)
-        b.addCylinder(-1.82f, 1.75f, 0f, 0.19f, 0.15f, 3.4f, 9, true, true, 2f)
+        // Central lattice mast with four load-bearing columns.
+        for (x in floatArrayOf(-0.34f, 0.34f)) {
+            for (z in floatArrayOf(-0.30f, 0.30f)) {
+                b.addBox(x, 1.82f, z, 0.075f, 1.52f, 0.075f, 2f)
+                b.addBox(x * 1.55f, 0.42f, z * 1.55f, 0.16f, 0.12f, 0.16f, 2f)
+            }
+        }
+        // X-bracing on both visible sides gives the mast a fabricated truss silhouette.
+        for (z in floatArrayOf(-0.34f, 0.34f)) {
+            b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.62f, 1f)
+            b.addBox(0f, 1.82f, z, 0.055f, 1.78f, 0.055f, 2f)
+            b.pop()
+            b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.62f, 1f)
+            b.addBox(0f, 1.82f, z, 0.055f, 1.78f, 0.055f, 2f)
+            b.pop()
+        }
+        for (y in floatArrayOf(0.62f, 1.55f, 2.48f, 3.18f)) {
+            b.addBox(0f, y, 0f, 0.48f, 0.065f, 0.47f, 2f)
+        }
+
+        // Elevated swept fork arms and reinforced crosshead form a wide V-shaped launcher.
+        b.addBox(0f, 3.58f, -0.12f, 3.12f, 0.16f, 0.25f, 2f)
+        b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.17f, 1f)
+        b.addBox(-1.58f, 3.88f, -0.12f, 1.72f, 0.17f, 0.22f, 2f)
         b.pop()
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.10f, 1f)
-        b.addCylinder(1.82f, 1.75f, 0f, 0.19f, 0.15f, 3.4f, 9, true, true, 2f)
+        b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.17f, 1f)
+        b.addBox(1.58f, 3.88f, -0.12f, 1.72f, 0.17f, 0.22f, 2f)
         b.pop()
 
-        // Cross braces.
-        b.addBox(0f, 1.55f, 0f, 1.72f, 0.075f, 0.075f, 2f)
-        b.addBox(0f, 2.75f, 0f, 1.58f, 0.065f, 0.065f, 2f)
+        // Machined anchor clamps, prong caps and visible fastener bosses.
+        b.addBox(-3.02f, 4.15f, -0.12f, 0.25f, 0.22f, 0.30f, 2f)
+        b.addBox(3.02f, 4.15f, -0.12f, 0.25f, 0.22f, 0.30f, 2f)
+        b.addSphere(-3.05f, 4.18f, -0.18f, 0.22f, 6, 10)
+        b.addSphere(3.05f, 4.18f, -0.18f, 0.22f, 6, 10)
 
-        // Prong tips.
-        b.addSphere(-2.02f, 3.60f, 0f, 0.20f, 5, 8)
-        b.addSphere(2.02f, 3.60f, 0f, 0.20f, 5, 8)
+        // Hydraulic recoil housings and reinforced lower cross-member.
+        b.addBox(0f, 0.72f, 0.72f, 2.35f, 0.14f, 0.18f, 2f)
+        b.addCylinder(-1.48f, 0.96f, 0.82f, 0.12f, 0.12f, 1.42f, 12, true, true, 1f)
+        b.addCylinder(1.48f, 0.96f, 0.82f, 0.12f, 0.12f, 1.42f, 12, true, true, 1f)
 
-        // Hydraulic recoil damper housings and reinforced lower cross-member.
-        b.addBox(0f, 0.62f, 0.08f, 2.18f, 0.12f, 0.16f, 2f)
-        b.addCylinder(-1.48f, 0.92f, 0.62f, 0.105f, 0.105f, 1.28f, 10, true, true, 1f)
-        b.addCylinder(1.48f, 0.92f, 0.62f, 0.105f, 0.105f, 1.28f, 10, true, true, 1f)
-
-        // Back stays.
-        b.pushTrs(0f, 0f, 0f, 0.42f, 0f, 0.10f, 1f)
-        b.addCylinder(-1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
+        // Rear diagonal stays transfer launch loads into the deck.
+        b.pushTrs(0f, 0f, 0f, 0.38f, 0f, 0.18f, 1f)
+        b.addCylinder(-1.12f, 1.55f, 0.95f, 0.11f, 0.10f, 2.75f, 8, false, false, 2f)
         b.pop()
-        b.pushTrs(0f, 0f, 0f, 0.42f, 0f, -0.10f, 1f)
-        b.addCylinder(1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
+        b.pushTrs(0f, 0f, 0f, 0.38f, 0f, -0.18f, 1f)
+        b.addCylinder(1.12f, 1.55f, 0.95f, 0.11f, 0.10f, 2.75f, 8, false, false, 2f)
         b.pop()
 
         return b.build()
