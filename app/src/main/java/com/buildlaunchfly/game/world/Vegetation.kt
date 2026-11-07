@@ -286,6 +286,16 @@ object Vegetation {
             }
             if (!habitat) continue
 
+            // Vegetation LOD: preserve dense, detailed ground cover near the aircraft,
+            // then progressively thin distant grass clumps into a lighter silhouette.
+            // Terrain already uses coarser far-field sampling; this reduces far-field
+            // instance vertex work without changing the near-camera ecosystem.
+            val grassDepth = ((-z) / 2700f).coerceIn(0f, 1f)
+            val farGrassMask = Noise.fbm01(
+                x * 0.0048f, z * 0.0042f, 2, seed + 307
+            )
+            if (farGrassMask < 0.08f + grassDepth * 0.30f) continue
+
             val size = when (def.id) {
                 WorldId.DESERT -> 0.30f + rng.nextFloat() * 0.62f
                 WorldId.OCEAN -> 0.58f + rng.nextFloat() * 0.94f
