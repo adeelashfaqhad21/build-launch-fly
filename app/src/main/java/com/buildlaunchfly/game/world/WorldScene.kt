@@ -326,10 +326,20 @@ class WorldScene(
                 builder.addCylinder(0f, 0.34f, 0f, 0.055f, 0.045f, 0.68f, 6, false, false, 1f)
                 builder.addCylinder(-0.20f, 0.46f, 0.02f, 0.035f, 0.03f, 0.48f, 5, false, false, 1f)
                 builder.addCylinder(0.19f, 0.48f, -0.04f, 0.035f, 0.03f, 0.50f, 5, false, false, 1f)
+                // Main woody crown and uneven leaf masses form a broad, grounded shrub silhouette.
                 builder.addEllipsoid(0f, 0.55f, 0f, 0.40f, 0.34f, 0.38f, 7, 10)
                 builder.addEllipsoid(-0.27f, 0.40f, 0.04f, 0.27f, 0.25f, 0.29f, 6, 9)
                 builder.addEllipsoid(0.25f, 0.43f, -0.06f, 0.29f, 0.27f, 0.27f, 6, 9)
                 builder.addEllipsoid(0.03f, 0.78f, -0.12f, 0.25f, 0.23f, 0.24f, 6, 9)
+                // Secondary foliage lobes break the smooth ball-like outline into a natural,
+                // irregular branching crown. Their low placement keeps the plant shrub-like.
+                builder.addEllipsoid(-0.48f, 0.36f, -0.16f, 0.19f, 0.18f, 0.21f, 5, 7)
+                builder.addEllipsoid(0.43f, 0.34f, 0.18f, 0.20f, 0.17f, 0.22f, 5, 7)
+                builder.addEllipsoid(-0.18f, 0.68f, 0.30f, 0.21f, 0.19f, 0.20f, 5, 7)
+                builder.addEllipsoid(0.28f, 0.67f, -0.30f, 0.18f, 0.20f, 0.19f, 5, 7)
+                builder.addEllipsoid(0.02f, 0.91f, 0.10f, 0.17f, 0.16f, 0.18f, 5, 7)
+                builder.addEllipsoid(-0.36f, 0.55f, 0.25f, 0.16f, 0.17f, 0.18f, 5, 7)
+                builder.addEllipsoid(0.39f, 0.52f, -0.22f, 0.17f, 0.16f, 0.18f, 5, 7)
             }
         }
         return builder.build()
