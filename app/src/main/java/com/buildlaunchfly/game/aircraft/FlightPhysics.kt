@@ -148,7 +148,7 @@ class FlightPhysics {
         // develops a gentle nose-down pitching moment so recovery requires active input.
         val stabilityGain = 0.8f + stats.stability
         val stallNoseDrop = stallIntensity * 1.35f
-        val targetPitchRate = input.pitch * 1.15f + (flightPathAngle - pitch) * stabilityGain * 0.9f - stallNoseDrop
+        val targetPitchRate = input.pitch * 2.6f + (flightPathAngle - pitch) * stabilityGain * 0.30f - stallNoseDrop
         pitchRate = M.lerp(pitchRate, targetPitchRate, M.clamp(6f * dt, 0f, 1f))
         pitch = M.clamp(pitch + pitchRate * dt, -1.1f, 1.1f)
 
@@ -157,7 +157,7 @@ class FlightPhysics {
         roll = M.clamp(roll + rollRate * dt, -1.0f, 1.0f)
 
         val speedFactor = M.clamp(speed / 35f, 0.15f, 1.6f)
-        val targetYawRate = -kotlin.math.sin(roll) * 0.55f * speedFactor + input.yaw * 1.25f
+        val targetYawRate = -kotlin.math.sin(roll) * 0.42f * speedFactor + input.yaw * 2.35f
         yawRate = M.lerp(yawRate, targetYawRate, M.clamp(3f * dt, 0f, 1f))
         yaw = M.wrapAngle(yaw + yawRate * dt)
 
