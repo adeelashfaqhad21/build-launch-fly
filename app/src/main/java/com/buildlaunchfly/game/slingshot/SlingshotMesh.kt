@@ -27,6 +27,7 @@ class SlingshotMesh(textures: TextureFactory) {
     val frameMesh: Mesh
     val bandMesh: Mesh
     val cradleMesh: Mesh
+    val hydraulicRodMesh: Mesh
 
     val frameMaterial = Material(
         albedo = textures.metal,
@@ -42,6 +43,14 @@ class SlingshotMesh(textures: TextureFactory) {
         roughness = 0.34f,
         metallic = 0.78f,
         uvScale = 1.5f
+    )
+
+    val hydraulicMaterial = Material(
+        albedo = textures.metal,
+        tint = Vec3(0.72f, 0.80f, 0.88f),
+        roughness = 0.22f,
+        metallic = 0.92f,
+        uvScale = 2f
     )
 
     val bandMaterial = Material(
@@ -63,6 +72,7 @@ class SlingshotMesh(textures: TextureFactory) {
         frameMesh = Mesh("slingshotFrame", buildFrameData())
         bandMesh = Mesh("slingshotBand", buildBandData())
         cradleMesh = Mesh("slingshotCradle", buildCradleData())
+        hydraulicRodMesh = Mesh("slingshotHydraulicRod", buildHydraulicRodData())
     }
 
     private fun buildFrameData(): MeshData {
@@ -112,6 +122,14 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addBox(0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
         b.addBox(0f, 0.28f, -0.88f, 0.48f, 0.18f, 0.12f, 2f)
         b.addBox(0f, 0.24f, 0.86f, 0.54f, 0.12f, 0.10f, 2f)
+        return b.build()
+    }
+
+    /** Exposed chrome piston rod. Its visible extension is compressed during the draw. */
+    private fun buildHydraulicRodData(): MeshData {
+        val b = MeshBuilder()
+        b.addCylinder(0f, 0.5f, 0f, 0.052f, 0.052f, 1f, 12, true, true, 2f)
+        b.addCylinder(0f, 0.94f, 0f, 0.078f, 0.078f, 0.10f, 12, true, true, 2f)
         return b.build()
     }
 
@@ -183,6 +201,7 @@ class SlingshotMesh(textures: TextureFactory) {
         frameMesh.dispose()
         bandMesh.dispose()
         cradleMesh.dispose()
+        hydraulicRodMesh.dispose()
     }
 
     companion object {
