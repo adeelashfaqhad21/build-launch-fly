@@ -28,6 +28,9 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
     private val depthInstancedProgram = ShaderProgram.create(
         "depthInstanced", ShaderSources.DEPTH_INSTANCED_VERT, ShaderSources.DEPTH_FRAG
     )
+    private val propellerBlurProgram = ShaderProgram.create(
+        "propellerBlur", ShaderSources.PROPELLER_BLUR_VERT, ShaderSources.PROPELLER_BLUR_FRAG
+    )
 
     val sky = SkyRenderer()
     val water = WaterRenderer()
@@ -117,6 +120,23 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         mesh.draw()
     }
 
+    /** Draws a camera-facing translucent disc in the propeller plane; no shadow is cast. */
+    fun drawPropellerBlur(mesh: Mesh, model: Mat4, alpha: Float) {
+        val cam = camera ?: return
+        val opacity = alpha.coerceIn(0f, 0.42f)
+        if (opacity <= 0.001f) return
+        GLES30.glEnable(GLES30.GL_BLEND)
+        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
+        GLES30.glDepthMask(false)
+        propellerBlurProgram.use()
+        propellerBlurProgram.set("uModel", model)
+        propellerBlurProgram.set("uViewProj", cam.viewProj)
+        propellerBlurProgram.set("uBlurAlpha", opacity)
+        mesh.draw()
+        GLES30.glDepthMask(true)
+        GLES30.glDisable(GLES30.GL_BLEND)
+    }
+
     fun drawInstanced(mesh: InstancedMesh, material: Material) {
         val cam = camera ?: return
         instancedProgram.use()
@@ -187,6 +207,7 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         terrainProgram.dispose()
         depthProgram.dispose()
         depthInstancedProgram.dispose()
+        propellerBlurProgram.dispose()
         sky.dispose()
         water.dispose()
         particles.dispose()
