@@ -655,16 +655,16 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         // Camera-relative mobile LOD: preserve full nearby silhouettes and reduce
         // distant clutter before both shadow and colour passes.
-        currentScene.treeTrunks.applyDistanceLod(camera.position, 1250f, 520f, false)
+        currentScene.treeTrunks.applyDistanceLod(camera.position, 1080f, 360f, true)
         currentScene.treeCanopies.applyDistanceLod(camera.position, 1250f, 520f, false)
         currentScene.treeCanopyVariants.applyDistanceLod(camera.position, 1250f, 520f, false)
-        currentScene.rocks.applyDistanceLod(camera.position, 780f, 260f, false)
-        currentScene.bushes.applyDistanceLod(camera.position, 560f, 180f)
+        currentScene.rocks.applyDistanceLod(camera.position, 680f, 220f, true)
+        currentScene.bushes.applyDistanceLod(camera.position, 440f, 145f)
         currentScene.bushesVariantB.applyDistanceLod(camera.position, 560f, 180f)
         currentScene.bushesVariantC.applyDistanceLod(camera.position, 560f, 180f)
-        currentScene.grass?.applyDistanceLod(camera.position, 210f, 70f)
-        currentScene.birdsMesh.applyDistanceLod(camera.position, 720f, 240f)
-        currentScene.animalsMesh.applyDistanceLod(camera.position, 520f, 180f)
+        currentScene.grass?.applyDistanceLod(camera.position, 165f, 48f)
+        currentScene.birdsMesh.applyDistanceLod(camera.position, 620f, 205f)
+        currentScene.animalsMesh.applyDistanceLod(camera.position, 450f, 150f)
 
         val shadowFocus = if (state == GameState.SEATED) seatPosition else physics.position
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
