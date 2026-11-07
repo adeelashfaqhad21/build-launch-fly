@@ -28,11 +28,13 @@ class WorldScene(
     val treeCanopyMesh: Mesh
     val rockMesh: Mesh
     val grassMesh: Mesh?
+    val bushMesh: Mesh
 
     val treeMaterial: Material
     val canopyMaterial: Material
     val rockMaterial: Material
     val grassMaterial: Material
+    val bushMaterial: Material
     val birdMaterial: Material
     val animalMaterial: Material
 
@@ -40,6 +42,7 @@ class WorldScene(
     val treeCanopies: InstancedMesh
     val rocks: InstancedMesh
     val grass: InstancedMesh?
+    val bushes: InstancedMesh
     val birdsMesh: InstancedMesh
     val animalsMesh: InstancedMesh
 
@@ -64,10 +67,12 @@ class WorldScene(
         val trunkData = buildTrunkData()
         val canopyData = buildCanopyData()
         val rockData = buildRockData()
+        val bushData = buildBushData()
 
         treeTrunkMesh = Mesh("treeTrunk", trunkData)
         treeCanopyMesh = Mesh("treeCanopy", canopyData)
         rockMesh = Mesh("rock", rockData)
+        bushMesh = Mesh("bush", bushData)
 
         treeMaterial = Material(
             albedo = textures.bark,
@@ -97,6 +102,18 @@ class WorldScene(
             metallic = 0f,
             uvScale = 1f
         )
+        bushMaterial = Material(
+            albedo = textures.leaf,
+            tint = when (definition.id) {
+                WorldId.DESERT -> Vec3(0.76f, 0.68f, 0.42f)
+                WorldId.SNOW -> Vec3(0.64f, 0.76f, 0.70f)
+                WorldId.OCEAN -> Vec3(0.76f, 0.94f, 0.72f)
+                else -> Vec3(0.78f, 0.98f, 0.66f)
+            },
+            roughness = 0.92f,
+            metallic = 0f,
+            uvScale = 1.8f
+        )
         birdMaterial = Material(
             albedo = textures.rubber,
             tint = Vec3(0.16f, 0.15f, 0.16f),
@@ -123,6 +140,16 @@ class WorldScene(
         }
 
         val rockCount = (definition.rockCount * scale).toInt()
+        val bushBaseCount = when (definition.id) {
+            WorldId.FOREST -> 620
+            WorldId.DESERT -> 110
+            WorldId.SNOW -> 90
+            WorldId.OCEAN -> 180
+            WorldId.MOUNTAIN -> 440
+        }
+        val bushSet = Vegetation.scatterBushes(terrain, definition, (bushBaseCount * scale).toInt(), definition.seed)
+        bushes = InstancedMesh("bushes", bushData, bushSet.count.coerceAtLeast(1))
+        if (bushSet.count > 0) bushes.setInstances(bushSet.matrices, bushSet.count)
         val rockSet = Vegetation.scatterRocks(terrain, definition, rockCount, definition.seed)
         rocks = InstancedMesh("rocks", rockData, rockSet.count.coerceAtLeast(1))
         if (rockSet.count > 0) rocks.setInstances(rockSet.matrices, rockSet.count)
@@ -180,10 +207,12 @@ class WorldScene(
         treeTrunkMesh.dispose()
         treeCanopyMesh.dispose()
         rockMesh.dispose()
+        bushMesh.dispose()
         grassMesh?.dispose()
         treeTrunks.dispose()
         treeCanopies.dispose()
         rocks.dispose()
+        bushes.dispose()
         grass?.dispose()
         birdsMesh.dispose()
         animalsMesh.dispose()
@@ -222,6 +251,20 @@ class WorldScene(
             builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
             builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
         }
+        return builder.build()
+    }
+
+    private fun buildBushData(): MeshData {
+        val builder = MeshBuilder()
+        // A layered, irregular shrub silhouette: woody stems support several overlapping
+        // leaf masses rather than a single spherical placeholder.
+        builder.addCylinder(0f, 0.34f, 0f, 0.055f, 0.045f, 0.68f, 6, false, false, 1f)
+        builder.addCylinder(-0.20f, 0.46f, 0.02f, 0.035f, 0.03f, 0.48f, 5, false, false, 1f)
+        builder.addCylinder(0.19f, 0.48f, -0.04f, 0.035f, 0.03f, 0.50f, 5, false, false, 1f)
+        builder.addEllipsoid(0f, 0.55f, 0f, 0.40f, 0.34f, 0.38f, 7, 10)
+        builder.addEllipsoid(-0.27f, 0.40f, 0.04f, 0.27f, 0.25f, 0.29f, 6, 9)
+        builder.addEllipsoid(0.25f, 0.43f, -0.06f, 0.29f, 0.27f, 0.27f, 6, 9)
+        builder.addEllipsoid(0.03f, 0.78f, -0.12f, 0.25f, 0.23f, 0.24f, 6, 9)
         return builder.build()
     }
 
