@@ -98,6 +98,9 @@ object Vegetation {
             attempts++
             val x = -1100f + rng.nextFloat() * 2400f
             val z = -3000f + rng.nextFloat() * 3600f
+            // Keep a narrow central flight lane visually clear through the near/midground.
+            // Rocks remain distributed on both sides so the terrain still reads as natural.
+            if (z in -2200f..-120f && kotlin.math.abs(x) < 24f) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
@@ -105,7 +108,10 @@ object Vegetation {
             val slopeBias = 1.0f - normal.y
             if (rng.nextFloat() > 0.25f + slopeBias * 2.4f) continue
 
-            val size = 0.9f + rng.nextFloat() * 3.4f
+            // Foreground rocks carry readable shape detail; distant rocks shrink toward
+            // the horizon to create scale separation without adding extra draw calls.
+            val depth = ((-z) / 3000f).coerceIn(0f, 1f)
+            val size = (0.9f + rng.nextFloat() * 3.4f) * (1.43f - depth * 0.78f)
             val rotX = (rng.nextFloat() - 0.5f) * 0.4f
             val rotY = rng.nextFloat() * 6.2831855f
             val rotZ = (rng.nextFloat() - 0.5f) * 0.4f
