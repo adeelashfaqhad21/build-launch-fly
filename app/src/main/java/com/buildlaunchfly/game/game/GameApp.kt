@@ -64,6 +64,8 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var time = 0f
     private var pull = 0f
     private var stretchActive = false
+    private var slingRecoilTimer = 0f
+    private var slingRecoilStretch = 0f
     private var steerPitch = 0f
     private var steerYaw = 0f
     private var steerRoll = 0f
@@ -405,6 +407,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val dt = dtSeconds.coerceIn(0f, 0.05f)
         time += dt
+        slingRecoilTimer = (slingRecoilTimer - dt).coerceAtLeast(0f)
         sceneRenderer.env.time = time
 
         input.consumeDrag(dragScratch)
@@ -521,6 +524,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         pull = 0f
         maxAltitudeThisFlight = 0f
         lastLaunchStretch = stretch
+        slingRecoilStretch = stretch.coerceIn(0f, 1f)
+        slingRecoilTimer = SLING_RECOIL_DURATION
         val residualRecoil = 1f - damperFraction * 0.65f
         cameraDirector.addShake((0.45f + stretch * 0.5f) * residualRecoil)
 
@@ -593,6 +598,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         val aircraftMesh = aircraft ?: return
         val rig = slingMesh ?: return
         val definition = currentScene.definition
+        val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
+        val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (state == GameState.SEATED) {
             val hold = rig.holdPoint(pull)
@@ -621,12 +628,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerBladeMesh?.let { blade ->
             propellerBladeModels.forEach { sceneRenderer.shadowMesh(blade, it) }
         }
-        if (state == GameState.SEATED) {
+        if (showSling) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
-            setHydraulicModels(rig)
+            setHydraulicModels(rig, slingDraw)
             sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicLeftModel)
             sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicRightModel)
-            val cradle = rig.holdPoint(pull)
+            val cradle = rig.holdPoint(slingDraw)
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
         }
@@ -666,22 +673,22 @@ class GameApp(private val context: Context, private val input: InputState) {
             )
         }
 
-        if (state == GameState.SEATED) {
+        if (showSling) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-            setHydraulicModels(rig)
+            setHydraulicModels(rig, slingDraw)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicLeftModel)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicRightModel)
-            val cradle = rig.holdPoint(pull)
+            val cradle = rig.holdPoint(slingDraw)
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
             sceneRenderer.drawMesh(rig.cradleMesh, rig.cradleMaterial, cradleModel)
 
             rig.thicknessBoost = slingStateBandBoost()
-            applyBandTint(rig, pull)
-            rig.leftBandMatrix(pull, bandLocal)
+            applyBandTint(rig, slingDraw)
+            rig.leftBandMatrix(slingDraw, bandLocal)
             leftBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
 
-            rig.rightBandMatrix(pull, bandLocal)
+            rig.rightBandMatrix(slingDraw, bandLocal)
             rightBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
         }
@@ -727,8 +734,15 @@ class GameApp(private val context: Context, private val input: InputState) {
     }
 
     /** Exposed piston length visibly retracts as the elastic carriage is drawn back. */
-    private fun setHydraulicModels(rig: SlingshotMesh) {
-        val exposed = 0.58f - pull.coerceIn(0f, 1f) * 0.34f
+    private fun recoilDraw(): Float {
+        if (slingRecoilTimer <= 0f) return 0f
+        val remaining = (slingRecoilTimer / SLING_RECOIL_DURATION).coerceIn(0f, 1f)
+        // The carriage returns quickly at first, then settles smoothly into its stop.
+        return slingRecoilStretch * remaining * remaining
+    }
+
+    private fun setHydraulicModels(rig: SlingshotMesh, draw: Float = pull) {
+        val exposed = 0.58f - draw.coerceIn(0f, 1f) * 0.34f
         val centerY = padPosition.y + 1.56f + exposed * 0.5f
         val z = padPosition.z + 0.80f
         hydraulicLeftModel.setTrs(padPosition.x - 1.48f, centerY, z, 0f, 0f, 0f, 1f, exposed, 1f)
@@ -767,5 +781,6 @@ class GameApp(private val context: Context, private val input: InputState) {
     companion object {
         private const val TAG = "BLF-GAME"
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
+        private const val SLING_RECOIL_DURATION = 0.42f
     }
 }
