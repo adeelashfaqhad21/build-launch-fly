@@ -215,14 +215,30 @@ void main() {
     vec3 b = texture(uTexB, vUv * 0.37).rgb * uTintB;
     vec3 c = texture(uTexC, vUv * 2.13).rgb * uTintC;
 
-    float rockMask = 1.0 - smoothstep(uRockThreshold - 0.24, uRockThreshold, upness);
+    // Break up material boundaries with broad world-space variation so slope and
+    // elevation transitions read as geology rather than clean shader bands.
+    float broadNoise = sin(vWorldPos.x * 0.0041 + sin(vWorldPos.z * 0.0033) * 1.7) *
+                      cos(vWorldPos.z * 0.0047 - vWorldPos.x * 0.0019);
+    float fineNoise = sin(vWorldPos.x * 0.021 + vWorldPos.z * 0.013) *
+                     cos(vWorldPos.z * 0.018 - vWorldPos.x * 0.009);
+    float slope = 1.0 - upness;
+    float rockBoundary = uRockThreshold + broadNoise * 0.075 + fineNoise * 0.018;
+    float rockMask = 1.0 - smoothstep(rockBoundary - 0.27, rockBoundary + 0.025, upness);
+    // Steeper faces expose more rock; shallow shelves retain their dominant ground cover.
+    rockMask = clamp(rockMask + smoothstep(0.34, 0.82, slope) * 0.18, 0.0, 1.0);
     vec3 albedo = mix(a, b, rockMask);
 
-    float highMask = smoothstep(uSnowLine, uSnowLine + 45.0, vWorldPos.y);
+    float snowBoundary = uSnowLine + broadNoise * 13.0 + fineNoise * 3.5;
+    float highMask = smoothstep(snowBoundary - 8.0, snowBoundary + 52.0, vWorldPos.y);
     albedo = mix(albedo, c, highMask);
 
-    float detail = texture(uTexC, vUv * 0.07).r;
-    albedo *= 0.92 + detail * 0.16;
+    float detailA = texture(uTexA, vUv * 0.19).r;
+    float detailB = texture(uTexB, vUv * 0.83).r;
+    float detailC = texture(uTexC, vUv * 2.13).r;
+    float detail = mix(detailA, mix(detailB, detailC, rockMask), highMask);
+    albedo *= 0.88 + detail * 0.22;
+    // Fine exposed-rock variation adds subtle mineral mottling without flattening the base texture.
+    albedo *= 0.97 + fineNoise * 0.035;
 
     vec3 v = normalize(uCameraPos - vWorldPos);
     vec3 color = shadeSurface(albedo, n, v, vWorldPos, 0.9, 0.0, 0.0);
