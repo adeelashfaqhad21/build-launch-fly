@@ -166,13 +166,11 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val padY = scene?.terrain?.padHeight ?: 6f
         padPosition.set(0f, padY, 0f)
-        // Launch from the carriage's actual drawn-back position. Using the neutral
-        // hold point here would teleport the aircraft forward at the instant of release.
-        val releasePoint = slingMesh?.holdPoint(stretch) ?: SlingshotLayout.HOLD_POINT
+        val restingPoint = slingMesh?.holdPoint(0f) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
-            padPosition.x + releasePoint.x,
-            padPosition.y + releasePoint.y,
-            padPosition.z + releasePoint.z
+            padPosition.x + restingPoint.x,
+            padPosition.y + restingPoint.y,
+            padPosition.z + restingPoint.z
         )
         physics.reset(seatPosition)
 
@@ -503,10 +501,13 @@ class GameApp(private val context: Context, private val input: InputState) {
     private fun launchInternal(stretch: Float) {
         val stats = build.stats()
         val speed = sling.launchSpeed(stretch, stats.mass)
+        // Spawn the aircraft at the carriage's real drawn-back position so release
+        // begins from the elastic's stored position rather than snapping forward.
+        val releasePoint = slingMesh?.holdPoint(stretch) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
-            padPosition.x + SlingshotLayout.HOLD_POINT.x,
-            padPosition.y + SlingshotLayout.HOLD_POINT.y,
-            padPosition.z + SlingshotLayout.HOLD_POINT.z
+            padPosition.x + releasePoint.x,
+            padPosition.y + releasePoint.y,
+            padPosition.z + releasePoint.z
         )
         physics.reset(seatPosition)
         val damperLevel = sling.levelOf(SlingUpgrade.HYDRAULIC_DAMPER)
