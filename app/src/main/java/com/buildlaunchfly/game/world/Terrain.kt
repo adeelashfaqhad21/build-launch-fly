@@ -29,6 +29,24 @@ class Terrain(val definition: WorldDefinition) {
 
         h += Noise.fbm2(x * 0.012f, z * 0.012f, 3, 2f, 0.5f, s + 41) * definition.roughness * 2.2f
 
+        // Add restrained, domain-warped erosion relief to temperate and coastal terrain.
+        // The warped field breaks up the broad hills without introducing sharp gameplay
+        // hazards or a regular ripple pattern across the aircraft's flight corridor.
+        if (definition.id == WorldId.FOREST ||
+            definition.id == WorldId.MOUNTAIN ||
+            definition.id == WorldId.OCEAN
+        ) {
+            val erosionWarp = Noise.fbm2(
+                x * 0.0024f, z * 0.0024f, 2, 2f, 0.5f, s + 151
+            ) * 13f
+            val erosionRelief = Noise.fbm2(
+                (x + erosionWarp) * 0.026f,
+                (z - erosionWarp * 0.62f) * 0.026f,
+                2, 2f, 0.5f, s + 167
+            )
+            h += erosionRelief * definition.roughness * 0.72f
+        }
+
         if (definition.duneStrength > 0f) {
             val broadDune = Noise.fbm2(x * 0.0032f, z * 0.0062f, 3, 2f, 0.55f, s + 53)
             val slipFace = sin((z * 0.010f + x * 0.0022f + broadDune * 1.7f).toDouble()).toFloat()
