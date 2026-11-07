@@ -23,6 +23,9 @@ object Vegetation {
             attempts++
             val x = -760f + rng.nextFloat() * 1660f
             val z = -2600f + rng.nextFloat() * 3000f
+            // Keep the reference-camera flight sightline open. Tree stands remain
+            // visible on both sides, but should not form a wall around the aircraft.
+            if (z in -1900f..-60f && kotlin.math.abs(x) < 38f) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
@@ -58,6 +61,13 @@ object Vegetation {
                 }
             }
             if (!habitat) continue
+
+            // Thin distant stands deterministically so the skyline reads as separated
+            // tree groups rather than a continuous dark hedge. Close trees retain detail.
+            val treeDepth = ((-z) / 3000f).coerceIn(0f, 1f)
+            val standBreakup = Noise.fbm01(x * 0.0042f, z * 0.0038f, 2, seed + 43)
+            val thinningThreshold = 0.16f + treeDepth * 0.13f
+            if (standBreakup < thinningThreshold) continue
 
             val height = when (def.id) {
                 WorldId.DESERT -> 2.2f + rng.nextFloat() * 3.2f
@@ -147,6 +157,9 @@ object Vegetation {
             attempts++
             val x = -920f + rng.nextFloat() * 1900f
             val z = -2750f + rng.nextFloat() * 3150f
+            // Preserve a readable central corridor in the rear chase composition;
+            // understory still frames the route from the peripheral terrain.
+            if (z in -1850f..-45f && kotlin.math.abs(x) < 25f) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
@@ -184,6 +197,12 @@ object Vegetation {
                 }
             }
             if (!habitat) continue
+
+            // Distant understory becomes progressively less dense, allowing ground
+            // forms and the far ecosystem silhouette to remain legible through haze.
+            val shrubDepth = ((-z) / 2850f).coerceIn(0f, 1f)
+            val shrubBreakup = Noise.fbm01(x * 0.0051f, z * 0.0047f, 2, seed + 79)
+            if (shrubBreakup < 0.12f + shrubDepth * 0.17f) continue
 
             val scale = when (def.id) {
                 WorldId.DESERT -> 0.55f + rng.nextFloat() * 0.72f
@@ -231,6 +250,9 @@ object Vegetation {
             // clearing. The coastline keeps its own narrow landward marram band.
             val z = -2700f + rng.nextFloat() * 3050f
             val randomX = -760f + rng.nextFloat() * 1660f
+            // Keep dense grass clumps out of the immediate aircraft sightline;
+            // the reference chase view relies on readable open ground ahead.
+            if (z in -1550f..-35f && kotlin.math.abs(randomX) < 11f) continue
             val shoreline = -285f + 78f * kotlin.math.sin(z * 0.00145f) +
                 24f * kotlin.math.sin(z * 0.0031f + 0.8f)
             val x = if (def.id == WorldId.OCEAN) shoreline + 18f + rng.nextFloat() * 150f else randomX
