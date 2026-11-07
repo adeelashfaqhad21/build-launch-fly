@@ -21,6 +21,10 @@ android {
         }
         release {
             isMinifyEnabled = false
+            // CI QA builds must be installable on test phones. This uses Android's
+            // standard debug certificate, NOT a production/release signing identity.
+            // Replace with a private upload key before any public distribution.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
