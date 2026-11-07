@@ -38,13 +38,13 @@ class CameraDirector(private val camera: Camera) {
         // Launch view is centred on the slingshot axis, directly behind the cradle.
         desiredPosition.set(
             padPosition.x,
-            padPosition.y + 2.85f,
-            padPosition.z + 6.2f + pull * 0.45f
+            padPosition.y + 3.35f,
+            padPosition.z + 4.9f + pull * 0.30f
         )
         desiredTarget.set(
             aircraftPosition.x,
-            aircraftPosition.y + 0.20f,
-            aircraftPosition.z - 5.0f
+            aircraftPosition.y + 0.05f,
+            aircraftPosition.z - 4.2f
         )
         follow(dt, 12.0f)
     }
@@ -60,16 +60,16 @@ class CameraDirector(private val camera: Camera) {
         }
         // Close, low rear chase: keep the aircraft dominant while showing the terrain
         // directly ahead. A short follow distance avoids the distant spectator-camera feel.
-        val chaseDistance = 5.6f
+        val chaseDistance = 4.35f
         desiredPosition.set(
             aircraftPosition.x - dirX * chaseDistance,
-            aircraftPosition.y - dirY * chaseDistance + 1.75f,
+            aircraftPosition.y - dirY * chaseDistance + 1.35f,
             aircraftPosition.z - dirZ * chaseDistance
         )
         desiredTarget.set(
-            aircraftPosition.x + dirX * 6.0f,
-            aircraftPosition.y - 0.35f,
-            aircraftPosition.z + dirZ * 6.0f
+            aircraftPosition.x + dirX * 4.8f,
+            aircraftPosition.y - 0.20f,
+            aircraftPosition.z + dirZ * 4.8f
         )
         follow(dt, 12.5f)
     }
