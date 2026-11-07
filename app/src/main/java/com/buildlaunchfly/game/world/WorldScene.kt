@@ -221,15 +221,34 @@ class WorldScene(
     // ---- geometry ---------------------------------------------------------
 
     private fun buildWaterData(): MeshData {
-        val y = definition.waterLevel
+        val y = definition.waterLevel + 0.035f
         val builder = MeshBuilder()
-        builder.addQuad(
-            Vec3(-3600f, y, 1600f),
-            Vec3(5200f, y, 1600f),
-            Vec3(5200f, y, -5200f),
-            Vec3(-3600f, y, -5200f),
-            uvScale = 1f
-        )
+        if (definition.id == WorldId.FOREST || definition.id == WorldId.MOUNTAIN) {
+            val segments = 112
+            val halfWidth = if (definition.id == WorldId.FOREST) 8.5f else 6f
+            var previousLeft: Vec3? = null
+            var previousRight: Vec3? = null
+            for (i in 0..segments) {
+                val z = 280f - i * 52f
+                val centerX = 150f * kotlin.math.sin(z * 0.00125f) +
+                    54f * kotlin.math.sin(z * 0.0028f + 0.7f)
+                val left = Vec3(centerX - halfWidth, y, z)
+                val right = Vec3(centerX + halfWidth, y, z)
+                val pl = previousLeft
+                val pr = previousRight
+                if (pl != null && pr != null) builder.addQuad(pl, pr, right, left, uvScale = 4f)
+                previousLeft = left
+                previousRight = right
+            }
+        } else {
+            builder.addQuad(
+                Vec3(-3600f, y, 1600f),
+                Vec3(5200f, y, 1600f),
+                Vec3(5200f, y, -5200f),
+                Vec3(-3600f, y, -5200f),
+                uvScale = 1f
+            )
+        }
         return builder.build()
     }
 
@@ -256,15 +275,37 @@ class WorldScene(
 
     private fun buildBushData(): MeshData {
         val builder = MeshBuilder()
-        // A layered, irregular shrub silhouette: woody stems support several overlapping
-        // leaf masses rather than a single spherical placeholder.
-        builder.addCylinder(0f, 0.34f, 0f, 0.055f, 0.045f, 0.68f, 6, false, false, 1f)
-        builder.addCylinder(-0.20f, 0.46f, 0.02f, 0.035f, 0.03f, 0.48f, 5, false, false, 1f)
-        builder.addCylinder(0.19f, 0.48f, -0.04f, 0.035f, 0.03f, 0.50f, 5, false, false, 1f)
-        builder.addEllipsoid(0f, 0.55f, 0f, 0.40f, 0.34f, 0.38f, 7, 10)
-        builder.addEllipsoid(-0.27f, 0.40f, 0.04f, 0.27f, 0.25f, 0.29f, 6, 9)
-        builder.addEllipsoid(0.25f, 0.43f, -0.06f, 0.29f, 0.27f, 0.27f, 6, 9)
-        builder.addEllipsoid(0.03f, 0.78f, -0.12f, 0.25f, 0.23f, 0.24f, 6, 9)
+        when (definition.id) {
+            WorldId.DESERT -> {
+                builder.addCylinder(0f, 0.30f, 0f, 0.045f, 0.035f, 0.58f, 6, false, false, 1f)
+                builder.addCylinder(-0.28f, 0.30f, 0f, 0.025f, 0.025f, 0.48f, 5, false, false, 1f)
+                builder.addCylinder(0.27f, 0.28f, 0.04f, 0.025f, 0.025f, 0.46f, 5, false, false, 1f)
+                builder.addEllipsoid(0f, 0.40f, 0f, 0.38f, 0.22f, 0.34f, 7, 10)
+                builder.addEllipsoid(-0.30f, 0.34f, 0.08f, 0.23f, 0.18f, 0.22f, 6, 8)
+                builder.addEllipsoid(0.28f, 0.36f, -0.08f, 0.25f, 0.19f, 0.23f, 6, 8)
+            }
+            WorldId.SNOW -> {
+                builder.addCylinder(0f, 0.24f, 0f, 0.045f, 0.035f, 0.42f, 6, false, false, 1f)
+                builder.addCone(0f, 0.35f, 0f, 0.42f, 0.48f, 8, 1.25f)
+                builder.addCone(-0.20f, 0.28f, 0.05f, 0.30f, 0.36f, 7, 1.2f)
+                builder.addCone(0.20f, 0.30f, -0.04f, 0.30f, 0.38f, 7, 1.2f)
+            }
+            WorldId.OCEAN -> {
+                builder.addCylinder(0f, 0.22f, 0f, 0.025f, 0.02f, 0.40f, 5, false, false, 1f)
+                builder.addEllipsoid(0f, 0.32f, 0f, 0.14f, 0.42f, 0.14f, 5, 8)
+                builder.addEllipsoid(-0.20f, 0.26f, 0.08f, 0.12f, 0.32f, 0.12f, 5, 8)
+                builder.addEllipsoid(0.19f, 0.29f, -0.06f, 0.12f, 0.36f, 0.12f, 5, 8)
+            }
+            WorldId.FOREST, WorldId.MOUNTAIN -> {
+                builder.addCylinder(0f, 0.34f, 0f, 0.055f, 0.045f, 0.68f, 6, false, false, 1f)
+                builder.addCylinder(-0.20f, 0.46f, 0.02f, 0.035f, 0.03f, 0.48f, 5, false, false, 1f)
+                builder.addCylinder(0.19f, 0.48f, -0.04f, 0.035f, 0.03f, 0.50f, 5, false, false, 1f)
+                builder.addEllipsoid(0f, 0.55f, 0f, 0.40f, 0.34f, 0.38f, 7, 10)
+                builder.addEllipsoid(-0.27f, 0.40f, 0.04f, 0.27f, 0.25f, 0.29f, 6, 9)
+                builder.addEllipsoid(0.25f, 0.43f, -0.06f, 0.29f, 0.27f, 0.27f, 6, 9)
+                builder.addEllipsoid(0.03f, 0.78f, -0.12f, 0.25f, 0.23f, 0.24f, 6, 9)
+            }
+        }
         return builder.build()
     }
 
