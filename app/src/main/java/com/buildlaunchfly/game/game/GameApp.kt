@@ -678,11 +678,12 @@ class GameApp(private val context: Context, private val input: InputState) {
             definition.rockThreshold,
             definition.snowLine,
             when (definition.id) {
-                WorldId.FOREST -> 0.46f
+                // Forest meadows and mountain pastures need visible bare-earth islands.
+                WorldId.FOREST -> 0.62f
                 WorldId.DESERT -> 0.04f
                 WorldId.SNOW -> 0f
-                WorldId.OCEAN -> 0.12f
-                WorldId.MOUNTAIN -> 0.34f
+                WorldId.OCEAN -> 0.18f
+                WorldId.MOUNTAIN -> 0.48f
             }
         )
 
