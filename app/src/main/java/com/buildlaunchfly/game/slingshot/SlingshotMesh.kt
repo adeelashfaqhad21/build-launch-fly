@@ -197,14 +197,14 @@ class SlingshotMesh(textures: TextureFactory) {
     }
 
     /** Left band transform for the current draw offset. */
-    fun leftBandMatrix(pull: Float, out: Mat4): Mat4 {
+    fun leftBandMatrix(pull: Float, out: Mat4, elevationDegrees: Float = 0f): Mat4 {
         val thickness = 1f + thicknessBoost
-        return bandMatrix(SlingshotLayout.LEFT_PRONG, holdPoint(pull), thickness, out)
+        return bandMatrix(SlingshotLayout.LEFT_PRONG, holdPoint(pull, elevationDegrees), thickness, out)
     }
 
-    fun rightBandMatrix(pull: Float, out: Mat4): Mat4 {
+    fun rightBandMatrix(pull: Float, out: Mat4, elevationDegrees: Float = 0f): Mat4 {
         val thickness = 1f + thicknessBoost
-        return bandMatrix(SlingshotLayout.RIGHT_PRONG, holdPoint(pull), thickness, out)
+        return bandMatrix(SlingshotLayout.RIGHT_PRONG, holdPoint(pull, elevationDegrees), thickness, out)
     }
 
     var thicknessBoost: Float = 0f
