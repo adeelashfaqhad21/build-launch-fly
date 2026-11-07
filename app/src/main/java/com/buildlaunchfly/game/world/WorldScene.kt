@@ -202,20 +202,27 @@ class WorldScene(
             WorldId.MOUNTAIN -> 440
         }
         val bushSet = Vegetation.scatterBushes(terrain, definition, (bushBaseCount * scale).toInt(), definition.seed)
-        val bushMatricesA = FloatArray(bushSet.count * 16 / 3 + 16)
-        val bushMatricesB = FloatArray(bushSet.count * 16 / 3 + 16)
-        val bushMatricesC = FloatArray(bushSet.count * 16 / 3 + 16)
+        // Species are assigned by a low-frequency habitat field, not instance order.
+        // Full-size buffers allow uneven natural stands without risking an array overflow.
+        val bushMatricesA = FloatArray(bushSet.count * 16)
+        val bushMatricesB = FloatArray(bushSet.count * 16)
+        val bushMatricesC = FloatArray(bushSet.count * 16)
         var bushCountA = 0
         var bushCountB = 0
         var bushCountC = 0
         for (index in 0 until bushSet.count) {
             val source = index * 16
-            when (index % 3) {
-                0 -> {
+            val x = bushSet.matrices[source + 12]
+            val z = bushSet.matrices[source + 14]
+            val speciesField = com.buildlaunchfly.game.gfx.Noise.fbm01(
+                x * 0.0038f, z * 0.0038f, 2, definition.seed + 613
+            )
+            when {
+                speciesField < 0.34f -> {
                     System.arraycopy(bushSet.matrices, source, bushMatricesA, bushCountA * 16, 16)
                     bushCountA++
                 }
-                1 -> {
+                speciesField < 0.68f -> {
                     System.arraycopy(bushSet.matrices, source, bushMatricesB, bushCountB * 16, 16)
                     bushCountB++
                 }
