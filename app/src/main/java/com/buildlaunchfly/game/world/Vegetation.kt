@@ -174,17 +174,43 @@ object Vegetation {
         var attempts = 0
         val maxAttempts = count * 4
 
-        while (placed < count && attempts < maxAttempts) {
+        while (placed < count && attempts < maxAttempts * 3) {
             attempts++
-            val x = centerX + (rng.nextFloat() * 2f - 1f) * radius
             val z = centerZ + (rng.nextFloat() * 2f - 1f) * radius
+            val randomX = centerX + (rng.nextFloat() * 2f - 1f) * radius
+            val shoreline = -285f + 78f * kotlin.math.sin(z * 0.00145f) +
+                24f * kotlin.math.sin(z * 0.0031f + 0.8f)
+            val x = if (def.id == WorldId.OCEAN) shoreline + 18f + rng.nextFloat() * 150f else randomX
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.4f) continue
             terrain.normal(x, z, normal)
             if (normal.y < 0.80f) continue
 
-            val size = 0.5f + rng.nextFloat() * 0.9f
-            matrix.setTrs(x, h, z, 0f, rng.nextFloat() * 6.2831855f, 0f, size, size * 1.3f, size)
+            val patch = Noise.fbm01(x * 0.008f, z * 0.008f, 2, seed + 103)
+            val habitat = when (def.id) {
+                WorldId.FOREST -> patch > 0.27f // open clearings and sunlit meadow edges
+                WorldId.DESERT -> {
+                    val wadiX = 95f * kotlin.math.sin(z * 0.0018f) +
+                        38f * kotlin.math.sin(z * 0.0041f + 1.2f)
+                    kotlin.math.abs(x - wadiX) < 62f && patch > 0.42f
+                }
+                WorldId.SNOW -> false // glacier world uses exposed ice, snow and tundra shrubs
+                WorldId.OCEAN -> patch > 0.32f // marram grass on the landward dune shelf
+                WorldId.MOUNTAIN -> {
+                    val relativeHeight = h - def.heightOffset
+                    relativeHeight in 4f..86f && patch > 0.30f
+                }
+            }
+            if (!habitat) continue
+
+            val size = when (def.id) {
+                WorldId.DESERT -> 0.35f + rng.nextFloat() * 0.55f
+                WorldId.OCEAN -> 0.65f + rng.nextFloat() * 0.85f
+                else -> 0.5f + rng.nextFloat() * 0.9f
+            }
+            val lean = (rng.nextFloat() - 0.5f) * 0.22f
+            matrix.setTrs(x, h, z, lean, rng.nextFloat() * 6.2831855f, -lean * 0.55f,
+                size, size * 1.3f, size * (0.8f + rng.nextFloat() * 0.4f))
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
