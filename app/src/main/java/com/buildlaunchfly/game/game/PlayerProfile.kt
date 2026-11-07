@@ -106,7 +106,7 @@ class PlayerProfile {
 
     fun toJson(): String {
         val root = JSONObject()
-        root.put("version", 3)
+        root.put("version", 4)
         root.put("coins", coins)
         root.put("bestDistance", bestDistance.toDouble())
         root.put("bestAltitude", bestAltitude.toDouble())
@@ -148,6 +148,7 @@ class PlayerProfile {
             if (text.isNullOrBlank()) return profile
             try {
                 val root = JSONObject(text)
+                val saveVersion = root.optInt("version", 1)
                 profile.coins = root.optInt("coins", profile.coins)
                 profile.bestDistance = root.optDouble("bestDistance", 0.0).toFloat()
                 profile.bestAltitude = root.optDouble("bestAltitude", 0.0).toFloat()
@@ -211,6 +212,10 @@ class PlayerProfile {
 
                 val settings = GameSettings.fromJson(root.optJSONObject("settings"))
                 profile.copySettings(settings)
+                if (saveVersion < 4) {
+                    profile.settings.quality = GraphicsQuality.MEDIUM
+                    profile.settings.highResTextures = false
+                }
             } catch (error: Throwable) {
                 Log.w("BLF-SAVE", "Could not parse save data, starting fresh", error)
                 return PlayerProfile()
