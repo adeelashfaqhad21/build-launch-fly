@@ -73,8 +73,12 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
     private var instanceVbo = 0
     private val indexCount: Int = data.indices.size
 
-    /** Scratch buffer reused for uploads. */
+    /** Scratch buffers reused for uploads; never allocate direct memory in the frame loop. */
     private val uploadBuffer = FloatArray(capacity.coerceAtLeast(1) * 16)
+    private val uploadFloatBuffer = java.nio.ByteBuffer
+        .allocateDirect(uploadBuffer.size * 4)
+        .order(java.nio.ByteOrder.nativeOrder())
+        .asFloatBuffer()
 
     var instanceCount: Int = 0
         private set
@@ -125,18 +129,12 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
         if (safeCount == 0) return
         val floats = safeCount * 16
         System.arraycopy(matrices, 0, uploadBuffer, 0, floats)
+        uploadFloatBuffer.clear()
+        uploadFloatBuffer.put(uploadBuffer, 0, floats)
+        uploadFloatBuffer.flip()
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, instanceVbo)
-        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, floats * 4, toFloatBuffer(uploadBuffer, floats))
+        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, floats * 4, uploadFloatBuffer)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
-    }
-
-    private fun toFloatBuffer(data: FloatArray, count: Int): java.nio.FloatBuffer {
-        val buffer = java.nio.ByteBuffer.allocateDirect(count * 4)
-            .order(java.nio.ByteOrder.nativeOrder())
-            .asFloatBuffer()
-        buffer.put(data, 0, count)
-        buffer.position(0)
-        return buffer
     }
 
     fun draw() {
