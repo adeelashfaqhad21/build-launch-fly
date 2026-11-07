@@ -33,6 +33,11 @@ enum class SlingUpgrade(
         "Launching Efficiency",
         "Less energy lost in the frame, bands and cradle.",
         190, 1.56f
+    ),
+    HYDRAULIC_DAMPER(
+        "Hydraulic Recoil Damper",
+        "Absorbs launch shock and steadies the release.",
+        240, 1.60f
     )
 }
 
