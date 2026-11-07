@@ -75,7 +75,6 @@ class InputState {
         synchronized(lock) {
             val value = pendingRelease
             pendingRelease = false
-            pendingCancel = false
             return value
         }
     }
@@ -96,6 +95,7 @@ class InputState {
             pendingDragX = 0f
             pendingDragY = 0f
             pendingRelease = false
+            pendingCancel = false
         }
     }
 }
