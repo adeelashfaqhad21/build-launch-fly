@@ -207,6 +207,12 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         applyEnvironment(definition, sceneRenderer)
         padPosition.set(0f, newScene.terrain.padHeight, 0f)
+        val restingPoint = slingMesh?.holdPoint(0f) ?: SlingshotLayout.HOLD_POINT
+        seatPosition.set(
+            padPosition.x + restingPoint.x,
+            padPosition.y + restingPoint.y,
+            padPosition.z + restingPoint.z
+        )
         slingshotModel.identity().translate(padPosition.x, padPosition.y, padPosition.z)
         audio.setAmbience(definition.ambience)
         hud?.onWorldChanged(definition)
