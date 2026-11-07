@@ -6,7 +6,7 @@ import com.buildlaunchfly.game.math.Vec3
 
 enum class FlightState { READY, FLYING, LANDED, CRASHED }
 
-class FlightInput(var pitch: Float = 0f, var roll: Float = 0f)
+class FlightInput(var pitch: Float = 0f, var yaw: Float = 0f, var roll: Float = 0f)
 
 /**
  * Aircraft flight model: thrust along the airframe, lift from angle of attack, quadratic
@@ -130,7 +130,7 @@ class FlightPhysics {
         roll = M.clamp(roll + rollRate * dt, -1.0f, 1.0f)
 
         val speedFactor = M.clamp(speed / 35f, 0.15f, 1.6f)
-        val targetYawRate = -kotlin.math.sin(roll) * 0.55f * speedFactor + input.roll * 0.12f
+        val targetYawRate = -kotlin.math.sin(roll) * 0.55f * speedFactor + input.yaw * 1.25f
         yawRate = M.lerp(yawRate, targetYawRate, M.clamp(3f * dt, 0f, 1f))
         yaw = M.wrapAngle(yaw + yawRate * dt)
 
