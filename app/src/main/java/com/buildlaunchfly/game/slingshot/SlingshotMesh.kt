@@ -84,33 +84,23 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addBox(0f, 0.36f, 0.10f, 1.18f, 0.16f, 0.88f, 2f)
         b.addBox(0f, 0.58f, 0.72f, 0.52f, 0.08f, 0.58f, 2f)
 
-        // Central lattice mast with four load-bearing columns.
-        for (x in floatArrayOf(-0.34f, 0.34f)) {
-            for (z in floatArrayOf(-0.30f, 0.30f)) {
-                b.addBox(x, 1.82f, z, 0.075f, 1.52f, 0.075f, 2f)
-                b.addBox(x * 1.55f, 0.42f, z * 1.55f, 0.16f, 0.12f, 0.16f, 2f)
-            }
+        // Rear-mounted narrow truss mast. The aircraft's forward launch corridor
+        // (negative Z from the carriage) is deliberately kept completely clear.
+        for (x in floatArrayOf(-0.22f, 0.22f)) {
+            b.addBox(x, 1.78f, 1.58f, 0.065f, 1.48f, 0.065f, 2f)
         }
-        // X-bracing on both visible sides gives the mast a fabricated truss silhouette.
-        for (z in floatArrayOf(-0.34f, 0.34f)) {
-            b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.62f, 1f)
-            b.addBox(0f, 1.82f, z, 0.055f, 1.78f, 0.055f, 2f)
-            b.pop()
-            b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.62f, 1f)
-            b.addBox(0f, 1.82f, z, 0.055f, 1.78f, 0.055f, 2f)
-            b.pop()
+        for (y in floatArrayOf(0.48f, 1.35f, 2.22f, 3.05f)) {
+            b.addBox(0f, y, 1.58f, 0.30f, 0.055f, 0.28f, 2f)
         }
-        for (y in floatArrayOf(0.62f, 1.55f, 2.48f, 3.18f)) {
-            b.addBox(0f, y, 0f, 0.48f, 0.065f, 0.47f, 2f)
-        }
-
-        // Elevated swept fork arms and reinforced crosshead form a wide V-shaped launcher.
-        b.addBox(0f, 3.58f, -0.12f, 3.12f, 0.16f, 0.25f, 2f)
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.17f, 1f)
-        b.addBox(-1.58f, 3.88f, -0.12f, 1.72f, 0.17f, 0.22f, 2f)
+        // Rear-facing V arms carry the elastic anchors without a crosshead over
+        // the aircraft. Their entire span remains behind the release path.
+        val armLength = 1.72f
+        val armAngle = 0.70f
+        b.pushTrs(0f, 0f, 0f, 0f, 0f, -armAngle, 1f)
+        b.addBox(-0.78f, 3.45f, 1.12f, 0.12f, armLength, 0.14f, 2f)
         b.pop()
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.17f, 1f)
-        b.addBox(1.58f, 3.88f, -0.12f, 1.72f, 0.17f, 0.22f, 2f)
+        b.pushTrs(0f, 0f, 0f, 0f, 0f, armAngle, 1f)
+        b.addBox(0.78f, 3.45f, 1.12f, 0.12f, armLength, 0.14f, 2f)
         b.pop()
 
         // Machined anchor clamps, prong caps and visible fastener bosses.
@@ -141,7 +131,7 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addBox(0f, 0.10f, 0f, 0.78f, 0.10f, 1.02f, 2f)
         b.addBox(-0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
         b.addBox(0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
-        b.addBox(0f, 0.28f, -0.88f, 0.48f, 0.18f, 0.12f, 2f)
+        // No raised nose stop: the aircraft propeller/nose must have a clear forward exit.
         b.addBox(0f, 0.24f, 0.86f, 0.54f, 0.12f, 0.10f, 2f)
         return b.build()
     }
