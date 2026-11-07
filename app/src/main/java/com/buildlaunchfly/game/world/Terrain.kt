@@ -47,6 +47,42 @@ class Terrain(val definition: WorldDefinition) {
             h = M.lerp(h, riverBed, bank * 0.94f)
         }
 
+        if (definition.id == WorldId.DESERT) {
+            // Broad, flat-topped sandstone mesas with steep eroded escarpments.
+            val mesaCenters = arrayOf(
+                floatArrayOf(-360f, -520f, 190f, 31f),
+                floatArrayOf(310f, -1120f, 245f, 42f),
+                floatArrayOf(-120f, -2020f, 175f, 27f),
+                floatArrayOf(690f, -2580f, 220f, 36f)
+            )
+            for (mesa in mesaCenters) {
+                val dx = x - mesa[0]
+                val dz = z - mesa[1]
+                val distance = kotlin.math.sqrt(dx * dx + dz * dz)
+                val edgeNoise = Noise.fbm2(x * 0.009f, z * 0.009f, 2, 2f, 0.5f, s + 83) * 16f
+                val radius = mesa[2] + edgeNoise
+                val plateau = 1f - M.smoothStep(radius * 0.88f, radius, distance)
+                val talus = 1f - M.smoothStep(radius, radius * 1.22f, distance)
+                val mesaTop = h + mesa[3]
+                h = M.lerp(h, mesaTop, plateau)
+                h += talus * (1f - plateau) * 3.5f
+            }
+
+            // Dry wadi cuts through the dune field, exposing a lower clay wash.
+            val wadiX = 95f * sin(z * 0.0018f) + 38f * sin(z * 0.0041f + 1.2f)
+            val wadiDistance = abs(x - wadiX)
+            val wadiCut = 1f - M.smoothStep(5f, 27f, wadiDistance)
+            h -= wadiCut * 5.5f
+        }
+
+        if (definition.id == WorldId.SNOW) {
+            // Longitudinal glacier crevasses: narrow branching grooves rather than noise bumps.
+            val crackWave = abs(sin((x * 0.045f + sin(z * 0.0035f) * 1.6f).toDouble()).toFloat())
+            val crackMask = 1f - M.smoothStep(0.015f, 0.105f, crackWave)
+            val elevationMask = M.smoothStep(definition.heightOffset + 12f, definition.heightOffset + 42f, h)
+            h -= crackMask * elevationMask * 1.15f
+        }
+
         // Shallow valley along the launch corridor.
         val corridor = kotlin.math.exp((-(x * x) / (260f * 260f)).toDouble()).toFloat()
         h -= corridor * 6f
