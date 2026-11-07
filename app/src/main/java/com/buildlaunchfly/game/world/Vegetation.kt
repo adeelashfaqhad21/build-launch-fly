@@ -197,9 +197,6 @@ object Vegetation {
         def: WorldDefinition,
         count: Int,
         seed: Int,
-        centerX: Float,
-        centerZ: Float,
-        radius: Float
     ): InstanceSet {
         if (count <= 0) return InstanceSet.EMPTY
         val out = FloatArray(count * 16)
@@ -212,8 +209,10 @@ object Vegetation {
 
         while (placed < count && attempts < maxAttempts * 3) {
             attempts++
-            val z = centerZ + (rng.nextFloat() * 2f - 1f) * radius
-            val randomX = centerX + (rng.nextFloat() * 2f - 1f) * radius
+            // Scatter across the traversable world footprint, not just the launch-pad
+            // clearing. The coastline keeps its own narrow landward marram band.
+            val z = -2700f + rng.nextFloat() * 3050f
+            val randomX = -760f + rng.nextFloat() * 1660f
             val shoreline = -285f + 78f * kotlin.math.sin(z * 0.00145f) +
                 24f * kotlin.math.sin(z * 0.0031f + 0.8f)
             val x = if (def.id == WorldId.OCEAN) shoreline + 18f + rng.nextFloat() * 150f else randomX
