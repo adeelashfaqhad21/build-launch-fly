@@ -56,6 +56,10 @@ class WorldScene(
     val birdsMesh: InstancedMesh
     val animalsMesh: InstancedMesh
 
+    // Compact collision proxies for authored natural obstacles (trees and rocks).
+    // Each record stores centre XYZ, horizontal radius and vertical half-extent.
+    private var naturalObstacleProxies: FloatArray = FloatArray(0)
+
     val birds: Wildlife.Birds
     val animals: Wildlife.GroundAnimals
     val weather = WeatherSystem(definition)
@@ -291,6 +295,7 @@ class WorldScene(
         val rockSet = Vegetation.scatterRocks(terrain, definition, rockCount, definition.seed)
         rocks = InstancedMesh("rocks", rockData, rockSet.count.coerceAtLeast(1))
         if (rockSet.count > 0) rocks.setInstances(rockSet.matrices, rockSet.count)
+        naturalObstacleProxies = buildNaturalObstacleProxies(treeSet.matrices, treeSet.count, rockSet.matrices, rockSet.count)
 
         val grassCount = (definition.grassCount * scale).toInt()
         if (grassCount > 0) {
@@ -325,6 +330,55 @@ class WorldScene(
 
         waterDeep = definition.waterDeep
         waterShallow = definition.waterShallow
+    }
+
+    /**
+     * Tests the aircraft against the same deterministic tree and rock instances used
+     * by the renderer. This makes the natural landscape itself the obstacle course.
+     */
+    fun collidesWithNaturalObstacle(x: Float, y: Float, z: Float, aircraftRadius: Float = 1.25f): Boolean {
+        val data = naturalObstacleProxies
+        var offset = 0
+        while (offset < data.size) {
+            val dx = x - data[offset]
+            val dy = y - data[offset + 1]
+            val dz = z - data[offset + 2]
+            val horizontal = data[offset + 3] + aircraftRadius
+            val vertical = data[offset + 4] + 0.9f
+            if (kotlin.math.abs(dy) < vertical && dx * dx + dz * dz < horizontal * horizontal) {
+                return true
+            }
+            offset += 5
+        }
+        return false
+    }
+
+    private fun buildNaturalObstacleProxies(
+        trees: FloatArray,
+        treeCount: Int,
+        rocks: FloatArray,
+        rockCount: Int
+    ): FloatArray {
+        val result = FloatArray((treeCount + rockCount) * 5)
+        var out = 0
+        for (index in 0 until treeCount) {
+            val i = index * 16
+            val height = trees[i + 5]
+            result[out++] = trees[i + 12]
+            result[out++] = trees[i + 13] + height * 0.55f
+            result[out++] = trees[i + 14]
+            result[out++] = maxOf(trees[i], trees[i + 10]) * 0.72f + 0.75f
+            result[out++] = height * 0.60f
+        }
+        for (index in 0 until rockCount) {
+            val i = index * 16
+            result[out++] = rocks[i + 12]
+            result[out++] = rocks[i + 13]
+            result[out++] = rocks[i + 14]
+            result[out++] = maxOf(rocks[i], rocks[i + 10]) * 0.78f + 0.35f
+            result[out++] = rocks[i + 5] * 0.82f + 0.35f
+        }
+        return if (out == result.size) result else result.copyOf(out)
     }
 
     fun update(dt: Float, time: Float, camera: Camera, particles: ParticleRenderer) {
