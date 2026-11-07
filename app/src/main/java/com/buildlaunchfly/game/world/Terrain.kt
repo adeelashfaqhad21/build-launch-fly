@@ -162,7 +162,59 @@ class Terrain(val definition: WorldDefinition) {
             WorldId.OCEAN -> 12f
             WorldId.MOUNTAIN -> 28f
         }
-        h += farLayer * lateralEnvelope * shoulderProfile * skylineAmplitude
+
+        // Give each far skyline a recognisable geological profile instead of using
+        // one generic rolling shoulder for every unlocked world.
+        val ecosystemSilhouette = when (definition.id) {
+            WorldId.FOREST -> {
+                // Soft, overlapping wooded ridges with no hard geometric peaks.
+                val woodedRidge = Noise.ridged2(
+                    x * 0.00115f, z * 0.00105f, 3, s + 251
+                )
+                (0.62f + woodedRidge * 0.38f).coerceIn(0.18f, 1.0f)
+            }
+            WorldId.DESERT -> {
+                // Flat mesa crowns and broken escarpment shoulders on the far horizon.
+                val mesaA = kotlin.math.exp(
+                    (-((x - 470f) * (x - 470f)) / (330f * 330f) -
+                        ((z + 2180f) * (z + 2180f)) / (520f * 520f)).toDouble()
+                ).toFloat()
+                val mesaB = kotlin.math.exp(
+                    (-((x + 510f) * (x + 510f)) / (390f * 390f) -
+                        ((z + 2760f) * (z + 2760f)) / (430f * 430f)).toDouble()
+                ).toFloat()
+                val brokenCrown = 0.72f + shoulderNoise * 0.28f
+                (0.28f + maxOf(mesaA, mesaB) * brokenCrown * 1.45f).coerceIn(0.16f, 1.0f)
+            }
+            WorldId.SNOW -> {
+                // Sharp, glacially cut high ridges with a second lower shoulder.
+                val alpineRidge = Noise.ridged2(
+                    x * 0.00165f, z * 0.00125f, 4, s + 263
+                )
+                (0.24f + alpineRidge * 0.76f).coerceIn(0.12f, 1.0f)
+            }
+            WorldId.OCEAN -> {
+                // Isolated offshore sea stacks break the waterline silhouette.
+                val stackA = kotlin.math.exp(
+                    (-((x + 540f) * (x + 540f)) / (92f * 92f) -
+                        ((z + 2310f) * (z + 2310f)) / (150f * 150f)).toDouble()
+                ).toFloat()
+                val stackB = kotlin.math.exp(
+                    (-((x + 760f) * (x + 760f)) / (118f * 118f) -
+                        ((z + 2920f) * (z + 2920f)) / (180f * 180f)).toDouble()
+                ).toFloat()
+                (0.20f + maxOf(stackA, stackB) * 0.80f).coerceIn(0.12f, 1.0f)
+            }
+            WorldId.MOUNTAIN -> {
+                // Stronger multi-scale ridges create layered alpine peaks.
+                val highRidge = Noise.ridged2(
+                    x * 0.00135f, z * 0.00110f, 4, s + 277
+                )
+                (0.18f + highRidge * 0.82f).coerceIn(0.12f, 1.0f)
+            }
+        }
+        h += farLayer * lateralEnvelope * shoulderProfile *
+            ecosystemSilhouette * skylineAmplitude
 
         // Shallow valley along the launch corridor. The distant shoulder mask fades in
         // outside this corridor so the aircraft's first seconds remain unobstructed.
