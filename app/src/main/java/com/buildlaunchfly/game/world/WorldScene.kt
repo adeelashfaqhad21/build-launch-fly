@@ -26,6 +26,7 @@ class WorldScene(
 
     val treeTrunkMesh: Mesh
     val treeCanopyMesh: Mesh
+    val treeCanopyVariantMesh: Mesh
     val rockMesh: Mesh
     val grassMesh: Mesh?
 
@@ -39,6 +40,7 @@ class WorldScene(
 
     val treeTrunks: InstancedMesh
     val treeCanopies: InstancedMesh
+    val treeCanopyVariants: InstancedMesh
     val rocks: InstancedMesh
     val grass: InstancedMesh?
     val bushes: InstancedMesh
@@ -68,7 +70,8 @@ class WorldScene(
         waterMesh = if (definition.hasWater) Mesh("water", buildWaterData()) else null
 
         val trunkData = buildTrunkData()
-        val canopyData = buildCanopyData()
+        val canopyData = buildCanopyData(0)
+        val canopyVariantData = buildCanopyData(1)
         val rockData = buildRockData()
         val bushData = buildBushData(0)
         val bushDataB = buildBushData(1)
@@ -76,6 +79,7 @@ class WorldScene(
 
         treeTrunkMesh = Mesh("treeTrunk", trunkData)
         treeCanopyMesh = Mesh("treeCanopy", canopyData)
+        treeCanopyVariantMesh = Mesh("treeCanopyVariant", canopyVariantData)
         rockMesh = Mesh("rock", rockData)
 
         treeMaterial = Material(
@@ -154,12 +158,26 @@ class WorldScene(
         val treeCount = (definition.treeCount * scale).toInt()
         val treeSet = Vegetation.scatterTrees(terrain, definition, treeCount, definition.seed)
         val treeCapacity = treeSet.count.coerceAtLeast(1)
-        treeTrunks = InstancedMesh("treeTrunks", trunkData, treeCapacity)
-        treeCanopies = InstancedMesh("treeCanopies", canopyData, treeCapacity)
-        if (treeSet.count > 0) {
-            treeTrunks.setInstances(treeSet.matrices, treeSet.count)
-            treeCanopies.setInstances(treeSet.matrices, treeSet.count)
+        val primaryTreeMatrices = FloatArray(treeSet.count * 16 / 2 + 16)
+        val variantTreeMatrices = FloatArray(treeSet.count * 16 / 2 + 16)
+        var primaryTreeCount = 0
+        var variantTreeCount = 0
+        for (index in 0 until treeSet.count) {
+            val source = index * 16
+            if (index % 2 == 0) {
+                System.arraycopy(treeSet.matrices, source, primaryTreeMatrices, primaryTreeCount * 16, 16)
+                primaryTreeCount++
+            } else {
+                System.arraycopy(treeSet.matrices, source, variantTreeMatrices, variantTreeCount * 16, 16)
+                variantTreeCount++
+            }
         }
+        treeTrunks = InstancedMesh("treeTrunks", trunkData, treeCapacity)
+        treeCanopies = InstancedMesh("treeCanopies", canopyData, primaryTreeCount.coerceAtLeast(1))
+        treeCanopyVariants = InstancedMesh("treeCanopyVariants", canopyVariantData, variantTreeCount.coerceAtLeast(1))
+        if (treeSet.count > 0) treeTrunks.setInstances(treeSet.matrices, treeSet.count)
+        if (primaryTreeCount > 0) treeCanopies.setInstances(primaryTreeMatrices, primaryTreeCount)
+        if (variantTreeCount > 0) treeCanopyVariants.setInstances(variantTreeMatrices, variantTreeCount)
 
         val rockCount = (definition.rockCount * scale).toInt()
         val bushBaseCount = when (definition.id) {
@@ -255,10 +273,12 @@ class WorldScene(
         waterMesh?.dispose()
         treeTrunkMesh.dispose()
         treeCanopyMesh.dispose()
+        treeCanopyVariantMesh.dispose()
         rockMesh.dispose()
         grassMesh?.dispose()
         treeTrunks.dispose()
         treeCanopies.dispose()
+        treeCanopyVariants.dispose()
         rocks.dispose()
         bushes.dispose()
         bushesVariantB.dispose()
@@ -309,9 +329,44 @@ class WorldScene(
         return builder.build()
     }
 
-    private fun buildCanopyData(): MeshData {
+    private fun buildCanopyData(variant: Int): MeshData {
         val builder = MeshBuilder()
         when {
+            definition.id == WorldId.FOREST && variant == 1 -> {
+                // Slender birch-like crown: upright, separated foliage clusters rather
+                // than another copy of the broad, rounded woodland crown.
+                builder.addEllipsoid(0f, 1.05f, 0f, 0.30f, 0.62f, 0.29f, 6, 9)
+                builder.addEllipsoid(0.12f, 0.72f, 0.08f, 0.25f, 0.36f, 0.24f, 6, 8)
+                builder.addEllipsoid(-0.10f, 1.43f, -0.06f, 0.25f, 0.35f, 0.23f, 6, 8)
+            }
+            definition.id == WorldId.MOUNTAIN && variant == 1 -> {
+                // Alpine fir: broad lower boughs and a narrow pointed crown.
+                builder.addCone(0f, 0.34f, 0f, 0.58f, 0.88f, 9, 1.25f)
+                builder.addCone(0f, 0.90f, 0f, 0.43f, 0.82f, 9, 1.25f)
+                builder.addCone(0f, 1.40f, 0f, 0.27f, 0.70f, 8, 1.2f)
+            }
+            definition.id == WorldId.SNOW && variant == 1 -> {
+                // Compact subarctic spruce, distinctly shorter and fuller than the primary pine.
+                builder.addCone(0f, 0.28f, 0f, 0.62f, 0.72f, 8, 1.3f)
+                builder.addCone(0f, 0.76f, 0f, 0.46f, 0.70f, 8, 1.3f)
+                builder.addCone(0f, 1.18f, 0f, 0.28f, 0.62f, 7, 1.2f)
+            }
+            definition.id == WorldId.OCEAN && variant == 1 -> {
+                // Salt-wind sculpted coastal crown, biased to one side.
+                builder.addEllipsoid(0.18f, 0.96f, 0f, 0.58f, 0.42f, 0.36f, 7, 9)
+                builder.addEllipsoid(-0.18f, 0.72f, 0.08f, 0.34f, 0.30f, 0.29f, 6, 8)
+                builder.addEllipsoid(0.48f, 1.20f, -0.08f, 0.30f, 0.27f, 0.28f, 6, 8)
+            }
+            definition.id == WorldId.DESERT && variant == 1 -> {
+                // Multi-arm desert cactus rather than a second straight saguaro stamp.
+                builder.addCylinder(0f, 0.78f, 0f, 0.13f, 0.12f, 1.55f, 8, false, false, 1f)
+                builder.pushTrs(-0.16f, 0.54f, 0f, 0f, 0f, 1.5707963f, 1f)
+                builder.addCylinder(0f, 0f, 0f, 0.10f, 0.10f, 0.48f, 7, false, false, 1f)
+                builder.pop()
+                builder.pushTrs(0.18f, 0.88f, 0f, 0f, 0f, 1.5707963f, 1f)
+                builder.addCylinder(0f, 0f, 0f, 0.09f, 0.09f, 0.42f, 7, false, false, 1f)
+                builder.pop()
+            }
             definition.id == WorldId.DESERT -> {
                 // Saguaro silhouette: two raised arms with elbows, not a generic tree crown.
                 builder.addCylinder(0f, 0.72f, 0f, 0.14f, 0.12f, 1.45f, 10, false, false, 1f)
