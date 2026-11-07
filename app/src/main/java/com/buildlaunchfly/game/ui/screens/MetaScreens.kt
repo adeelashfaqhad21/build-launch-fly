@@ -112,7 +112,7 @@ object SettingsScreen {
                 UiTextStyle.BADGE,
                 if (active) DesignTokens.TEXT_PRIMARY else DesignTokens.TEXT_MUTED
             )
-            f.hit(b) { f.app.requestSetQuality(quality) }
+            f.hit(b, { f.app.requestSetQuality(quality) })
         }
         y += 38f
 
@@ -242,7 +242,7 @@ object AchievementsScreen {
                 complete -> {
                     f.solid(claim, 6f, DesignTokens.COLOR_COIN_GOLD)
                     f.labelIn(claim, "+${achievement.reward} CLAIM", UiTextStyle.BADGE, DesignTokens.TEXT_INVERSE)
-                    f.hit(claim) { f.app.requestClaimAchievement(achievement.id) }
+                    f.hit(claim, { f.app.requestClaimAchievement(achievement.id) })
                 }
                 else -> f.labelIn(claim, "${(fraction * 100).toInt()}%", UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
             }

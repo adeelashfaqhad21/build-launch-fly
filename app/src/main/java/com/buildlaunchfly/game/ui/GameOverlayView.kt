@@ -20,6 +20,7 @@ import com.buildlaunchfly.game.ui.screens.ResultsScreen
 import com.buildlaunchfly.game.ui.screens.RewardScreen
 import com.buildlaunchfly.game.ui.screens.SettingsScreen
 import com.buildlaunchfly.game.ui.screens.SlingshotWorkshopScreen
+import com.buildlaunchfly.game.ui.screens.WorldSelectScreen
 import com.buildlaunchfly.game.world.WorldCatalog
 
 /**

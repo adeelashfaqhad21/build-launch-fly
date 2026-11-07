@@ -327,7 +327,7 @@ class UiFrame(
         iconButton(backRect, UiIcon.BACK) { nav.back() }
 
         label(
-            text = text.uppercase(),
+            text = title.uppercase(),
             x = DesignTokens.MARGIN_H + 48f,
             y = DesignTokens.SAFE_TOP + 20f,
             style = UiTextStyle.H1,

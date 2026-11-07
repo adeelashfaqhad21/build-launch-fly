@@ -37,7 +37,7 @@ object WorldSelectScreen {
 
         if (unlocked) {
             f.button(button, "LAUNCH IN THIS REALM", UiButtonStyle.PRIMARY) {
-                f.app.requestSelectWorld(f.nav.worldCursor)
+                f.app.requestSelectWorld(selected.id)
                 f.nav.go(UiScreen.LAUNCH)
             }
         } else {
@@ -128,9 +128,7 @@ object WorldSelectScreen {
             )
         }
 
-        f.hit(r) {
-            f.nav.worldCursor = index.coerceIn(0, worlds.size - 1)
-        }
+        f.hit(r, { f.nav.worldCursor = index.coerceIn(0, worlds.size - 1) })
     }
 
     private fun weatherFor(id: WorldId): String = when (id) {

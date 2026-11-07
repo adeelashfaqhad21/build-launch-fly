@@ -130,7 +130,7 @@ object SlingshotWorkshopScreen {
             )
             f.labelIn(action, UiFormat.coins(cost), UiTextStyle.BADGE, DesignTokens.TEXT_PRIMARY)
             if (affordable) {
-                f.hit(action) { f.app.requestUpgradeSlingshot(type) }
+                f.hit(action, { f.app.requestUpgradeSlingshot(type) })
             }
         }
     }
