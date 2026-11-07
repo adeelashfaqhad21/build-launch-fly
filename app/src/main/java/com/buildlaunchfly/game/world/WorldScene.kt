@@ -54,11 +54,13 @@ class WorldScene(
     val waterShallow: Vec3
 
     init {
+        // Keep the default mobile preset lean; high and ultra progressively
+        // restore habitat density for devices with more GPU headroom.
         val scale = when {
-            detailLevel <= 0 -> 0.35f
-            detailLevel == 1 -> 0.7f
-            detailLevel == 2 -> 1f
-            else -> 1.25f
+            detailLevel <= 0 -> 0.24f
+            detailLevel == 1 -> 0.44f
+            detailLevel == 2 -> 0.72f
+            else -> 0.92f
         }
 
         terrainMesh = Mesh("terrain", TerrainMesh.build(terrain))
