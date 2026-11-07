@@ -85,22 +85,21 @@ app/build/outputs/apk/debug/app-debug.apk
 There is intentionally **no Gradle wrapper JAR** in the repository (binary files are not
 checked in); CI installs Gradle 8.7 explicitly. Locally, use any Gradle 8.7+ install.
 
-## CI
+## CI and Android packages
 
-`.github/workflows/android.yml` runs on every push and pull request:
+`.github/workflows/android.yml` runs on pushes to every branch and on pull requests. It builds two distinct APKs:
 
-1. JDK 17 (Temurin)
-2. Android SDK setup (licenses accepted)
-3. Gradle 8.7
-4. `assembleDebug` → installable APK artifact
-5. `assembleRelease` (unsigned) + artifact upload
+- **`Build-Launch-Fly-TEST-SIGNED.apk`** — installable QA release variant, signed with Android's standard debug certificate so testers can install it without an unsigned-package error. This is a test signature, not a production identity; Android or Play Protect may still show a sideloading warning. It must not be used for public distribution.
+- **`Build-Launch-Fly-DEBUG.apk`** — debug variant for diagnostics; it is not the recommended tester package.
+
+CI verifies the QA APK signature, zip alignment and package ID (`com.buildlaunchfly.game`) before uploading it. For production distribution, configure a private upload/release key in protected CI secrets and sign the release with that key. Never commit the private keystore or passwords.
 
 ## Controls
 
 - **Menu:** tap the nav deck (Aircraft / Slingshot / Realms), gear, trophy or pilot icon.
 - **Realms:** tap a card to select it, then *Launch in this realm*.
 - **Launch:** hold anywhere to draw the bands, release to fire.
-- **Flight:** drag to pitch and roll; expand the pause button to stop the flight.
+- **Flight:** swipe down for nose up, swipe up for nose down, swipe right to yaw right, and swipe left to yaw left; expand the pause button to stop the flight. Pitch and yaw are independent controls.
 - **Workshops / menu:** drag on empty space to orbit the 3D aircraft or rig.
 
 ## Repository layout
@@ -123,12 +122,13 @@ docs/                     master brief, design system, architecture
 
 ## Known gaps (honest list)
 
-- The propeller's alpha motion-blur disc is not rendered; blades simply spin.
+- The propeller has a high-RPM translucent blur-disc pass and individually animated blades; appearance and performance still require target-device validation.
 - Rajdhani / Plus Jakarta Sans are substituted with system families of the same sizes,
   weights and tracking (see `docs/DESIGN.md` §2.2 implementation note).
 - UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks
   are in `ui/UiFrame.kt` and `ui/UiIcons.kt`.
 - Workshop orbit is drag-only (no pinch zoom).
-- Wildlife uses simple procedural meshes with scripted motion.
+- Wildlife uses simple procedural meshes with scripted motion, not final authored/rigged animal assets.
+- Five ecosystems are temporarily unlocked for QA; restore progression gates only after ecosystem testing is accepted.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the engine and UI architecture.
