@@ -94,6 +94,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val padPosition = Vec3()
     private val focusPoint = Vec3()
     private val dragScratch = FloatArray(2)
+    private val gestureScratch = FloatArray(2)
     private val flightInput = FlightInput()
     private val particleColorSnow = Vec3(1f, 1f, 1f)
     private val particleColorDust = Vec3(0.95f, 0.84f, 0.66f)
@@ -423,16 +424,24 @@ class GameApp(private val context: Context, private val input: InputState) {
         val released = input.consumeRelease()
         val cancelled = input.consumeCancel()
         if (state == GameState.FLIGHT) {
-            // Horizontal drag commands yaw; vertical drag commands pitch.
-            steerYaw = (steerYaw + dragScratch[0] * 5.2f).coerceIn(-1f, 1f)
-            // Screen Y grows downward: a downward swipe commands a positive pitch
-            // (nose up), while an upward swipe commands nose down.
-            steerPitch = (steerPitch + dragScratch[1] * 5.2f).coerceIn(-1f, 1f)
+            // Flight steering is a held touch-drag vector, not a brief swipe impulse.
+            // The player can keep a finger displaced from the initial touch point to
+            // sustain pitch/yaw, then lift to return smoothly to neutral.
+            val steeringHeld = input.consumePointerOffset(
+                gestureScratch, viewportWidth, viewportHeight
+            )
+            if (steeringHeld) {
+                steerYaw = (gestureScratch[0] * 1.1f).coerceIn(-1f, 1f)
+                // Screen Y grows downward: downward displacement commands nose-up.
+                steerPitch = (gestureScratch[1] * 1.1f).coerceIn(-1f, 1f)
+            }
         }
         val decay = (1f - 1.8f * dt).coerceAtLeast(0f)
         steerRoll *= decay
-        steerPitch *= decay
-        steerYaw *= decay
+        if (state != GameState.FLIGHT || !input.pointerDown) {
+            steerPitch *= decay
+            steerYaw *= decay
+        }
 
         when (state) {
             GameState.SEATED -> updateSeated(dt, released, cancelled)
