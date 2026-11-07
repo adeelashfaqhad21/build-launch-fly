@@ -2,7 +2,7 @@ name: Android Build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ '**' ]
   pull_request:
   workflow_dispatch:
 
@@ -63,36 +63,51 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Compile installable QA release APK
+      - name: Compile and validate installable QA release APK
         run: |
+          set -euo pipefail
           gradle :app:assembleRelease --no-daemon --stacktrace
-          APK="app/build/outputs/apk/release/app-release-unsigned.apk"
-          if [ -f "$APK" ]; then
-            echo "::error::Release APK is still unsigned; refusing to publish an uninstallable package."
+          RELEASE_DIR="app/build/outputs/apk/release"
+          APK="$(find "$RELEASE_DIR" -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' -print -quit)"
+          if [ -z "$APK" ]; then
+            echo "::error::No signed release APK was produced."
+            find "$RELEASE_DIR" -maxdepth 1 -type f -print || true
             exit 1
           fi
-          find app/build/outputs/apk/release -name "*.apk" -print -exec apksigner verify --verbose {} \;
-
-      - name: Collect APK outputs
-        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT}}"
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          "$BUILD_TOOLS/zipalign" -c -v 4 "$APK"
+          PACKAGE="$("$BUILD_TOOLS/aapt" dump badging "$APK" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p" | head -n 1)"
+          if [ "$PACKAGE" != "com.buildlaunchfly.game" ]; then
+            echo "::error::Unexpected APK package id: $PACKAGE"
+            exit 1
+          fi
           mkdir -p artifacts
-          find app/build/outputs/apk -name "*.apk" -exec cp {} artifacts/ \;
-          ls -la artifacts
+          cp "$APK" artifacts/Build-Launch-Fly-TEST-SIGNED.apk
+          echo "Validated package: $PACKAGE"
+          ls -lh artifacts/Build-Launch-Fly-TEST-SIGNED.apk
 
-      - name: Upload debug APK
+      - name: Collect debug APK
+        run: |
+          mkdir -p artifacts-debug
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts-debug/Build-Launch-Fly-DEBUG.apk
+          ls -lh artifacts-debug
+
+      - name: Upload debug APK (diagnostics only)
         uses: actions/upload-artifact@v4
         with:
           name: build-launch-fly-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: artifacts-debug/*.apk
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload all APKs
+      - name: Upload installable QA-signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: build-launch-fly-qa-signed-apks
-          path: artifacts/*.apk
-          if-no-files-found: warn
+          name: build-launch-fly-android-test-signed
+          path: artifacts/Build-Launch-Fly-TEST-SIGNED.apk
+          if-no-files-found: error
           retention-days: 30
 
       - name: Upload release AAB if produced
