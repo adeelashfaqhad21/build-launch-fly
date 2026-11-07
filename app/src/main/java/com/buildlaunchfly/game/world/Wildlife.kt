@@ -12,10 +12,12 @@ object Wildlife {
 
     class Birds(
         private val count: Int,
-        private val center: com.buildlaunchfly.game.math.Vec3,
-        private val seed: Int
+        private val terrain: Terrain,
+        private val definition: WorldDefinition
     ) {
         private val matrices = FloatArray(count.coerceAtLeast(1) * 16)
+        private val homeX = FloatArray(count)
+        private val homeZ = FloatArray(count)
         private val angle = FloatArray(count)
         private val radius = FloatArray(count)
         private val heightOffset = FloatArray(count)
@@ -28,12 +30,29 @@ object Wildlife {
             private set
 
         init {
-            val rng = kotlin.random.Random(seed)
+            val rng = kotlin.random.Random(definition.seed + 307)
             for (i in 0 until count) {
+                val z = -2550f + rng.nextFloat() * 2700f
+                val shoreline = -285f + 78f * sin(z * 0.00145f) +
+                    24f * sin(z * 0.0031f + 0.8f)
+                val x = when (definition.id) {
+                    WorldId.OCEAN -> shoreline - 110f + rng.nextFloat() * 250f
+                    WorldId.DESERT -> -500f + rng.nextFloat() * 1200f
+                    else -> -720f + rng.nextFloat() * 1500f
+                }
+                homeX[i] = x
+                homeZ[i] = z
                 angle[i] = rng.nextFloat() * 6.2831855f
-                radius[i] = 60f + rng.nextFloat() * 180f
-                heightOffset[i] = 25f + rng.nextFloat() * 55f
-                speed[i] = (0.08f + rng.nextFloat() * 0.16f) * (if (rng.nextBoolean()) 1f else -1f)
+                radius[i] = 18f + rng.nextFloat() * 68f
+                heightOffset[i] = when (definition.id) {
+                    WorldId.OCEAN -> 18f + rng.nextFloat() * 38f
+                    WorldId.SNOW -> 35f + rng.nextFloat() * 75f
+                    WorldId.MOUNTAIN -> 45f + rng.nextFloat() * 100f
+                    WorldId.DESERT -> 35f + rng.nextFloat() * 85f
+                    WorldId.FOREST -> 24f + rng.nextFloat() * 62f
+                }
+                speed[i] = (0.045f + rng.nextFloat() * 0.11f) *
+                    (if (rng.nextBoolean()) 1f else -1f)
                 phase[i] = rng.nextFloat() * 6.2831855f
                 scale[i] = 0.9f + rng.nextFloat() * 0.9f
             }
@@ -43,9 +62,10 @@ object Wildlife {
             for (i in 0 until count) {
                 angle[i] += speed[i] * dt
                 val a = angle[i]
-                val x = center.x + cos(a) * radius[i]
-                val z = center.z + sin(a) * radius[i]
-                val y = center.y + heightOffset[i] + sin(time * 0.55f + phase[i]) * 3.5f
+                val x = homeX[i] + cos(a) * radius[i]
+                val z = homeZ[i] + sin(a) * radius[i]
+                val ground = terrain.height(homeX[i], homeZ[i])
+                val y = ground + heightOffset[i] + sin(time * 0.55f + phase[i]) * 3.5f
                 val yaw = a + 1.5707964f
                 val roll = if (speed[i] >= 0f) -0.22f else 0.22f
                 matrix.setTrs(x, y, z, 0f, yaw, roll, scale[i], scale[i], scale[i])
@@ -151,4 +171,5 @@ object Wildlife {
         }
 
         fun matrices(): FloatArray = matrices
-    }}
+    }
+}
