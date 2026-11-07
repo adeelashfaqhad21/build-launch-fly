@@ -225,18 +225,21 @@ object Vegetation {
             // Broad low-frequency gaps create visible bare soil between grass clumps;
             // the second field adds irregular edges instead of a uniform green carpet.
             val groundCover = Noise.fbm01(x * 0.0019f, z * 0.0019f, 3, seed + 149)
+            val barePatch = Noise.fbm01(x * 0.00085f, z * 0.00085f, 2, seed + 211)
             val habitat = when (def.id) {
-                WorldId.FOREST -> patch > 0.52f && groundCover > 0.38f
+                WorldId.FOREST -> patch > 0.58f && groundCover > 0.46f && barePatch > 0.28f
                 WorldId.DESERT -> {
                     val wadiX = 95f * kotlin.math.sin(z * 0.0018f) +
                         38f * kotlin.math.sin(z * 0.0041f + 1.2f)
-                    kotlin.math.abs(x - wadiX) < 62f && patch > 0.62f && groundCover > 0.50f
+                    kotlin.math.abs(x - wadiX) < 62f && patch > 0.68f &&
+                        groundCover > 0.54f && barePatch > 0.36f
                 }
                 WorldId.SNOW -> false // glacier world uses exposed ice, snow and tundra shrubs
-                WorldId.OCEAN -> patch > 0.58f && groundCover > 0.44f
+                WorldId.OCEAN -> patch > 0.62f && groundCover > 0.50f && barePatch > 0.30f
                 WorldId.MOUNTAIN -> {
                     val relativeHeight = h - def.heightOffset
-                    relativeHeight in 4f..86f && patch > 0.55f && groundCover > 0.42f
+                    relativeHeight in 4f..86f && patch > 0.60f &&
+                        groundCover > 0.48f && barePatch > 0.28f
                 }
             }
             if (!habitat) continue
