@@ -331,7 +331,9 @@ void main() {
     float h = clamp(d.y, -1.0, 1.0);
     float t = pow(clamp(h, 0.0, 1.0), 0.55);
     vec3 sky = mix(uHorizon, uZenith, t);
-    sky = mix(sky, uHorizon * 0.55, smoothstep(0.0, -0.3, h));
+    // GLSL smoothstep requires ascending edges; keep the below-horizon fade defined on ES 3.0.
+    float belowHorizon = 1.0 - smoothstep(-0.30, 0.0, h);
+    sky = mix(sky, uHorizon * 0.55, belowHorizon);
 
     float sunDot = max(dot(d, normalize(uSunDir)), 0.0);
     sky += uSunColor * pow(sunDot, 220.0) * 1.6;
