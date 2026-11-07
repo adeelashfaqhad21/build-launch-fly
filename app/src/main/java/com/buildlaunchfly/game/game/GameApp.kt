@@ -92,6 +92,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val flightInput = FlightInput()
     private val particleColorSnow = Vec3(1f, 1f, 1f)
     private val particleColorDust = Vec3(0.95f, 0.84f, 0.66f)
+    private val particleColorSeaSpray = Vec3(0.72f, 0.86f, 0.92f)
     private val bandTintAmber = Vec3(0.96f, 0.62f, 0.11f)
     private val bandTintCyan = Vec3(0.22f, 0.74f, 0.97f)
     private val bandTintScratch = Vec3(1f, 1f, 1f)
@@ -665,7 +666,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.drawMesh(it, aircraftMesh.propellerMaterial, propellerModel)
         }
 
-        val particleColor = if (definition.snowfall > 0f) particleColorSnow else particleColorDust
+        val particleColor = when { definition.snowfall > 0f -> particleColorSnow; definition.id == WorldId.OCEAN -> particleColorSeaSpray; else -> particleColorDust }
         sceneRenderer.flushParticles(particleColor)
     }
 
