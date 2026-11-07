@@ -114,6 +114,33 @@ void main() {
 }
 """
 
+    /** Soft translucent propeller disc used at high shaft RPM. */
+    val PROPELLER_BLUR_VERT = """#version 300 es
+layout(location = 0) in vec3 aPosition;
+uniform mat4 uModel;
+uniform mat4 uViewProj;
+out vec2 vDiscCoord;
+void main() {
+    vDiscCoord = aPosition.xy;
+    gl_Position = uViewProj * uModel * vec4(aPosition, 1.0);
+}
+"""
+
+    val PROPELLER_BLUR_FRAG = """#version 300 es
+precision highp float;
+in vec2 vDiscCoord;
+uniform float uBlurAlpha;
+out vec4 fragColor;
+void main() {
+    float radius = length(vDiscCoord);
+    float edge = 1.0 - smoothstep(0.72, 0.98, radius);
+    float radial = 0.12 + 0.30 * smoothstep(0.10, 0.78, radius);
+    float alpha = uBlurAlpha * radial * edge;
+    if (alpha < 0.003) discard;
+    fragColor = vec4(vec3(0.68, 0.80, 0.91), alpha);
+}
+"""
+
     val PBR_INSTANCED_VERT = """#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
