@@ -79,13 +79,21 @@ class FlightPhysics {
     }
 
     /** Fires the aircraft out of the slingshot. */
-    fun launch(speed: Float, pitchDegrees: Float, yawDegrees: Float) {
+    fun launch(
+        speed: Float,
+        pitchDegrees: Float,
+        yawDegrees: Float,
+        recoilTurbulence: Float = 0f
+    ) {
         pitch = M.deg(pitchDegrees)
         yaw = M.deg(yawDegrees)
         roll = 0f
-        pitchRate = 0f
-        rollRate = 0f
-        yawRate = 0f
+        // A small, damped release transient gives the carriage's recoil a physical
+        // consequence. The hydraulic upgrade reduces this angular disturbance.
+        val recoil = M.clamp(recoilTurbulence, 0f, 1f)
+        pitchRate = 0.12f * recoil
+        rollRate = -0.18f * recoil
+        yawRate = 0.08f * recoil
         updateOrientation()
         velocity.set(forward).scale(speed)
         velocity.y += speed * 0.18f
