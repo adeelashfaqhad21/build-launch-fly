@@ -76,11 +76,21 @@ class Terrain(val definition: WorldDefinition) {
         }
 
         if (definition.id == WorldId.SNOW) {
-            // Longitudinal glacier crevasses: narrow branching grooves rather than noise bumps.
-            val crackWave = abs(sin((x * 0.045f + sin(z * 0.0035f) * 1.6f).toDouble()).toFloat())
-            val crackMask = 1f - M.smoothStep(0.015f, 0.105f, crackWave)
+            // Main crevasse field bends with glacier flow; secondary fractures branch across it.
+            val flow = z * 0.0035f + sin(x * 0.0022f) * 1.15f
+            val mainWave = abs(sin((x * 0.045f + sin(flow) * 1.6f).toDouble()).toFloat())
+            val branchWave = abs(sin((x * 0.019f - z * 0.012f +
+                sin(z * 0.004f + x * 0.006f) * 1.1f).toDouble()).toFloat())
+            val mainCrack = 1f - M.smoothStep(0.012f, 0.092f, mainWave)
+            val branchCrack = 1f - M.smoothStep(0.018f, 0.12f, branchWave)
+            val fractureNoise = Noise.fbm01(x * 0.008f, z * 0.008f, 2, s + 131)
             val elevationMask = M.smoothStep(definition.heightOffset + 12f, definition.heightOffset + 42f, h)
-            h -= crackMask * elevationMask * 1.15f
+            val exposedIce = M.smoothStep(0.22f, 0.68f, fractureNoise)
+            h -= elevationMask * (mainCrack * 1.45f + branchCrack * exposedIce * 0.72f)
+            // Rounded pressure ridges alongside fractures catch highlights without forming sharp spikes.
+            val ridge = (1f - M.smoothStep(0.10f, 0.32f, mainWave)) *
+                M.smoothStep(0.015f, 0.10f, mainWave)
+            h += ridge * elevationMask * 0.24f
         }
 
         if (definition.id == WorldId.OCEAN) {
