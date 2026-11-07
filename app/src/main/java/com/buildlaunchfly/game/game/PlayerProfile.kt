@@ -25,7 +25,8 @@ class PlayerProfile {
     var selectedWorld: WorldId = WorldId.FOREST
         private set
 
-    val unlockedWorlds: MutableSet<WorldId> = mutableSetOf(WorldId.FOREST)
+    // Temporary test access: keep every ecosystem selectable during active world QA.
+    val unlockedWorlds: MutableSet<WorldId> = WorldId.values().toMutableSet()
     val partTiers: MutableMap<PartSlot, Int> = LinkedHashMap()
     val slingshotLevels: MutableMap<SlingUpgrade, Int> = LinkedHashMap()
     val bestPerWorld: MutableMap<WorldId, Float> = LinkedHashMap()
