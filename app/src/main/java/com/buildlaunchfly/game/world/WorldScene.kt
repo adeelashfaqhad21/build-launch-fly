@@ -29,6 +29,8 @@ class WorldScene(
     val rockMesh: Mesh
     val grassMesh: Mesh?
     val bushMesh: Mesh
+    val bushMeshVariantB: Mesh
+    val bushMeshVariantC: Mesh
 
     val treeMaterial: Material
     val canopyMaterial: Material
@@ -43,6 +45,8 @@ class WorldScene(
     val rocks: InstancedMesh
     val grass: InstancedMesh?
     val bushes: InstancedMesh
+    val bushesVariantB: InstancedMesh
+    val bushesVariantC: InstancedMesh
     val birdsMesh: InstancedMesh
     val animalsMesh: InstancedMesh
 
@@ -69,12 +73,16 @@ class WorldScene(
         val trunkData = buildTrunkData()
         val canopyData = buildCanopyData()
         val rockData = buildRockData()
-        val bushData = buildBushData()
+        val bushData = buildBushData(0)
+        val bushDataB = buildBushData(1)
+        val bushDataC = buildBushData(2)
 
         treeTrunkMesh = Mesh("treeTrunk", trunkData)
         treeCanopyMesh = Mesh("treeCanopy", canopyData)
         rockMesh = Mesh("rock", rockData)
-        bushMesh = Mesh("bush", bushData)
+        bushMesh = Mesh("bushA", bushData)
+        bushMeshVariantB = Mesh("bushB", bushDataB)
+        bushMeshVariantC = Mesh("bushC", bushDataC)
 
         treeMaterial = Material(
             albedo = textures.bark,
@@ -168,8 +176,35 @@ class WorldScene(
             WorldId.MOUNTAIN -> 440
         }
         val bushSet = Vegetation.scatterBushes(terrain, definition, (bushBaseCount * scale).toInt(), definition.seed)
-        bushes = InstancedMesh("bushes", bushData, bushSet.count.coerceAtLeast(1))
-        if (bushSet.count > 0) bushes.setInstances(bushSet.matrices, bushSet.count)
+        val bushMatricesA = FloatArray(bushSet.count * 16 / 3 + 16)
+        val bushMatricesB = FloatArray(bushSet.count * 16 / 3 + 16)
+        val bushMatricesC = FloatArray(bushSet.count * 16 / 3 + 16)
+        var bushCountA = 0
+        var bushCountB = 0
+        var bushCountC = 0
+        for (index in 0 until bushSet.count) {
+            val source = index * 16
+            when (index % 3) {
+                0 -> {
+                    System.arraycopy(bushSet.matrices, source, bushMatricesA, bushCountA * 16, 16)
+                    bushCountA++
+                }
+                1 -> {
+                    System.arraycopy(bushSet.matrices, source, bushMatricesB, bushCountB * 16, 16)
+                    bushCountB++
+                }
+                else -> {
+                    System.arraycopy(bushSet.matrices, source, bushMatricesC, bushCountC * 16, 16)
+                    bushCountC++
+                }
+            }
+        }
+        bushes = InstancedMesh("bushesA", bushData, bushCountA.coerceAtLeast(1))
+        bushesVariantB = InstancedMesh("bushesB", bushDataB, bushCountB.coerceAtLeast(1))
+        bushesVariantC = InstancedMesh("bushesC", bushDataC, bushCountC.coerceAtLeast(1))
+        if (bushCountA > 0) bushes.setInstances(bushMatricesA, bushCountA)
+        if (bushCountB > 0) bushesVariantB.setInstances(bushMatricesB, bushCountB)
+        if (bushCountC > 0) bushesVariantC.setInstances(bushMatricesC, bushCountC)
         val rockSet = Vegetation.scatterRocks(terrain, definition, rockCount, definition.seed)
         rocks = InstancedMesh("rocks", rockData, rockSet.count.coerceAtLeast(1))
         if (rockSet.count > 0) rocks.setInstances(rockSet.matrices, rockSet.count)
@@ -228,11 +263,15 @@ class WorldScene(
         treeCanopyMesh.dispose()
         rockMesh.dispose()
         bushMesh.dispose()
+        bushMeshVariantB.dispose()
+        bushMeshVariantC.dispose()
         grassMesh?.dispose()
         treeTrunks.dispose()
         treeCanopies.dispose()
         rocks.dispose()
         bushes.dispose()
+        bushesVariantB.dispose()
+        bushesVariantC.dispose()
         grass?.dispose()
         birdsMesh.dispose()
         animalsMesh.dispose()
@@ -308,30 +347,101 @@ class WorldScene(
         return builder.build()
     }
 
-    private fun buildBushData(): MeshData {
+    private fun buildBushData(variant: Int): MeshData {
         val builder = MeshBuilder()
         when (definition.id) {
-            WorldId.DESERT -> {
+            WorldId.DESERT -> when (variant) {
+                1 -> {
+                    // Upright segmented prickly-pear-like cactus with paired pads.
+                    builder.addCylinder(0f, 0.26f, 0f, 0.055f, 0.05f, 0.50f, 7, false, false, 1f)
+                    builder.addEllipsoid(0f, 0.55f, 0f, 0.20f, 0.28f, 0.10f, 6, 8)
+                    builder.addEllipsoid(-0.22f, 0.42f, 0f, 0.12f, 0.19f, 0.08f, 6, 8)
+                    builder.addEllipsoid(0.22f, 0.50f, 0f, 0.12f, 0.18f, 0.08f, 6, 8)
+                }
+                2 -> {
+                    // Low, thorny dry scrub with thin divergent woody stems.
+                    for (stem in 0 until 5) {
+                        val angle = stem * 1.256637f
+                        builder.pushTrs(0f, 0.08f, 0f, 0f, angle, -0.48f, 1f)
+                        builder.addCone(0f, 0.28f, 0f, 0.07f, 0.62f, 5)
+                        builder.pop()
+                    }
+                    builder.addEllipsoid(0f, 0.25f, 0f, 0.34f, 0.16f, 0.30f, 6, 8)
+                }
+                else -> {
                 builder.addCylinder(0f, 0.30f, 0f, 0.045f, 0.035f, 0.58f, 6, false, false, 1f)
                 builder.addCylinder(-0.28f, 0.30f, 0f, 0.025f, 0.025f, 0.48f, 5, false, false, 1f)
                 builder.addCylinder(0.27f, 0.28f, 0.04f, 0.025f, 0.025f, 0.46f, 5, false, false, 1f)
                 builder.addEllipsoid(0f, 0.40f, 0f, 0.38f, 0.22f, 0.34f, 7, 10)
                 builder.addEllipsoid(-0.30f, 0.34f, 0.08f, 0.23f, 0.18f, 0.22f, 6, 8)
                 builder.addEllipsoid(0.28f, 0.36f, -0.08f, 0.25f, 0.19f, 0.23f, 6, 8)
+                }
             }
-            WorldId.SNOW -> {
+            WorldId.SNOW -> when (variant) {
+                1 -> {
+                    // Dwarf alpine conifer, low branches spreading near the snow.
+                    for (layer in 0 until 3) {
+                        builder.addCone(0f, 0.18f + layer * 0.20f, 0f, 0.34f - layer * 0.07f, 0.48f, 7, 1.15f)
+                    }
+                }
+                2 -> {
+                    // Cushion plant: broad, low, irregular rounded tundra mound.
+                    builder.addEllipsoid(0f, 0.18f, 0f, 0.42f, 0.18f, 0.36f, 7, 9)
+                    builder.addEllipsoid(-0.22f, 0.22f, 0.10f, 0.24f, 0.16f, 0.22f, 6, 8)
+                    builder.addEllipsoid(0.20f, 0.20f, -0.12f, 0.25f, 0.15f, 0.23f, 6, 8)
+                }
+                else -> {
                 builder.addCylinder(0f, 0.24f, 0f, 0.045f, 0.035f, 0.42f, 6, false, false, 1f)
                 builder.addCone(0f, 0.35f, 0f, 0.42f, 0.48f, 8, 1.25f)
                 builder.addCone(-0.20f, 0.28f, 0.05f, 0.30f, 0.36f, 7, 1.2f)
                 builder.addCone(0.20f, 0.30f, -0.04f, 0.30f, 0.38f, 7, 1.2f)
+                }
             }
-            WorldId.OCEAN -> {
+            WorldId.OCEAN -> when (variant) {
+                1 -> {
+                    // Taller wind-combed dune grass clump.
+                    for (blade in 0 until 7) {
+                        builder.pushTrs(0f, 0f, 0f, 0f, blade * 0.8976f, -0.52f, 1f)
+                        builder.addCone(0f, 0.48f, 0f, 0.045f, 0.92f, 5)
+                        builder.pop()
+                    }
+                }
+                2 -> {
+                    // Salt-tolerant coastal succulent with fleshy leaf rosettes.
+                    builder.addCylinder(0f, 0.18f, 0f, 0.045f, 0.04f, 0.35f, 6, false, false, 1f)
+                    for (leaf in 0 until 5) {
+                        builder.pushTrs(0f, 0.12f, 0f, 0f, leaf * 1.2566f, -0.70f, 1f)
+                        builder.addEllipsoid(0f, 0.30f, 0f, 0.10f, 0.32f, 0.08f, 5, 7)
+                        builder.pop()
+                    }
+                }
+                else -> {
                 builder.addCylinder(0f, 0.22f, 0f, 0.025f, 0.02f, 0.40f, 5, false, false, 1f)
                 builder.addEllipsoid(0f, 0.32f, 0f, 0.14f, 0.42f, 0.14f, 5, 8)
                 builder.addEllipsoid(-0.20f, 0.26f, 0.08f, 0.12f, 0.32f, 0.12f, 5, 8)
                 builder.addEllipsoid(0.19f, 0.29f, -0.06f, 0.12f, 0.36f, 0.12f, 5, 8)
+                }
             }
-            WorldId.FOREST, WorldId.MOUNTAIN -> {
+            WorldId.FOREST, WorldId.MOUNTAIN -> when (variant) {
+                1 -> {
+                    // Open, spreading bramble with long lateral branches and sparse foliage.
+                    for (branch in 0 until 5) {
+                        builder.pushTrs(0f, 0.10f, 0f, 0f, branch * 1.2566f, -0.30f, 1f)
+                        builder.addCylinder(0f, 0.28f, 0f, 0.035f, 0.025f, 0.56f, 5, false, false, 1f)
+                        builder.addEllipsoid(0f, 0.58f, 0f, 0.24f, 0.16f, 0.18f, 6, 8)
+                        builder.pop()
+                    }
+                }
+                2 -> {
+                    // Dense, low multi-stem leafy shrub with an asymmetric crown.
+                    for (stem in 0 until 4) {
+                        val x = (stem - 1.5f) * 0.14f
+                        builder.addCylinder(x, 0.28f, 0f, 0.035f, 0.03f, 0.54f, 5, false, false, 1f)
+                        builder.addEllipsoid(x, 0.56f + (stem % 2) * 0.12f, (stem % 2) * 0.12f,
+                            0.24f, 0.28f, 0.23f, 6, 8)
+                    }
+                }
+                else -> {
                 builder.addCylinder(0f, 0.34f, 0f, 0.055f, 0.045f, 0.68f, 6, false, false, 1f)
                 builder.addCylinder(-0.20f, 0.46f, 0.02f, 0.035f, 0.03f, 0.48f, 5, false, false, 1f)
                 builder.addCylinder(0.19f, 0.48f, -0.04f, 0.035f, 0.03f, 0.50f, 5, false, false, 1f)
@@ -349,6 +459,7 @@ class WorldScene(
                 builder.addEllipsoid(0.02f, 0.91f, 0.10f, 0.17f, 0.16f, 0.18f, 5, 7)
                 builder.addEllipsoid(-0.36f, 0.55f, 0.25f, 0.16f, 0.17f, 0.18f, 5, 7)
                 builder.addEllipsoid(0.39f, 0.52f, -0.22f, 0.17f, 0.16f, 0.18f, 5, 7)
+                }
             }
         }
         return builder.build()
