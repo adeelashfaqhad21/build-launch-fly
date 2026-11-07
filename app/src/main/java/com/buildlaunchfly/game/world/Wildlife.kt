@@ -64,10 +64,13 @@ object Wildlife {
                 val a = angle[i]
                 val x = homeX[i] + cos(a) * radius[i]
                 val z = homeZ[i] + sin(a) * radius[i]
-                val ground = terrain.height(homeX[i], homeZ[i])
+                // Sample beneath the bird's current position, not its territory
+                // centre, so flocks remain clear of rising ridges and coastal cliffs.
+                val ground = terrain.height(x, z)
                 val y = ground + heightOffset[i] + sin(time * 0.55f + phase[i]) * 3.5f
                 val yaw = a + 1.5707964f
-                val roll = if (speed[i] >= 0f) -0.22f else 0.22f
+                val bank = sin(time * 0.42f + phase[i]) * 0.10f
+                val roll = (if (speed[i] >= 0f) -0.22f else 0.22f) + bank
                 matrix.setTrs(x, y, z, 0f, yaw, roll, scale[i], scale[i], scale[i])
                 System.arraycopy(matrix.m, 0, matrices, i * 16, 16)
             }
