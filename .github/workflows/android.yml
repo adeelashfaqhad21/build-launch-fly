@@ -10,6 +10,7 @@ jobs:
   build:
     name: Assemble APK
     runs-on: ubuntu-latest
+    timeout-minutes: 35
 
     steps:
       - name: Check out sources
@@ -22,18 +23,23 @@ jobs:
           java-version: '17'
 
       - name: Prepare Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required Android SDK packages
         run: |
+          set -euo pipefail
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
-          echo "SDK root: $SDK_ROOT"
           SDKMANAGER="$(find "$SDK_ROOT" -name sdkmanager -type f 2>/dev/null | head -n 1)"
-          if [ -n "$SDKMANAGER" ]; then
-            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
-            "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1 || true
+          if [ -z "$SDKMANAGER" ]; then
+            echo "::error::Android sdkmanager was not found under $SDK_ROOT"
+            exit 1
           fi
-          ls "$SDK_ROOT/platforms" || true
-          ls "$SDK_ROOT/build-tools" || true
+          yes | "$SDKMANAGER" --licenses >/dev/null
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
+          test -d "$SDK_ROOT/platforms/android-34"
+          test -d "$SDK_ROOT/build-tools/34.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
