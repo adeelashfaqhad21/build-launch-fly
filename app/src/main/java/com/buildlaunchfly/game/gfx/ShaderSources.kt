@@ -269,20 +269,29 @@ void main() {
     float waveA = sin(vWorldPos.x * 0.032 + uTime * 0.72) *
                   cos(vWorldPos.z * 0.021 - uTime * 0.48);
     float waveB = sin(vWorldPos.x * 0.011 - vWorldPos.z * 0.017 + uTime * 0.31);
-    vec3 n = normalize(vec3(n1.x + n2.x + waveA * 0.16 + waveB * 0.12,
-                            3.15, n1.z + n2.z + waveA * 0.12 - waveB * 0.14));
+    float waveC = sin(vWorldPos.x * 0.057 + vWorldPos.z * 0.026 - uTime * 1.08) *
+                  cos(vWorldPos.z * 0.043 - uTime * 0.76);
+    float waveField = waveA * 0.52 + waveB * 0.28 + waveC * 0.20;
+    vec3 n = normalize(vec3(n1.x + n2.x + waveA * 0.14 + waveB * 0.12 + waveC * 0.08,
+                            3.05, n1.z + n2.z + waveA * 0.10 - waveB * 0.13 + waveC * 0.09));
 
     vec3 v = normalize(uCameraPos - vWorldPos);
     float viewFacing = clamp(dot(n, v), 0.0, 1.0);
     float fresnel = pow(1.0 - viewFacing, 4.0);
-    float shoreMix = clamp(0.5 + waveA * 0.22 + waveB * 0.12, 0.0, 1.0);
+    float shoreMix = clamp(0.5 + waveField * 0.25, 0.0, 1.0);
     vec3 base = mix(uShallowColor, uDeepColor, shoreMix * 0.72);
     base = mix(base, uShallowColor, fresnel * 0.55);
 
     vec3 h = normalize(normalize(uSunDir) + v);
     float spec = pow(max(dot(n, h), 0.0), 220.0);
-    float crest = smoothstep(0.62, 0.92, waveA * 0.65 + waveB * 0.35);
-    vec3 foam = vec3(0.72, 0.84, 0.86) * crest * (1.0 - viewFacing) * 0.18;
+    // Whitecaps form from overlapping short and long wave crests, with broken
+    // streaks so foam reads as moving water rather than a uniform white stripe.
+    float crestA = smoothstep(0.48, 0.86, waveA);
+    float crestB = smoothstep(0.54, 0.92, waveC + waveB * 0.28);
+    float foamBreakup = 0.58 + 0.42 * sin(vWorldPos.x * 0.19 + vWorldPos.z * 0.11 + uTime * 0.9);
+    float foamMask = clamp((crestA * 0.62 + crestB * 0.48) * foamBreakup, 0.0, 1.0);
+    float foamVisibility = (0.24 + 0.76 * (1.0 - viewFacing)) * (0.72 + fresnel * 0.28);
+    vec3 foam = vec3(0.76, 0.87, 0.90) * foamMask * foamVisibility * 0.24;
 
     vec3 reflection = uSkyColor * fresnel * 0.45 * uReflections;
     vec3 color = base + uSunColor * spec * 1.4 + reflection + foam;
