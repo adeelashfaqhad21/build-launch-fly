@@ -8,7 +8,9 @@ import kotlin.random.Random
 data class SettlementGeometry(
     val walls: MeshData,
     val roofs: MeshData,
-    val details: MeshData
+    val details: MeshData,
+    /** Collision records: centre XYZ, horizontal radius, vertical half-extent. */
+    val obstacles: FloatArray
 )
 
 object SettlementMeshes {
@@ -17,6 +19,7 @@ object SettlementMeshes {
         val walls = MeshBuilder()
         val roofs = MeshBuilder()
         val details = MeshBuilder()
+        val obstacles = ArrayList<Float>()
         val rng = Random(definition.seed + 8127)
         val homesPerSide = when {
             detailLevel <= 0 -> 2
@@ -56,6 +59,14 @@ object SettlementMeshes {
                     }
                     val rotation = (rng.nextFloat() - 0.5f) * 0.34f
                     val igloo = definition.id == WorldId.SNOW && (home + rowIndex) % 3 == 0
+
+                    // Houses and igloos are genuine flight hazards, not decorative
+                    // geometry that the aircraft can pass through.
+                    obstacles.add(x)
+                    obstacles.add(ground + if (igloo) 1.35f else height * 0.52f)
+                    obstacles.add(z)
+                    obstacles.add(if (igloo) maxOf(width * 0.72f, depth * 0.70f) + 0.55f else maxOf(width, depth) * 0.82f + 0.65f)
+                    obstacles.add(if (igloo) 1.55f else height * 0.72f + 0.45f)
 
                     if (igloo) {
                         // Low domed snow shelter with a recessed entrance.
@@ -118,6 +129,6 @@ object SettlementMeshes {
                 }
             }
         }
-        return SettlementGeometry(walls.build(), roofs.build(), details.build())
+        return SettlementGeometry(walls.build(), roofs.build(), details.build(), obstacles.toFloatArray())
     }
 }
