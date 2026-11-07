@@ -629,14 +629,14 @@ class GameApp(private val context: Context, private val input: InputState) {
                 padPosition.y + hold.y,
                 padPosition.z + hold.z,
                 0.10f * pull, 0f, 0f,
-                1.22f
+                AIRCRAFT_HERO_SCALE
             )
             propellerModel.set(aircraftModel)
             propellerModel.translate(0f, 0f, -1.62f)
         } else {
-            aircraftModel.set(physics.orientation).scale(1.22f)
+            aircraftModel.set(physics.orientation).scale(AIRCRAFT_HERO_SCALE)
             physics.propellerMatrix(propellerModel)
-            propellerModel.scale(1.22f)
+            propellerModel.scale(AIRCRAFT_HERO_SCALE)
         }
         updatePropellerBladeModels(physics.propellerBladePitch)
 
@@ -815,5 +815,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         private const val TAG = "BLF-GAME"
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
         private const val SLING_RECOIL_DURATION = 0.42f
+        // Larger hero framing: the aircraft must read as the primary subject in launch and chase views.
+        private const val AIRCRAFT_HERO_SCALE = 1.48f
     }
 }
