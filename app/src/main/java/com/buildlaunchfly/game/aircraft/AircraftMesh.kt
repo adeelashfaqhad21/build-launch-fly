@@ -161,15 +161,18 @@ class AircraftMesh(textures: TextureFactory) {
         b.addCylinder(0f, 0f, 0f, 0.09f, 0.13f, 0.22f, 10)
         b.pop()
 
-        b.addBox(0f, 0.56f, 0f, 0.055f, 0.52f, 0.02f)
-        b.addBox(0f, -0.56f, 0f, 0.055f, 0.52f, 0.02f)
-
-        if (tier >= 2) {
-            b.pushTrs(0f, 0f, 0f, 0f, 0f, 2.0943952f, 1f)
-            b.addBox(0f, 0.50f, 0f, 0.05f, 0.46f, 0.02f)
-            b.pop()
-            b.pushTrs(0f, 0f, 0f, 0f, 0f, -2.0943952f, 1f)
-            b.addBox(0f, 0.50f, 0f, 0.05f, 0.46f, 0.02f)
+        // Three-blade propeller, evenly spaced at 120 degrees. The whole mesh rotates
+        // around the shaft from FlightPhysics.propellerAngle during flight.
+        for (blade in 0 until 3) {
+            val angle = blade * (M.TWO_PI / 3f)
+            b.pushTrs(0f, 0f, 0f, 0f, 0f, angle, 1f)
+            val bladeLength = if (tier >= 2) 0.62f else 0.54f
+            val bladeWidth = if (tier >= 2) 0.070f else 0.055f
+            b.addBox(0f, bladeLength, 0f, bladeWidth, bladeLength * 0.92f, 0.022f)
+            if (tier >= 2) {
+                // Stage 6: wider forged-carbon blade roots and tapered-looking tip caps.
+                b.addEllipsoid(0f, bladeLength * 1.72f, 0f, bladeWidth * 0.82f, 0.018f, 0.026f, 4, 6)
+            }
             b.pop()
         }
 
