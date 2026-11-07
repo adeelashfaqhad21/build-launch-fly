@@ -17,7 +17,7 @@ object Vegetation {
         val matrix = Mat4()
         var placed = 0
         var attempts = 0
-        val maxAttempts = count * 6
+        val maxAttempts = count * 16
 
         while (placed < count && attempts < maxAttempts) {
             attempts++
@@ -26,14 +26,50 @@ object Vegetation {
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
-            if (normal.y < 0.74f) continue
             val density = Noise.fbm01(x * 0.0035f, z * 0.0035f, 2, seed + 5)
-            if (density < 0.40f) continue
+            val relativeHeight = h - def.heightOffset
+            val habitat = when (def.id) {
+                WorldId.FOREST -> {
+                    // Mixed temperate woodland: clustered canopy with deliberate meadow gaps.
+                    normal.y >= 0.74f && density > 0.39f &&
+                        Noise.fbm01(x * 0.0015f, z * 0.0015f, 2, seed + 19) > 0.32f
+                }
+                WorldId.DESERT -> {
+                    // Saguaro stands favour rocky fans and wadi margins, not every dune crest.
+                    val wadiX = 95f * kotlin.math.sin(z * 0.0018f) +
+                        38f * kotlin.math.sin(z * 0.0041f + 1.2f)
+                    normal.y >= 0.72f && density > 0.50f &&
+                        kotlin.math.abs(x - wadiX) < 210f
+                }
+                WorldId.SNOW -> {
+                    // Sparse conifers remain below the exposed alpine/glacier tree line.
+                    normal.y >= 0.76f && relativeHeight in 4f..92f && density > 0.47f
+                }
+                WorldId.OCEAN -> {
+                    // Coastal woodland sits inland from the beach and away from sea cliffs.
+                    val shoreline = -285f + 78f * kotlin.math.sin(z * 0.00145f) +
+                        24f * kotlin.math.sin(z * 0.0031f + 0.8f)
+                    val inland = x - shoreline
+                    normal.y >= 0.76f && inland in 210f..760f && density > 0.43f
+                }
+                WorldId.MOUNTAIN -> {
+                    // Forest transitions into open alpine meadow as elevation increases.
+                    normal.y >= 0.72f && relativeHeight in 6f..118f && density > 0.38f
+                }
+            }
+            if (!habitat) continue
 
-            val height = 2.6f + rng.nextFloat() * 4.4f
-            val width = height * (0.30f + rng.nextFloat() * 0.16f)
+            val height = when (def.id) {
+                WorldId.DESERT -> 2.2f + rng.nextFloat() * 3.2f
+                WorldId.SNOW -> 3.2f + rng.nextFloat() * 4.8f
+                WorldId.OCEAN -> 3.0f + rng.nextFloat() * 5.2f
+                else -> 3.4f + rng.nextFloat() * 5.8f
+            }
+            val width = height * (0.27f + rng.nextFloat() * 0.22f)
             val rotY = rng.nextFloat() * 6.2831855f
-            matrix.setTrs(x, h, z, 0f, rotY, 0f, width, height, width)
+            val leanX = (rng.nextFloat() - 0.5f) * 0.045f
+            val leanZ = (rng.nextFloat() - 0.5f) * 0.045f
+            matrix.setTrs(x, h, z, leanX, rotY, leanZ, width, height, width)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
