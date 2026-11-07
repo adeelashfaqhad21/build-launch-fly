@@ -66,7 +66,11 @@ class AircraftMesh(textures: TextureFactory) {
         propellerMesh?.dispose()
 
         bodyMesh = Mesh("aircraftBody", buildBodyData(build))
-        canopyMesh = Mesh("aircraftCanopy", buildCanopyData())
+        canopyMesh = if (hasAdvancedAirframe(build)) {
+            Mesh("aircraftCanopy", buildCanopyData())
+        } else {
+            null
+        }
         propellerMesh = if (build.isInstalled(PartSlot.PROPELLER)) {
             Mesh("aircraftPropeller", buildPropellerData(build))
         } else {
@@ -145,6 +149,12 @@ class AircraftMesh(textures: TextureFactory) {
 
         return b.build()
     }
+
+    /** Stage-6 airframe refinements unlock the streamlined cockpit canopy. */
+    private fun hasAdvancedAirframe(build: AircraftBuild): Boolean =
+        build.tierOf(PartSlot.WING_LEFT) >= 2 ||
+            build.tierOf(PartSlot.WING_RIGHT) >= 2 ||
+            build.tierOf(PartSlot.TAIL) >= 2
 
     private fun buildCanopyData(): MeshData {
         val b = MeshBuilder()
