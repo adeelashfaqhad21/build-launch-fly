@@ -95,24 +95,61 @@ object Vegetation {
         val matrix = Mat4()
         var placed = 0
         var attempts = 0
-        while (placed < count && attempts < count * 10) {
+        while (placed < count && attempts < count * 16) {
             attempts++
             val x = -920f + rng.nextFloat() * 1900f
             val z = -2750f + rng.nextFloat() * 3150f
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
-            if (normal.y < 0.78f) continue
+
             val patch = Noise.fbm01(x * 0.006f, z * 0.006f, 2, seed + 31)
-            if (patch < 0.34f) continue
-            val scale = when (def.id) {
-                WorldId.DESERT -> 0.65f + rng.nextFloat() * 0.8f
-                WorldId.SNOW -> 0.55f + rng.nextFloat() * 0.65f
-                else -> 0.8f + rng.nextFloat() * 1.2f
+            val habitat = when (def.id) {
+                WorldId.FOREST -> {
+                    // Understory gathers in broken woodland patches, leaving sunlit clearings.
+                    normal.y >= 0.78f && patch > 0.29f
+                }
+                WorldId.DESERT -> {
+                    // Scrub follows the dry wadi and rocky washes rather than carpeting dunes.
+                    val wadiX = 95f * kotlin.math.sin(z * 0.0018f) +
+                        38f * kotlin.math.sin(z * 0.0041f + 1.2f)
+                    val washDistance = kotlin.math.abs(x - wadiX)
+                    normal.y >= 0.84f && patch > 0.47f &&
+                        (washDistance < 78f || Noise.fbm01(x * 0.0022f, z * 0.0022f, 2, seed + 67) > 0.64f)
+                }
+                WorldId.SNOW -> {
+                    // Low tundra shrubs occupy sheltered, lower slopes, not exposed glacier faces.
+                    val relativeHeight = h - def.heightOffset
+                    normal.y >= 0.88f && relativeHeight in 2f..76f && patch > 0.43f
+                }
+                WorldId.OCEAN -> {
+                    // Coastal scrub and dune plants stay on the landward beach shelf.
+                    val shoreline = -285f + 78f * kotlin.math.sin(z * 0.00145f) +
+                        24f * kotlin.math.sin(z * 0.0031f + 0.8f)
+                    val inland = x - shoreline
+                    normal.y >= 0.82f && inland in 8f..178f && patch > 0.35f
+                }
+                WorldId.MOUNTAIN -> {
+                    // Heather and alpine scrub prefer meadow benches below the bare ridgelines.
+                    val relativeHeight = h - def.heightOffset
+                    normal.y >= 0.80f && relativeHeight in 5f..92f && patch > 0.34f
+                }
             }
-            val sx = scale * (0.85f + rng.nextFloat() * 0.45f)
-            val sz = scale * (0.85f + rng.nextFloat() * 0.45f)
-            matrix.setTrs(x, h, z, 0f, rng.nextFloat() * 6.2831855f, 0f, sx, scale, sz)
+            if (!habitat) continue
+
+            val scale = when (def.id) {
+                WorldId.DESERT -> 0.55f + rng.nextFloat() * 0.72f
+                WorldId.SNOW -> 0.48f + rng.nextFloat() * 0.58f
+                WorldId.OCEAN -> 0.62f + rng.nextFloat() * 0.82f
+                WorldId.MOUNTAIN -> 0.72f + rng.nextFloat() * 1.05f
+                WorldId.FOREST -> 0.78f + rng.nextFloat() * 1.18f
+            }
+            // Avoid a field of identical upright copies: vary footprint and lean slightly.
+            val sx = scale * (0.72f + rng.nextFloat() * 0.62f)
+            val sz = scale * (0.76f + rng.nextFloat() * 0.58f)
+            val leanX = (rng.nextFloat() - 0.5f) * 0.12f
+            val leanZ = (rng.nextFloat() - 0.5f) * 0.12f
+            matrix.setTrs(x, h, z, leanX, rng.nextFloat() * 6.2831855f, leanZ, sx, scale, sz)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
