@@ -75,24 +75,29 @@ class WorldScene(
         bushMesh = Mesh("bush", bushData)
 
         treeMaterial = Material(
-            albedo = if (definition.id == WorldId.DESERT) textures.leaf else textures.bark,
-            tint = if (definition.id == WorldId.DESERT) Vec3(0.34f, 0.54f, 0.29f) else Vec3(0.82f, 0.76f, 0.68f),
+            albedo = textures.bark,
+            tint = if (definition.id == WorldId.DESERT) Vec3(0.48f, 0.62f, 0.34f) else Vec3(0.82f, 0.76f, 0.68f),
             roughness = 0.92f,
             metallic = 0f,
             uvScale = 2f
         )
         canopyMaterial = Material(
             albedo = textures.leaf,
-            tint = Vec3(1f, 1f, 1f),
+            tint = when (definition.id) {
+                WorldId.SNOW -> Vec3(0.82f, 0.91f, 1.02f)
+                WorldId.DESERT -> Vec3(0.76f, 0.92f, 0.58f)
+                WorldId.OCEAN -> Vec3(0.82f, 1.02f, 0.76f)
+                else -> Vec3(1f, 1f, 1f)
+            },
             roughness = 0.85f,
             metallic = 0f,
             uvScale = 2.5f
         )
         rockMaterial = Material(
-            albedo = textures.surface(definition.surfaceB),
-            tint = definition.tintB,
-            roughness = 0.95f,
-            metallic = 0f,
+            albedo = textures.surface(if (definition.id == WorldId.SNOW) definition.surfaceC else definition.surfaceB),
+            tint = if (definition.id == WorldId.SNOW) definition.tintC else definition.tintB,
+            roughness = if (definition.id == WorldId.SNOW) 0.28f else 0.95f,
+            metallic = if (definition.id == WorldId.SNOW) 0.08f else 0f,
             uvScale = 1.6f
         )
         grassMaterial = Material(
@@ -332,7 +337,33 @@ class WorldScene(
 
     private fun buildRockData(): MeshData {
         val builder = MeshBuilder()
-        builder.addSphere(0f, 0.42f, 0f, 0.55f, 6, 9, 1.2f)
+        when (definition.id) {
+            WorldId.DESERT -> {
+                // Layered sandstone outcrop with a broader cap and eroded lower pedestal.
+                builder.addCone(0f, 0.56f, 0f, 0.48f, 1.12f, 7, 1.35f)
+                builder.addEllipsoid(0f, 0.92f, 0f, 0.66f, 0.20f, 0.58f, 6, 8)
+                builder.addEllipsoid(0.12f, 0.30f, 0.04f, 0.42f, 0.30f, 0.40f, 6, 8)
+            }
+            WorldId.SNOW -> {
+                // Faceted ice pinnacles and fractured glacier blocks.
+                builder.addCone(0f, 0.68f, 0f, 0.40f, 1.36f, 6, 0.78f)
+                builder.addCone(-0.28f, 0.42f, 0.12f, 0.24f, 0.84f, 5, 0.82f)
+                builder.addEllipsoid(0.20f, 0.22f, -0.10f, 0.46f, 0.24f, 0.42f, 5, 7)
+            }
+            WorldId.OCEAN -> {
+                // Sea-stack silhouette: narrow eroded foot and irregular rock crown.
+                builder.addCone(0f, 0.62f, 0f, 0.36f, 1.24f, 7, 0.78f)
+                builder.addEllipsoid(0.04f, 1.02f, 0f, 0.43f, 0.30f, 0.38f, 6, 8)
+            }
+            WorldId.MOUNTAIN -> {
+                builder.addCone(0f, 0.58f, 0f, 0.48f, 1.16f, 6, 0.92f)
+                builder.addEllipsoid(0.10f, 0.28f, 0f, 0.52f, 0.28f, 0.44f, 6, 8)
+            }
+            WorldId.FOREST -> {
+                builder.addSphere(0f, 0.42f, 0f, 0.55f, 6, 9, 1.2f)
+                builder.addEllipsoid(0.24f, 0.24f, -0.08f, 0.30f, 0.20f, 0.26f, 5, 7)
+            }
+        }
         return builder.build()
     }
 
