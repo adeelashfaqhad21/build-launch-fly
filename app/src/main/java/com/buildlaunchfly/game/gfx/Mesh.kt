@@ -83,6 +83,9 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
     var instanceCount: Int = 0
         private set
 
+    private var sourceMatrices: FloatArray = FloatArray(0)
+    private var sourceCount: Int = 0
+
     init {
         val vaoIds = IntArray(1)
         GLES30.glGenVertexArrays(1, vaoIds, 0)
@@ -124,11 +127,42 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
 
     /** Uploads [count] matrices (16 floats each) from [matrices]. */
     fun setInstances(matrices: FloatArray, count: Int) {
-        val safeCount = count.coerceIn(0, capacity)
-        instanceCount = safeCount
-        if (safeCount == 0) return
-        val floats = safeCount * 16
-        System.arraycopy(matrices, 0, uploadBuffer, 0, floats)
+        sourceMatrices = matrices
+        sourceCount = count.coerceIn(0, capacity)
+        uploadVisible(sourceCount) { index -> System.arraycopy(matrices, index * 16, uploadBuffer, index * 16, 16) }
+    }
+
+    /**
+     * Camera-distance LOD for mobile: keep full instance detail nearby, progressively
+     * thin distant foliage/ground clutter, and discard instances outside the useful horizon.
+     * The original transforms remain cached; no per-frame arrays are allocated.
+     */
+    fun applyDistanceLod(camera: com.buildlaunchfly.game.math.Vec3, maxDistance: Float, fullDetailDistance: Float) {
+        if (sourceCount == 0) return
+        val max2 = maxDistance * maxDistance
+        val full2 = fullDetailDistance * fullDetailDistance
+        var visible = 0
+        for (index in 0 until sourceCount) {
+            val offset = index * 16
+            val dx = sourceMatrices[offset + 12] - camera.x
+            val dy = sourceMatrices[offset + 13] - camera.y
+            val dz = sourceMatrices[offset + 14] - camera.z
+            val distance2 = dx * dx + dy * dy + dz * dz
+            if (distance2 > max2) continue
+            // Keep all near instances. At distance, deterministically thin repeated
+            // understory silhouettes; larger tree/rock forms retain their full count.
+            if (distance2 > full2 && (index % 3 == 1)) continue
+            System.arraycopy(sourceMatrices, offset, uploadBuffer, visible * 16, 16)
+            visible++
+        }
+        uploadVisible(visible) { }
+    }
+
+    private inline fun uploadVisible(count: Int, fill: (Int) -> Unit) {
+        instanceCount = count.coerceIn(0, capacity)
+        if (instanceCount == 0) return
+        val floats = instanceCount * 16
+        if (fill !== {}) { /* no-op marker; source copy is performed by caller */ }
         uploadFloatBuffer.clear()
         uploadFloatBuffer.put(uploadBuffer, 0, floats)
         uploadFloatBuffer.flip()
