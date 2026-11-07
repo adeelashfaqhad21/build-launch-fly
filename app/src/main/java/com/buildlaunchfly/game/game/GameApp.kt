@@ -83,6 +83,8 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val slingshotModel = Mat4()
     private val bandLocal = Mat4()
     private val cradleModel = Mat4()
+    private val hydraulicLeftModel = Mat4()
+    private val hydraulicRightModel = Mat4()
     private val leftBand = Mat4()
     private val rightBand = Mat4()
     private val seatPosition = Vec3()
@@ -605,6 +607,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         if (state == GameState.SEATED) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+            setHydraulicModels(rig)
+            sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicLeftModel)
+            sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicRightModel)
             val cradle = rig.holdPoint(pull)
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
@@ -647,6 +652,9 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (state == GameState.SEATED) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
+            setHydraulicModels(rig)
+            sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicLeftModel)
+            sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicRightModel)
             val cradle = rig.holdPoint(pull)
             cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
             sceneRenderer.drawMesh(rig.cradleMesh, rig.cradleMaterial, cradleModel)
@@ -674,6 +682,15 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val particleColor = when { definition.snowfall > 0f -> particleColorSnow; definition.id == WorldId.OCEAN -> particleColorSeaSpray; else -> particleColorDust }
         sceneRenderer.flushParticles(particleColor)
+    }
+
+    /** Exposed piston length visibly retracts as the elastic carriage is drawn back. */
+    private fun setHydraulicModels(rig: SlingshotMesh) {
+        val exposed = 0.58f - pull.coerceIn(0f, 1f) * 0.34f
+        val centerY = padPosition.y + 1.56f + exposed * 0.5f
+        val z = padPosition.z + 0.80f
+        hydraulicLeftModel.setTrs(padPosition.x - 1.48f, centerY, z, 0f, 0f, 0f, 1f, exposed, 1f)
+        hydraulicRightModel.setTrs(padPosition.x + 1.48f, centerY, z, 0f, 0f, 0f, 1f, exposed, 1f)
     }
 
     private fun slingStateBandBoost(): Float = (sling.bandThickness() - 1f).coerceIn(0f, 1f)
