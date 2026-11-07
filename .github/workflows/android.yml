@@ -24,6 +24,10 @@ jobs:
 
       - name: Prepare Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The legacy "tools" SDK package no longer exists in Google's package repository.
+          packages: platform-tools
+          accept-android-sdk-licenses: true
 
       - name: Install required Android SDK packages
         run: |
