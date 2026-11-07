@@ -180,12 +180,14 @@ object Vegetation {
                 WorldId.MOUNTAIN -> 0.72f + rng.nextFloat() * 1.05f
                 WorldId.FOREST -> 0.78f + rng.nextFloat() * 1.18f
             }
-            // Avoid a field of identical upright copies: vary footprint and lean slightly.
-            val sx = scale * (0.72f + rng.nextFloat() * 0.62f)
-            val sz = scale * (0.76f + rng.nextFloat() * 0.58f)
-            val leanX = (rng.nextFloat() - 0.5f) * 0.12f
-            val leanZ = (rng.nextFloat() - 0.5f) * 0.12f
-            matrix.setTrs(x, h, z, leanX, rng.nextFloat() * 6.2831855f, leanZ, sx, scale, sz)
+            // Stronger independent axis variation changes each shrub's height, spread and silhouette.
+            // The low-frequency habitat mask still controls clustering; transforms avoid repeated copies.
+            val sx = scale * (0.58f + rng.nextFloat() * 0.92f)
+            val sy = scale * (0.72f + rng.nextFloat() * 0.78f)
+            val sz = scale * (0.60f + rng.nextFloat() * 0.90f)
+            val leanX = (rng.nextFloat() - 0.5f) * 0.18f
+            val leanZ = (rng.nextFloat() - 0.5f) * 0.18f
+            matrix.setTrs(x, h, z, leanX, rng.nextFloat() * 6.2831855f, leanZ, sx, sy, sz)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
