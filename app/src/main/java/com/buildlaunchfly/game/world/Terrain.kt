@@ -3,6 +3,8 @@ package com.buildlaunchfly.game.world
 import com.buildlaunchfly.game.gfx.Noise
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
+import kotlin.math.abs
+import kotlin.math.sin
 
 /**
  * Height field for one world. The launch pad is a flattened plateau at the origin and the
@@ -28,7 +30,21 @@ class Terrain(val definition: WorldDefinition) {
         h += Noise.fbm2(x * 0.012f, z * 0.012f, 3, 2f, 0.5f, s + 41) * definition.roughness * 2.2f
 
         if (definition.duneStrength > 0f) {
-            h += Noise.fbm2(x * 0.0032f, z * 0.0062f, 3, 2f, 0.55f, s + 53) * definition.duneStrength
+            val broadDune = Noise.fbm2(x * 0.0032f, z * 0.0062f, 3, 2f, 0.55f, s + 53)
+            val slipFace = sin((z * 0.010f + x * 0.0022f + broadDune * 1.7f).toDouble()).toFloat()
+            val ripple = sin((z * 0.085f + x * 0.012f + broadDune * 5f).toDouble()).toFloat()
+            h += broadDune * definition.duneStrength + slipFace * definition.duneStrength * 0.28f
+            h += ripple * 0.34f
+        }
+
+        if (definition.id == WorldId.FOREST || definition.id == WorldId.MOUNTAIN) {
+            val riverX = 150f * sin(z * 0.00125f) + 54f * sin(z * 0.0028f + 0.7f)
+            val riverDistance = abs(x - riverX)
+            val riverWidth = if (definition.id == WorldId.FOREST) 9f else 6.5f
+            val riverBed = definition.waterLevel - 0.8f +
+                (riverDistance / riverWidth) * (riverDistance / riverWidth) * 4.5f
+            val bank = 1f - M.smoothStep(riverWidth, riverWidth * 3.2f, riverDistance)
+            h = M.lerp(h, riverBed, bank * 0.94f)
         }
 
         // Shallow valley along the launch corridor.
