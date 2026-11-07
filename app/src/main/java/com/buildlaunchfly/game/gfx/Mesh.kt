@@ -149,7 +149,7 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
         val dxCamera = camera.x - lastLodX
         val dyCamera = camera.y - lastLodY
         val dzCamera = camera.z - lastLodZ
-        if (dxCamera * dxCamera + dyCamera * dyCamera + dzCamera * dzCamera < 4f &&
+        if (dxCamera * dxCamera + dyCamera * dyCamera + dzCamera * dzCamera < 16f &&
             maxDistance == lastLodMaxDistance &&
             fullDetailDistance == lastLodFullDistance &&
             thinDistant == lastLodThinDistant
@@ -170,9 +170,13 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
             val dz = sourceMatrices[offset + 14] - camera.z
             val distance2 = dx * dx + dy * dy + dz * dz
             if (distance2 > max2) continue
-            // Keep all near instances. At distance, deterministically thin repeated
-            // understory silhouettes; larger tree/rock forms retain their full count.
-            if (thinDistant && distance2 > full2 && (index % 3 == 1)) continue
+            // Keep every near instance. Mid-distance clutter keeps two of every
+            // three instances; the far band keeps one of every three. The stable
+            // index pattern avoids flicker as the camera crosses LOD thresholds.
+            if (thinDistant && distance2 > full2) {
+                val keepEvery = if (distance2 > full2 + (max2 - full2) * 0.58f) 3 else 2
+                if (index % keepEvery != 0) continue
+            }
             System.arraycopy(sourceMatrices, offset, uploadBuffer, visible * 16, 16)
             visible++
         }
