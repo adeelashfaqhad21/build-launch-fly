@@ -209,12 +209,25 @@ class SlingshotMesh(textures: TextureFactory) {
 
     var thicknessBoost: Float = 0f
 
-    fun holdPoint(pull: Float): Vec3 {
+    /**
+     * Returns the carriage position after draw-back and elevation aiming.
+     * Positive elevation rotates the carriage nose upward around its rear pivot.
+     */
+    fun holdPoint(pull: Float, elevationDegrees: Float = 0f): Vec3 {
         val d = pull.coerceIn(0f, 1f) * DRAW_LENGTH
+        val baseY = SlingshotLayout.HOLD_POINT.y - d * 0.12f
+        val baseZ = SlingshotLayout.HOLD_POINT.z + d
+        val angle = Math.toRadians(elevationDegrees.toDouble()).toFloat()
+        val sin = kotlin.math.sin(angle)
+        val cos = kotlin.math.cos(angle)
+        val pivotY = SlingshotLayout.BASE.y + 1.10f
+        val pivotZ = SlingshotLayout.BASE.z + 0.30f
+        val localY = baseY - pivotY
+        val localZ = baseZ - pivotZ
         return tempEye.set(
             SlingshotLayout.HOLD_POINT.x,
-            SlingshotLayout.HOLD_POINT.y - d * 0.12f,
-            SlingshotLayout.HOLD_POINT.z + d
+            pivotY + localY * cos - localZ * sin,
+            pivotZ + localY * sin + localZ * cos
         )
     }
 
