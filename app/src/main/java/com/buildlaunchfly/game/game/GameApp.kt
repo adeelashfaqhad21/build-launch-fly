@@ -166,10 +166,13 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val padY = scene?.terrain?.padHeight ?: 6f
         padPosition.set(0f, padY, 0f)
+        // Launch from the carriage's actual drawn-back position. Using the neutral
+        // hold point here would teleport the aircraft forward at the instant of release.
+        val releasePoint = slingMesh?.holdPoint(stretch) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
-            padPosition.x + SlingshotLayout.HOLD_POINT.x,
-            padPosition.y + SlingshotLayout.HOLD_POINT.y,
-            padPosition.z + SlingshotLayout.HOLD_POINT.z
+            padPosition.x + releasePoint.x,
+            padPosition.y + releasePoint.y,
+            padPosition.z + releasePoint.z
         )
         physics.reset(seatPosition)
 
