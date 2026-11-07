@@ -182,6 +182,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         applyAudioVolumes()
         audio.start()
         audio.setAmbience(scene?.definition?.ambience ?: AmbienceStyle.FOREST)
+        audio.setAmbienceEnabled(false)
         hud?.onCoinsChanged(profile.coins)
         hud?.onStateChanged(state)
         Log.i(TAG, "Engine ready\n${build.summary()}")
@@ -495,6 +496,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             profile.glacierCrevasseCrossed = true
         }
 
+        audio.setAmbienceEnabled(true)
         audio.setFlight(
             physics.speedFactor(),
             (physics.propellerRpm / 2400f).coerceIn(0f, 1f),
@@ -570,6 +572,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         state = GameState.RESULTS
         resultTimer = 0f
         audio.setFlight(0f, 0f, false)
+        audio.setAmbienceEnabled(false)
         audio.playUi(AudioEngine.Cue.RESULT)
         hud?.onFlightFinished(result)
         hud?.onCoinsChanged(profile.coins)
@@ -592,6 +595,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         state = GameState.SEATED
         paused = false
         audio.setFlight(0f, 0f, false)
+        audio.setAmbienceEnabled(false)
         cameraDirector.snapTo(
             Vec3(seatPosition.x + 6.4f, seatPosition.y + 2f, seatPosition.z + 9f),
             seatPosition
