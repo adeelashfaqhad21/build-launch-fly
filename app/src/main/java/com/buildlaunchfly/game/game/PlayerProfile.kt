@@ -105,7 +105,7 @@ class PlayerProfile {
 
     fun toJson(): String {
         val root = JSONObject()
-        root.put("version", 2)
+        root.put("version", 3)
         root.put("coins", coins)
         root.put("bestDistance", bestDistance.toDouble())
         root.put("bestAltitude", bestAltitude.toDouble())
