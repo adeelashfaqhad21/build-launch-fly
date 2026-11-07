@@ -253,13 +253,26 @@ object Vegetation {
             if (!habitat) continue
 
             val size = when (def.id) {
-                WorldId.DESERT -> 0.35f + rng.nextFloat() * 0.55f
-                WorldId.OCEAN -> 0.65f + rng.nextFloat() * 0.85f
-                else -> 0.5f + rng.nextFloat() * 0.9f
+                WorldId.DESERT -> 0.30f + rng.nextFloat() * 0.62f
+                WorldId.OCEAN -> 0.58f + rng.nextFloat() * 0.94f
+                WorldId.MOUNTAIN -> 0.42f + rng.nextFloat() * 1.02f
+                WorldId.FOREST -> 0.46f + rng.nextFloat() * 1.12f
+                WorldId.SNOW -> 0.35f + rng.nextFloat() * 0.60f
             }
-            val lean = (rng.nextFloat() - 0.5f) * 0.22f
+            // Give exposed grass a shared prevailing-wind direction, then layer per-clump
+            // variation over it. This avoids the uniformly random, upright lawn appearance.
+            val prevailingLean = when (def.id) {
+                WorldId.DESERT -> -0.19f
+                WorldId.OCEAN -> -0.27f
+                WorldId.MOUNTAIN -> -0.11f
+                WorldId.FOREST -> -0.035f
+                WorldId.SNOW -> 0f
+            }
+            val lean = prevailingLean + (rng.nextFloat() - 0.5f) * 0.18f
+            val depthScale = size * (0.68f + rng.nextFloat() * 0.64f)
+            val heightScale = size * (1.08f + rng.nextFloat() * 0.52f)
             matrix.setTrs(x, h, z, lean, rng.nextFloat() * 6.2831855f, -lean * 0.55f,
-                size, size * 1.3f, size * (0.8f + rng.nextFloat() * 0.4f))
+                size, heightScale, depthScale)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
