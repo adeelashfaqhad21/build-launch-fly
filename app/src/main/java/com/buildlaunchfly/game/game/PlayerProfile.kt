@@ -171,6 +171,8 @@ class PlayerProfile {
                         }
                     }
                 }
+                // QA override: all five ecosystems remain available on upgraded installs too.
+                profile.unlockedWorlds.addAll(WorldId.values())
 
                 val perWorld = root.optJSONObject("bestPerWorld")
                 if (perWorld != null) {
