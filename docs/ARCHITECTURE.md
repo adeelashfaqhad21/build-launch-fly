@@ -93,19 +93,44 @@ Trees, rocks and grass are drawn with per-instance 4×4 matrices in a dynamic VB
 
 ## Progression
 
-`PlayerProfile` (coins, best distance, part tiers, slingshot levels, selected/unlocked
-worlds) is serialised to JSON with `org.json` and stored in `SharedPreferences`.
-`AircraftCatalog` prices parts, `SlingshotCatalog` prices upgrades, `Economy` converts a
-flight result into coins.
+`PlayerProfile` (coins, best distance, best altitude, per-world bests, part tiers,
+slingshot levels, launch angle, unlocked worlds, claimed achievements, settings) is
+persisted as JSON in `SharedPreferences`. `AircraftCatalog` prices parts,
+`SlingshotState` prices upgrades, `Economy` converts a flight into coins,
+`AchievementCatalog` evaluates badge progress and `GameSettings` holds graphics/audio
+preferences.
 
-## Seams reserved for the UI
+## UI layer
 
-- `game/HudBridge.kt` — callbacks the HUD will consume (distance, speed, coins, state,
-  results). `GameApp.hud` accepts an implementation once screens exist.
-- `GameApp` public actions (`launch`, `installPart`, `upgradeSlingshot`, `selectWorld`,
-  `setGraphicsQuality`) are the exact entry points menus will call.
-- `game/GraphicsQuality` (in `game/Economy.kt`) — quality tiers that scale draw distance,
-  shadow size, vegetation counts and particle budgets.
+The UI is a single transparent `GameOverlayView` added above the `GLSurfaceView` in the
+Activity's `FrameLayout`. The window draws the overlay over the SurfaceView's punched-out
+region, so screens composite over the live 3D scene without touching the render loop.
 
-- `gfx/DesignTokens.kt` — the single place where `design.md` values (colours, spacing,
-  type scale) will be mapped into code.
+```
+MainActivity (FrameLayout)
+  ├── GameSurfaceView  → GameRenderer → GameApp  (3D world)
+  └── GameOverlayView  → UiFrame → screens/*     (design.md §6)
+```
+
+- `gfx/DesignTokens.kt` — the design system (colours, type scale, spacing, radii, safe
+  areas) transcribed from `docs/DESIGN.md`; no screen hard-codes a colour.
+- `ui/UiPainter.kt` — Paint/typeface set, `UiTextStyle` scale, number formatting.
+- `ui/UiFrame.kt` — immediate-mode primitives: glass panels, buttons, pills, badges,
+  toggles, sliders, progress bars, vector icons, tracked/wrapped text, hit registry.
+- `ui/UiIcons.kt` — resolution-independent vector telemetry icons.
+- `ui/GameOverlayView.kt` — `UiNav` implementation: screen routing, touch, slider drags,
+  workshop orbit drags, pause modal. One `UiFrame` per frame in a 640×360dp design space
+  that adapts to any landscape ratio.
+- `ui/screens/` — menu, aircraft workshop, slingshot lab, environment select, flight HUD,
+  results, reward, settings, achievements, career profile, pause.
+
+**Threading.** Screens read live data from `GameApp` and never touch GL. Every mutating
+action goes through `GameApp.request*`, which queues a `Runnable` drained at the start of
+the next GL frame.
+
+**Seams that remain:**
+
+- `game/HudBridge.kt` — optional non-UI observer, still available for headless runs.
+- `GameApp` public `request*` methods — the complete action surface the UI uses.
+- `game/GraphicsQuality` (in `game/Economy.kt`) — four tiers scaling shadow coverage,
+  vegetation density and particle load.

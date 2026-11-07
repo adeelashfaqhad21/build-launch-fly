@@ -54,7 +54,8 @@ class WorldScene(
         val scale = when {
             detailLevel <= 0 -> 0.35f
             detailLevel == 1 -> 0.7f
-            else -> 1f
+            detailLevel == 2 -> 1f
+            else -> 1.25f
         }
 
         terrainMesh = Mesh("terrain", TerrainMesh.build(terrain))

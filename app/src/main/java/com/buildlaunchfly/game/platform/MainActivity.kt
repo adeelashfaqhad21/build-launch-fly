@@ -8,16 +8,21 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import com.buildlaunchfly.game.game.GameApp
+import com.buildlaunchfly.game.ui.GameOverlayView
 
 /**
- * Native Android entry point: landscape, fullscreen, immersive, screen kept awake. The whole
- * game lives in [GameApp]; this class only owns the platform wiring.
+ * Native Android entry point: landscape, fullscreen, immersive, screen kept awake.
+ *
+ * The 3D world is rendered by [GameSurfaceView] (a SurfaceView) and the complete UI system
+ * is drawn by [GameOverlayView] on top of it, so the HUD and screens composite over the
+ * live scene without touching the render loop.
  */
 class MainActivity : Activity() {
 
     private lateinit var input: InputState
     private lateinit var app: GameApp
     private lateinit var surfaceView: GameSurfaceView
+    private lateinit var overlay: GameOverlayView
     private lateinit var root: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,10 +35,18 @@ class MainActivity : Activity() {
         input = InputState()
         app = GameApp(this, input)
         surfaceView = GameSurfaceView(this, app, input)
+        overlay = GameOverlayView(this, app, input)
 
         root = FrameLayout(this)
         root.addView(
             surfaceView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+        root.addView(
+            overlay,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
@@ -48,6 +61,7 @@ class MainActivity : Activity() {
         surfaceView.onResume()
         app.audio.start()
         hideSystemUi()
+        overlay.invalidate()
     }
 
     override fun onPause() {

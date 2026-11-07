@@ -42,6 +42,25 @@ class AudioEngine {
     private val cues = ConcurrentLinkedQueue<Int>()
     private val releases = ConcurrentLinkedQueue<Float>()
 
+    @Volatile
+    var masterVolume: Float = 0.8f
+        private set
+
+    @Volatile
+    var engineVolume: Float = 0.85f
+        private set
+
+    @Volatile
+    var ambienceVolume: Float = 0.8f
+        private set
+
+    /** Applies the three mixer faders from Settings (docs/DESIGN.md §6 Screen 8). */
+    fun applyVolumes(master: Float, engine: Float, ambience: Float) {
+        masterVolume = master.coerceIn(0f, 1f)
+        engineVolume = engine.coerceIn(0f, 1f)
+        ambienceVolume = ambience.coerceIn(0f, 1f)
+    }
+
     fun start() {
         if (running) return
         val sampleRate = SAMPLE_RATE
@@ -192,47 +211,49 @@ class AudioEngine {
                 windLow += (white - windLow) * 0.010f
                 windHigh += (white - windHigh) * 0.060f
 
-                var sample = 0f
+                var ambienceSample = 0f
+                var engineSample = 0f
+                var fxCueSample = 0f
 
                 when (ambience) {
                     AmbienceStyle.FOREST -> {
-                        sample += windLow * 0.22f
+                        ambienceSample += windLow * 0.22f
                         if (rng.nextFloat() < 0.00035f) {
                             chirpEnvelope = 0.5f
                             chirpPhase = 0f
                         }
                         if (chirpEnvelope > 0.0005f) {
                             val frequency = 1500f + 700f * sin(chirpPhase * 0.35f)
-                            sample += sin(chirpPhase) * chirpEnvelope * 0.12f
+                            ambienceSample += sin(chirpPhase) * chirpEnvelope * 0.12f
                             chirpPhase += twoPi * frequency / sampleRate
                             chirpEnvelope *= 0.99920f
                         }
                     }
                     AmbienceStyle.DESERT -> {
-                        sample += windLow * 0.30f + windHigh * 0.05f
+                        ambienceSample += windLow * 0.30f + windHigh * 0.05f
                     }
                     AmbienceStyle.SNOW -> {
-                        sample += (white - windHigh) * 0.05f + windLow * 0.16f
+                        ambienceSample += (white - windHigh) * 0.05f + windLow * 0.16f
                     }
                     AmbienceStyle.OCEAN -> {
                         swellPhase += twoPi * 0.55f / sampleRate
                         if (swellPhase > twoPi) swellPhase -= twoPi
                         val swell = sin(swellPhase) * 0.5f + 0.5f
-                        sample += windLow * (0.18f + swell * 0.20f) + windHigh * 0.03f
+                        ambienceSample += windLow * (0.18f + swell * 0.20f) + windHigh * 0.03f
                     }
                     AmbienceStyle.MOUNTAIN -> {
-                        sample += windLow * 0.24f + windHigh * 0.02f
+                        ambienceSample += windLow * 0.24f + windHigh * 0.02f
                     }
                 }
 
                 if (flightActive) {
-                    sample += windHigh * airspeed * 0.32f
+                    engineSample += windHigh * airspeed * 0.32f
                     if (propeller > 0.01f) {
                         propPhase += (90f + propeller * 150f) / sampleRate
                         if (propPhase > 1f) propPhase -= 1f
                         val saw = 2f * propPhase - 1f
-                        sample += saw * propeller * 0.09f
-                        sample += sin(propPhase * twoPi * 2f) * propeller * 0.03f
+                        engineSample += saw * propeller * 0.09f
+                        engineSample += sin(propPhase * twoPi * 2f) * propeller * 0.03f
                     }
                 }
 
@@ -240,22 +261,27 @@ class AudioEngine {
                     creakPhase += (70f + stretch * 90f) / sampleRate
                     if (creakPhase > 1f) creakPhase -= 1f
                     val creak = if (creakPhase < 0.5f) 0.5f else -0.5f
-                    sample += creak * stretch * 0.06f + white * stretch * 0.02f
+                    fxCueSample += creak * stretch * 0.06f + white * stretch * 0.02f
                 }
 
                 if (releaseEnvelope > 0.0005f) {
-                    sample += windHigh * releaseEnvelope * (0.45f + releasePower * 0.55f)
+                    fxCueSample += windHigh * releaseEnvelope * (0.45f + releasePower * 0.55f)
                     releaseEnvelope *= 0.99980f
                 }
 
                 if (cueEnvelope > 0.0005f) {
                     cuePhase += twoPi * cueFrequency / sampleRate
                     if (cuePhase > twoPi) cuePhase -= twoPi
-                    sample += sin(cuePhase) * cueEnvelope * 0.12f
+                    fxCueSample += sin(cuePhase) * cueEnvelope * 0.12f
                     cueEnvelope *= 0.99975f
                 }
 
-                val clamped = sample.coerceIn(-1f, 1f) * MASTER_GAIN
+                val mixed = (
+                    ambienceSample * ambienceVolume +
+                        engineSample * engineVolume +
+                        fxCueSample
+                    ) * masterVolume
+                val clamped = mixed.coerceIn(-1f, 1f)
                 buffer[i] = (clamped * 32767f).toInt().toShort()
             }
 
@@ -267,6 +293,5 @@ class AudioEngine {
     companion object {
         private const val TAG = "BLF-AUDIO"
         private const val SAMPLE_RATE = 44100
-        private const val MASTER_GAIN = 0.55f
     }
 }

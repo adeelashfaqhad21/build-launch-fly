@@ -9,6 +9,8 @@ enum class GameState { SEATED, FLIGHT, RESULTS }
 /**
  * Graphics presets. Each level scales world detail, shadow coverage and particle load so
  * weaker devices keep a stable frame time without losing the visual identity.
+ *
+ * Names follow docs/DESIGN.md §6 Screen 8.
  */
 enum class GraphicsQuality(
     val label: String,
@@ -16,9 +18,10 @@ enum class GraphicsQuality(
     val shadowRadius: Float,
     val particleScale: Float
 ) {
-    LOW("Low", 0, 50f, 0.4f),
-    MEDIUM("Medium", 1, 80f, 0.7f),
-    HIGH("High", 2, 120f, 1f);
+    LOW("Power Saver 30 FPS", 0, 50f, 0.4f),
+    MEDIUM("Balanced 60 FPS", 1, 80f, 0.7f),
+    HIGH("High Fidelity 90 FPS", 2, 120f, 1f),
+    ULTRA("Ultra Extreme 120 FPS", 3, 160f, 1.4f);
 
     companion object {
         fun fromName(value: String?): GraphicsQuality {

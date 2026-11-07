@@ -1,38 +1,85 @@
 package com.buildlaunchfly.game.gfx
 
 /**
- * Placeholder for the design system. Once `docs/DESIGN.md` is supplied this object becomes
- * the single source of truth for colours, type scale, spacing and motion so that no screen
- * hard-codes a value. Values below are intentionally neutral scaffolding only.
+ * Design system tokens, transcribed from docs/DESIGN.md §2.
+ *
+ * Colours are ARGB ints ready for android.graphics.Paint. Sizes, spacing, radii and safe
+ * areas are in dp; the UI is drawn in a 640x360dp design space that scales 1:1 to the
+ * document's 1920x1080px canvas at density 3.
  */
 object DesignTokens {
 
-    // Colours (linear-ish RGB, 0..1) — to be replaced from design.md.
-    val accentPrimary = Vec3(0.31f, 0.76f, 0.97f)
-    val accentSecondary = Vec3(0.98f, 0.72f, 0.28f)
-    val surfaceDark = Vec3(0.05f, 0.08f, 0.12f)
-    val surfaceLight = Vec3(0.92f, 0.95f, 0.98f)
-    val textPrimary = Vec3(1f, 1f, 1f)
-    val textMuted = Vec3(0.72f, 0.78f, 0.84f)
+    // ---- Primary aviation palette ----------------------------------------
+    const val COLOR_PRIMARY_AERO = 0xFF0284C7.toInt()
+    const val COLOR_PRIMARY_GLOW = 0xFF38BDF8.toInt()
+    const val COLOR_PRIMARY_DEEP = 0xFF03254C.toInt()
 
-    // Spacing scale in dp.
+    // ---- Currency & status accents ---------------------------------------
+    const val COLOR_COIN_GOLD = 0xFFF59E0B.toInt()
+    const val COLOR_COIN_GOLD_GLOW = 0x66FBBF24
+    const val COLOR_SUCCESS = 0xFF10B981.toInt()
+    const val COLOR_HAZARD = 0xFFEF4444.toInt()
+
+    // ---- Glassmorphism surfaces ------------------------------------------
+    const val SURFACE_HUD_BG = 0xB80A0F1D.toInt()   // 72% #0A0F1D
+    const val SURFACE_MODAL_BG = 0xE0050814.toInt() // 88% #050814
+    const val GLASS_BORDER = 0x2E38BDF8             // 18% #38BDF8
+    const val GLASS_HIGHLIGHT = 0x14FFFFFF          // 8% white
+
+    // ---- Text ------------------------------------------------------------
+    const val TEXT_PRIMARY = 0xFFFFFFFF.toInt()
+    const val TEXT_MUTED = 0xB3ABB7C4.toInt()
+    const val TEXT_INVERSE = 0xFF06121F.toInt()
+
+    // ---- Typography (dp) --------------------------------------------------
+    const val TYPE_DISPLAY_HERO = 36f
+    const val TYPE_HEADER_1 = 24f
+    const val TYPE_HEADER_2 = 18f
+    const val TYPE_HUD_LABEL = 14f
+    const val TYPE_BODY_LARGE = 14f
+    const val TYPE_BODY = 12f
+    const val TYPE_BADGE = 10f
+
+    // ---- Spacing & radii (dp) --------------------------------------------
     const val SPACE_XS = 4f
     const val SPACE_S = 8f
     const val SPACE_M = 16f
     const val SPACE_L = 24f
     const val SPACE_XL = 40f
 
-    // Corner radii in dp.
-    const val RADIUS_S = 6f
-    const val RADIUS_M = 12f
-    const val RADIUS_L = 20f
+    const val RADIUS_PANEL = 16f
+    const val RADIUS_BUTTON = 12f
+    const val RADIUS_PILL = 26f
 
-    // Motion durations in milliseconds.
-    const val MOTION_FAST = 120
-    const val MOTION_BASE = 220
-    const val MOTION_SLOW = 380
+    // ---- Layout ----------------------------------------------------------
+    const val DESIGN_WIDTH = 640f
+    const val DESIGN_HEIGHT = 360f
+    const val MARGIN_H = 24f
+    const val SAFE_TOP = 24f
+    const val SAFE_BOTTOM = 16f
+    const val TOUCH_MIN = 48f
 
-    // Layout.
-    const val DESIGN_ASPECT = 16f / 9f
-    const val SAFE_MARGIN_DP = 20f
+    // ---- Helpers ---------------------------------------------------------
+
+    fun withAlpha(color: Int, alpha: Float): Int {
+        val a = (alpha.coerceIn(0f, 1f) * 255f).toInt()
+        return (color and 0x00FFFFFF) or (a shl 24)
+    }
+
+    fun mix(a: Int, b: Int, t: Float): Int {
+        val f = t.coerceIn(0f, 1f)
+        val ar = (a shr 16) and 0xFF
+        val ag = (a shr 8) and 0xFF
+        val ab = a and 0xFF
+        val aa = (a ushr 24) and 0xFF
+        val br = (b shr 16) and 0xFF
+        val bg = (b shr 8) and 0xFF
+        val bb = b and 0xFF
+        val ba = (b ushr 24) and 0xFF
+        val r = (ar + (br - ar) * f).toInt()
+        val g = (ag + (bg - ag) * f).toInt()
+        val bl = (ab + (bb - ab) * f).toInt()
+        val al = (aa + (ba - aa) * f).toInt()
+        return (al shl 24) or (r shl 16) or (g shl 8) or bl
+    }
 }

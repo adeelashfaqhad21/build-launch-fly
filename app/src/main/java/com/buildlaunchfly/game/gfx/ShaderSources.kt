@@ -213,6 +213,7 @@ uniform sampler2D uNormals;
 uniform vec3 uDeepColor;
 uniform vec3 uShallowColor;
 uniform float uTime;
+uniform float uReflections;
 
 out vec4 fragColor;
 
@@ -229,7 +230,8 @@ void main() {
     vec3 h = normalize(normalize(uSunDir) + v);
     float spec = pow(max(dot(n, h), 0.0), 220.0);
 
-    vec3 color = base + uSunColor * spec * 1.4 + uSkyColor * fresnel * 0.45;
+    vec3 reflection = uSkyColor * fresnel * 0.45 * uReflections;
+    vec3 color = base + uSunColor * spec * 1.4 + reflection;
     color = applyFog(color, vWorldPos);
     fragColor = vec4(applyTonemap(color), 0.93);
 }

@@ -2,66 +2,81 @@
 
 A premium 3D aircraft-building, slingshot-launch and distance-adventure game for Android.
 Native Android application, Kotlin application layer, custom real-time 3D engine on
-OpenGL ES 3.0.
+OpenGL ES 3.0, and the complete landscape UI system specified in `design.md`.
 
-**Read first:** [`docs/MASTER_BRIEF.md`](docs/MASTER_BRIEF.md) — the central creative and
-technical directive for this project.
+**Read first:**
+
+- [`docs/MASTER_BRIEF.md`](docs/MASTER_BRIEF.md) — creative and technical directive.
+- [`docs/DESIGN.md`](docs/DESIGN.md) — normative visual/UI specification (tokens, five
+  ecosystems, aircraft stages, all ten screens).
 
 ## Current status
 
-This repository currently contains the **engine and gameplay foundation** (Phases 2–5 of the
-brief). The UI/UX layer is deliberately **not** implemented yet: the design system is
-pending `design.md`, which will drive all screens, typography, HUD and visual identity
-(Phase 1).
+Engine, gameplay and the full screen set are implemented.
 
-What is implemented right now:
+**3D engine (`gfx`)**
 
-- Native Android shell: landscape, fullscreen, immersive, `GLSurfaceView` with an
-  ES 3.0 context, lifecycle-safe, keeps the screen on.
-- Custom 3D engine in Kotlin (`gfx` package):
-  - GLSL ES 3.00 program management, VAO/VBO/IBO meshes, instanced rendering.
-  - Cook–Torrance style PBR shading (GGX + Smith + Fresnel), directional sun,
-    hemispheric ambient, exponential fog, ACES-like tone mapping, gamma output.
-  - Single-cascade directional shadow map with 3×3 PCF.
-  - Analytic sky dome with sun disk and cloud banding.
-  - Normal-mapped water with Fresnel, sun specular and shore blending.
-  - Particle renderer (snow, dust, spray).
-  - Procedurally generated, mip-mapped, tiling surface textures (grass, rock, sand,
-    snow, ice, bark, foliage, metal, rubber, water normals) — no binary assets required,
-    so the build has no asset pipeline and no missing-file risk.
-- World system (`world` package): five worlds (forest, desert, snow/glacier, ocean/coast,
-  mountain/countryside) with per-world terrain shaping, palettes, atmosphere, water level,
-  vegetation density, weather and wildlife counts. Non-uniform terrain grid gives dense
-  geometry in the flight corridor and cheap geometry toward the horizon.
-- Aircraft system (`aircraft` package): per-slot part tiers, physically visible parts
-  (body, left wing, right wing, tail, propeller, engine), derived flight statistics,
-  procedural mesh rebuilt when parts change, spinner animation.
-- Slingshot system (`slingshot` package): five upgrade categories, launch-speed model,
-  procedural 3D frame and elastic bands that stretch with the pull.
-- Flight physics (`aircraft/FlightPhysics.kt`): lift from angle of attack, drag, thrust,
-  gravity, stability terms, stall behaviour, ground contact detection, landing vs crash.
-- Progression (`game` package): earnings model, save file (SharedPreferences + JSON),
-  part prices, slingshot upgrade prices, world unlock gating.
-- Procedural audio (`audio` package): synthesized wind, propeller, slingshot creak and
-  release, per-world ambience and UI cues via `AudioTrack`. No audio assets needed.
-- Headless game flow: pull to stretch, release to launch, fly, earn, return to the pad.
-  The full loop is playable without any UI.
+- GLSL ES 3.00 programs, VAO/VBO/IBO meshes, instanced rendering.
+- Cook–Torrance style PBR (GGX + Smith + Fresnel), directional sun, hemispheric ambient,
+  exponential fog, tone mapping, gamma output.
+- Single-cascade directional shadow map with 3×3 PCF.
+- Analytic sky with sun disk, glow and cloud banding.
+- Normal-mapped water with Fresnel, sun specular and the "Dynamic Water Reflections"
+  toggle from Settings.
+- Particle renderer (snow, dust).
+- Procedurally generated, mip-mapped tiling textures at 256² or 128² (High-Resolution
+  Textures toggle) — the build ships no binary assets, so CI cannot miss files.
 
-Not implemented yet (blocked on `design.md` / later phases):
+**Worlds (`world`)** — five ecosystems with distinct terrain shaping, palettes,
+atmosphere, water level, vegetation, wildlife and weather: forest, desert, snow/glacier,
+ocean/coast, mountain/countryside. Non-uniform terrain grid (dense corridor, cheap
+horizon).
 
-- Every screen (main menu, workshops, world select, HUD, results, settings).
-- HUD/state wiring (`HudBridge` exists as the seam it will plug into).
-- Authored high-poly art, animations, authored audio mix, tutorial, achievements UI.
+**Aircraft (`aircraft`)** — six-stage construction exactly as specified: bare fuselage with
+tinted canopy → left wing → right wing → tail → propeller → stage-6 winglets, tail
+fairings and engine cowling. Each purchase rebuilds the visible mesh. Fuselage uses the
+specified composite values (roughness 0.35, metallic 0.15); the canopy is its own
+low-roughness glass material.
+
+**Slingshot (`slingshot`)** — five upgrade categories, launch-speed model, visible bands
+stretched from both prongs to the cradle, tinted amber → neon cyan with draw tension,
+launch elevation arc (20°–55°) stored in the profile, and a camera impulse shake on
+release.
+
+**Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
+gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
+
+**UI (`ui`)** — every screen from `docs/DESIGN.md` §6, driven by live data:
+
+1. Main Menu (profile pill, level/rank, coins, hotspots, nav deck, primary CTA)
+2. Aircraft Workshop (five tabs, airframe stat bars, part drawer with deltas and price)
+3. Slingshot Lab (telemetry, five upgrade rows with level pips, elevation-arc slider)
+4. Environment Selection (five cards, weather/wind, personal best, lock gates)
+5. Gameplay HUD (distance/altitude/airspeed, attitude gimbal, stall and thermal alerts,
+   launch tension meter)
+6. Flight Results (record banner, breakdown ledger, retry/workshop/claim)
+7. Upgrade & Reward (installed part, resulting stats, equip action)
+8. Settings (four quality tiers, three fidelity toggles, three audio sliders)
+9. Progress & Achievements (six claimable badges with progress)
+10. Pilot Career Profile (career totals, favourite realm, configuration)
+
+Plus a pause modal. Design tokens live in `gfx/DesignTokens.kt`; the UI is drawn at a
+640×360 dp design scale that stretches to any landscape ratio without distortion.
+
+**Progression & audio** — coins from distance/performance, persistence in
+SharedPreferences JSON, world unlocks, achievements, four quality tiers, and procedural
+audio (wind, propeller, creak, release, per-world ambience, UI cues) with three mixer
+faders.
 
 ## Build
 
-The build requires JDK 17 and the Android SDK (API 34).
+Requires JDK 17 and the Android SDK (API 34).
 
 ```bash
 gradle :app:assembleDebug
 ```
 
-The produced APK is installable directly:
+Installable output:
 
 ```
 app/build/outputs/apk/debug/app-debug.apk
@@ -80,12 +95,13 @@ checked in); CI installs Gradle 8.7 explicitly. Locally, use any Gradle 8.7+ ins
 4. `assembleDebug` → installable APK artifact
 5. `assembleRelease` (unsigned) + artifact upload
 
-## Controls (temporary, pre-UI)
+## Controls
 
-- **Drag** on the launch pad: stretch the slingshot bands.
-- **Release**: launch.
-- During flight, **drag** to pitch/roll the aircraft.
-- After a flight the session automatically banks the earnings and returns to the pad.
+- **Menu:** tap the nav deck (Aircraft / Slingshot / Realms), gear, trophy or pilot icon.
+- **Realms:** tap a card to select it, then *Launch in this realm*.
+- **Launch:** hold anywhere to draw the bands, release to fire.
+- **Flight:** drag to pitch and roll; expand the pause button to stop the flight.
+- **Workshops / menu:** drag on empty space to orbit the 3D aircraft or rig.
 
 ## Repository layout
 
@@ -93,26 +109,26 @@ checked in); CI installs Gradle 8.7 explicitly. Locally, use any Gradle 8.7+ ins
 app/                      Android application module
   src/main/java/com/buildlaunchfly/game/
     platform/             Activity, GLSurfaceView, renderer, input
-    gfx/                  renderer core: shaders, meshes, shadows, sky, water, particles
-    world/               five worlds, terrain, vegetation, wildlife, weather
-    aircraft/            parts catalog, build state, mesh, flight physics
-    slingshot/           upgrades, launch model, mesh
-    game/                session flow, economy, progression, save, camera director
-    audio/               procedural audio engine
-    math/                Vec3, Mat4, utilities
-docs/                     master brief, architecture, design rules
+    gfx/                  renderer core, design tokens, materials, shadows, sky, water
+    world/                five worlds, terrain, vegetation, wildlife, weather
+    aircraft/             parts catalog, build state, mesh, flight physics
+    slingshot/            upgrades, launch model, mesh
+    game/                 session flow, economy, progression, achievements, settings, save
+    ui/                   overlay view, frame primitives, icons, ten screens
+    audio/                procedural audio engine
+    math/                 Vec3, Mat4, utilities
+docs/                     master brief, design system, architecture
 .github/workflows/        automated APK builds
 ```
 
-## Engine choice
+## Known gaps (honest list)
 
-The brief leaves the 3D technology open (Phases 2 and 8). This project uses a
-purpose-written renderer on **OpenGL ES 3.0** driven from Kotlin, which:
+- The propeller's alpha motion-blur disc is not rendered; blades simply spin.
+- Rajdhani / Plus Jakarta Sans are substituted with system families of the same sizes,
+  weights and tracking (see `docs/DESIGN.md` §2.2 implementation note).
+- UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks
+  are in `ui/UiFrame.kt` and `ui/UiIcons.kt`.
+- Workshop orbit is drag-only (no pinch zoom).
+- Wildlife uses simple procedural meshes with scripted motion.
 
-- keeps the entire game logic and rendering in Kotlin as the brief prefers,
-- removes third-party native build steps from CI (no NDK, no engine downloads),
-- gives direct control over shadows, PBR, fog and terrain LOD, which is what the visual
-  bar depends on.
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full decision record and
-[`docs/DESIGN.md`](docs/DESIGN.md) once the design system is supplied.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the engine and UI architecture.

@@ -10,8 +10,10 @@ enum class SurfaceKind { GRASS, ROCK, SAND, SNOW, ICE }
  * Generates every texture the game needs at load time. Nothing is shipped as a binary
  * asset: the whole look is defined by code and a fixed seed, so worlds are reproducible
  * and the repository stays small.
+ *
+ * [size] is driven by the "High-Resolution Textures" setting.
  */
-class TextureFactory(private val seed: Int = 1337) {
+class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE) {
 
     val white: Texture2D
     val metal: Texture2D
@@ -24,19 +26,22 @@ class TextureFactory(private val seed: Int = 1337) {
     private val all = ArrayList<Texture2D>()
 
     init {
-        white = register(Texture2D.create("white", 1, 1, ByteArray(4) { 255.toByte() }, mipmaps = false, repeat = false))
+        val texSize = size.coerceIn(32, 1024)
+        white = register(
+            Texture2D.create("white", 1, 1, ByteArray(4) { 255.toByte() }, mipmaps = false, repeat = false)
+        )
 
-        surfaces[SurfaceKind.GRASS] = register(Texture2D.create("grass", SIZE, SIZE, grassTexture()))
-        surfaces[SurfaceKind.ROCK] = register(Texture2D.create("rock", SIZE, SIZE, rockTexture()))
-        surfaces[SurfaceKind.SAND] = register(Texture2D.create("sand", SIZE, SIZE, sandTexture()))
-        surfaces[SurfaceKind.SNOW] = register(Texture2D.create("snow", SIZE, SIZE, snowTexture()))
-        surfaces[SurfaceKind.ICE] = register(Texture2D.create("ice", SIZE, SIZE, iceTexture()))
+        surfaces[SurfaceKind.GRASS] = register(Texture2D.create("grass", texSize, texSize, grassTexture(texSize)))
+        surfaces[SurfaceKind.ROCK] = register(Texture2D.create("rock", texSize, texSize, rockTexture(texSize)))
+        surfaces[SurfaceKind.SAND] = register(Texture2D.create("sand", texSize, texSize, sandTexture(texSize)))
+        surfaces[SurfaceKind.SNOW] = register(Texture2D.create("snow", texSize, texSize, snowTexture(texSize)))
+        surfaces[SurfaceKind.ICE] = register(Texture2D.create("ice", texSize, texSize, iceTexture(texSize)))
 
-        metal = register(Texture2D.create("metal", SIZE, SIZE, metalTexture()))
-        rubber = register(Texture2D.create("rubber", SIZE, SIZE, rubberTexture()))
-        bark = register(Texture2D.create("bark", SIZE, SIZE, barkTexture()))
-        leaf = register(Texture2D.create("leaf", SIZE, SIZE, leafTexture()))
-        waterNormals = register(Texture2D.create("waterNormal", SIZE, SIZE, waterNormalTexture()))
+        metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
+        rubber = register(Texture2D.create("rubber", texSize, texSize, rubberTexture(texSize)))
+        bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
+        leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
+        waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
     }
 
     private fun register(texture: Texture2D): Texture2D {
@@ -78,7 +83,7 @@ class TextureFactory(private val seed: Int = 1337) {
         return (a shl 24) or (cr shl 16) or (cg shl 8) or cb
     }
 
-    private fun grassTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun grassTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val broad = Noise.fbm2(u * 4f, v * 4f, 3, 2f, 0.5f, seed)
         val blades = Noise.fbm2(u * 26f, v * 60f, 3, 2f, 0.55f, seed + 11)
         val fine = Noise.value2(u * 140f, v * 140f, seed + 23)
@@ -90,9 +95,12 @@ class TextureFactory(private val seed: Int = 1337) {
         rgb(r, g, b)
     }
 
-    private fun rockTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun rockTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val strata = kotlin.math.sin((v * 9f + Noise.fbm2(u * 3f, v * 3f, 3, 2f, 0.5f, seed + 5) * 2.4f) * 3.14159f)
-        val cracks = 1f - M.smoothStep(0.03f, 0.16f, kotlin.math.abs(Noise.fbm2(u * 8f, v * 8f, 3, 2f, 0.5f, seed + 61)))
+        val cracks = 1f - M.smoothStep(
+            0.03f, 0.16f,
+            kotlin.math.abs(Noise.fbm2(u * 8f, v * 8f, 3, 2f, 0.5f, seed + 61))
+        )
         val grain = Noise.fbm2(u * 40f, v * 40f, 3, 2f, 0.5f, seed + 71)
 
         val base = 0.40f + strata * 0.045f + grain * 0.07f
@@ -100,16 +108,18 @@ class TextureFactory(private val seed: Int = 1337) {
         rgb(tinted * 1.05f, tinted * 0.98f, tinted * 0.90f)
     }
 
-    private fun sandTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
-        val ripple = kotlin.math.sin((v * 26f + Noise.fbm2(u * 4f, v * 4f, 3, 2f, 0.5f, seed + 90) * 3.2f) * 3.14159f)
+    private fun sandTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
+        val ripple = kotlin.math.sin(
+            (v * 26f + Noise.fbm2(u * 4f, v * 4f, 3, 2f, 0.5f, seed + 90) * 3.2f) * 3.14159f
+        )
         val grain = Noise.value2(u * 180f, v * 180f, seed + 101)
         val broad = Noise.fbm2(u * 3f, v * 3f, 3, 2f, 0.5f, seed + 113)
 
         val lum = 0.80f + ripple * 0.055f + grain * 0.035f + broad * 0.05f
-        rgb(lum * 1.0f, lum * 0.90f, lum * 0.71f)
+        rgb(lum, lum * 0.90f, lum * 0.71f)
     }
 
-    private fun snowTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun snowTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val broad = Noise.fbm2(u * 5f, v * 5f, 4, 2f, 0.5f, seed + 131)
         val crust = Noise.fbm2(u * 22f, v * 22f, 3, 2f, 0.55f, seed + 149)
         val sparkle = if (Noise.value2(u * 220f, v * 220f, seed + 157) > 0.86f) 0.12f else 0f
@@ -118,15 +128,18 @@ class TextureFactory(private val seed: Int = 1337) {
         rgb(lum, lum * 0.99f, M.saturate(lum * 1.02f))
     }
 
-    private fun iceTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
-        val vein = 1f - M.smoothStep(0.02f, 0.14f, kotlin.math.abs(Noise.fbm2(u * 6f, v * 6f, 4, 2f, 0.5f, seed + 173)))
+    private fun iceTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
+        val vein = 1f - M.smoothStep(
+            0.02f, 0.14f,
+            kotlin.math.abs(Noise.fbm2(u * 6f, v * 6f, 4, 2f, 0.5f, seed + 173))
+        )
         val grain = Noise.fbm2(u * 30f, v * 30f, 3, 2f, 0.5f, seed + 181)
         val base = 0.74f + grain * 0.05f
         val lum = base * (1f - vein * 0.35f)
         rgb(lum * 0.88f, lum * 0.96f, lum * 1.05f)
     }
 
-    private fun metalTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun metalTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val panelU = kotlin.math.abs(kotlin.math.sin(u * 3.14159f * 4f))
         val panelV = kotlin.math.abs(kotlin.math.sin(v * 3.14159f * 6f))
         val seam = if (panelU < 0.05f || panelV < 0.05f) 0.72f else 1f
@@ -137,36 +150,42 @@ class TextureFactory(private val seed: Int = 1337) {
         rgb(lum, lum * 0.995f, lum * 0.98f)
     }
 
-    private fun rubberTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun rubberTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val grain = Noise.fbm2(u * 44f, v * 44f, 3, 2f, 0.5f, seed + 227)
         val lum = 0.16f + grain * 0.05f
         rgb(lum, lum * 0.98f, lum * 1.02f)
     }
 
-    private fun barkTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun barkTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val stripes = Noise.fbm2(u * 22f, v * 2.5f, 4, 2f, 0.55f, seed + 239)
-        val cracks = 1f - M.smoothStep(0.05f, 0.22f, kotlin.math.abs(Noise.fbm2(u * 34f, v * 6f, 3, 2f, 0.5f, seed + 251)))
+        val cracks = 1f - M.smoothStep(
+            0.05f, 0.22f,
+            kotlin.math.abs(Noise.fbm2(u * 34f, v * 6f, 3, 2f, 0.5f, seed + 251))
+        )
         val lum = (0.30f + stripes * 0.10f) * (1f - cracks * 0.4f)
         rgb(lum * 1.05f, lum * 0.80f, lum * 0.58f)
     }
 
-    private fun leafTexture(): ByteArray = gen(SIZE) { _, _, u, v ->
+    private fun leafTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val clump = Noise.fbm2(u * 12f, v * 12f, 4, 2f, 0.55f, seed + 263)
-        val veins = 1f - M.smoothStep(0.02f, 0.10f, kotlin.math.abs(Noise.fbm2(u * 18f, v * 18f, 3, 2f, 0.5f, seed + 271)))
+        val veins = 1f - M.smoothStep(
+            0.02f, 0.10f,
+            kotlin.math.abs(Noise.fbm2(u * 18f, v * 18f, 3, 2f, 0.5f, seed + 271))
+        )
         val lum = 0.34f + clump * 0.16f
         rgb(lum * 0.62f, lum * 1.05f, lum * 0.48f)
     }
 
     /** Tangent-space normal map derived from a small FBM height field. */
-    private fun waterNormalTexture(): ByteArray {
-        val size = SIZE
-        val out = ByteArray(size * size * 4)
+    private fun waterNormalTexture(size: Int): ByteArray {
+        val sz = size
+        val out = ByteArray(sz * sz * 4)
         var i = 0
-        val eps = 1f / size
-        for (y in 0 until size) {
-            val v = y.toFloat() / size
-            for (x in 0 until size) {
-                val u = x.toFloat() / size
+        val eps = 1f / sz
+        for (y in 0 until sz) {
+            val v = y.toFloat() / sz
+            for (x in 0 until sz) {
+                val u = x.toFloat() / sz
                 val h = Noise.fbm2(u * 6f, v * 6f, 4, 2.1f, 0.5f, seed + 293) * 0.5f +
                     Noise.fbm2(u * 17f, v * 17f, 3, 2.1f, 0.5f, seed + 307) * 0.25f
                 val hx = Noise.fbm2((u + eps) * 6f, v * 6f, 4, 2.1f, 0.5f, seed + 293) * 0.5f +

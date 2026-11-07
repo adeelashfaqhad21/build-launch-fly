@@ -12,10 +12,14 @@ import org.json.JSONObject
 /** Everything that persists between sessions. */
 class PlayerProfile {
 
-    var coins: Int = 300
+    var coins: Int = 320
     var bestDistance: Float = 0f
+    var bestAltitude: Float = 0f
     var flights: Int = 0
     var totalDistance: Float = 0f
+
+    /** Ballistic launch elevation, 20°..55° per design.md §6 Screen 3. */
+    var launchAngleDegrees: Float = 24f
 
     var selectedWorld: WorldId = WorldId.FOREST
         private set
@@ -23,45 +27,99 @@ class PlayerProfile {
     val unlockedWorlds: MutableSet<WorldId> = mutableSetOf(WorldId.FOREST)
     val partTiers: MutableMap<PartSlot, Int> = LinkedHashMap()
     val slingshotLevels: MutableMap<SlingUpgrade, Int> = LinkedHashMap()
+    val bestPerWorld: MutableMap<WorldId, Float> = LinkedHashMap()
+    val claimedAchievements: MutableSet<String> = LinkedHashSet()
+    val settings: GameSettings = GameSettings()
 
     init {
         partTiers[PartSlot.BODY] = 1
     }
+
+    // ---- pilot progression ------------------------------------------------
+
+    fun pilotLevel(): Int = 1 + (totalDistance / 2000f).toInt().coerceIn(0, 29)
+
+    fun pilotRankTitle(): String {
+        val level = pilotLevel()
+        return when {
+            level < 5 -> "Cadet"
+            level < 10 -> "Pilot"
+            level < 18 -> "Ace Aeronaut"
+            level < 25 -> "Sky Captain"
+            else -> "Sky Legend"
+        }
+    }
+
+    fun levelProgressFraction(): Float {
+        if (pilotLevel() >= 30) return 1f
+        return ((totalDistance % 2000f) / 2000f).coerceIn(0f, 1f)
+    }
+
+    // ---- worlds -----------------------------------------------------------
 
     fun selectWorld(id: WorldId) {
         unlockedWorlds.add(WorldId.FOREST)
         if (unlockedWorlds.contains(id)) selectedWorld = id
     }
 
-    /** Unlocks worlds whose distance gate the player has passed. */
     fun refreshUnlocks() {
         unlockedWorlds.add(WorldId.FOREST)
         for (world in WorldCatalog.all) {
             if (bestDistance >= world.unlockDistanceMeters) unlockedWorlds.add(world.id)
+            if (bestPerWorld[world.id] ?: 0f >= world.unlockDistanceMeters) unlockedWorlds.add(world.id)
         }
         if (!unlockedWorlds.contains(selectedWorld)) selectedWorld = WorldId.FOREST
     }
 
-    fun recordFlight(distance: Float, coinsEarned: Int, wasRecord: Boolean) {
+    fun bestForWorld(id: WorldId): Float = bestPerWorld[id] ?: 0f
+
+    // ---- records ----------------------------------------------------------
+
+    fun recordFlight(
+        distance: Float,
+        coinsEarned: Int,
+        altitude: Float,
+        worldId: WorldId
+    ) {
         coins += coinsEarned
         flights += 1
         totalDistance += distance
-        if (wasRecord && distance > bestDistance) bestDistance = distance
+        if (distance > bestDistance) bestDistance = distance
+        if (altitude > bestAltitude) bestAltitude = altitude
+        val previous = bestPerWorld[worldId] ?: 0f
+        if (distance > previous) bestPerWorld[worldId] = distance
         refreshUnlocks()
     }
 
+    fun claimAchievement(id: String): Boolean {
+        if (claimedAchievements.contains(id)) return false
+        val achievement = AchievementCatalog.byId(id) ?: return false
+        if (!AchievementCatalog.isComplete(achievement, this)) return false
+        claimedAchievements.add(id)
+        coins += achievement.reward
+        return true
+    }
+
+    // ---- persistence ------------------------------------------------------
+
     fun toJson(): String {
         val root = JSONObject()
-        root.put("version", 1)
+        root.put("version", 2)
         root.put("coins", coins)
         root.put("bestDistance", bestDistance.toDouble())
+        root.put("bestAltitude", bestAltitude.toDouble())
         root.put("flights", flights)
         root.put("totalDistance", totalDistance.toDouble())
+        root.put("launchAngle", launchAngleDegrees.toDouble())
         root.put("selectedWorld", selectedWorld.name)
 
         val worlds = JSONArray()
         for (id in unlockedWorlds) worlds.put(id.name)
         root.put("unlockedWorlds", worlds)
+
+        val bestPerWorldJson = JSONObject()
+        for ((id, distance) in bestPerWorld) bestPerWorldJson.put(id.name, distance.toDouble())
+        root.put("bestPerWorld", bestPerWorldJson)
 
         val parts = JSONObject()
         for ((slot, tier) in partTiers) parts.put(slot.name, tier)
@@ -70,6 +128,12 @@ class PlayerProfile {
         val slingshot = JSONObject()
         for ((type, level) in slingshotLevels) slingshot.put(type.name, level)
         root.put("slingshot", slingshot)
+
+        val claimed = JSONArray()
+        for (id in claimedAchievements) claimed.put(id)
+        root.put("claimedAchievements", claimed)
+
+        root.put("settings", settings.toJson())
 
         return root.toString()
     }
@@ -83,8 +147,11 @@ class PlayerProfile {
                 val root = JSONObject(text)
                 profile.coins = root.optInt("coins", profile.coins)
                 profile.bestDistance = root.optDouble("bestDistance", 0.0).toFloat()
+                profile.bestAltitude = root.optDouble("bestAltitude", 0.0).toFloat()
                 profile.flights = root.optInt("flights", 0)
                 profile.totalDistance = root.optDouble("totalDistance", 0.0).toFloat()
+                profile.launchAngleDegrees =
+                    root.optDouble("launchAngle", 24.0).toFloat().coerceIn(20f, 55f)
 
                 val selected = root.optString("selectedWorld", WorldId.FOREST.name)
                 for (id in WorldId.values()) {
@@ -97,6 +164,15 @@ class PlayerProfile {
                         val name = worlds.optString(i, "")
                         for (id in WorldId.values()) {
                             if (id.name == name) profile.unlockedWorlds.add(id)
+                        }
+                    }
+                }
+
+                val perWorld = root.optJSONObject("bestPerWorld")
+                if (perWorld != null) {
+                    for (id in WorldId.values()) {
+                        if (perWorld.has(id.name)) {
+                            profile.bestPerWorld[id] = perWorld.optDouble(id.name, 0.0).toFloat()
                         }
                     }
                 }
@@ -118,6 +194,17 @@ class PlayerProfile {
                         }
                     }
                 }
+
+                val claimed = root.optJSONArray("claimedAchievements")
+                if (claimed != null) {
+                    for (i in 0 until claimed.length()) {
+                        val id = claimed.optString(i, "")
+                        if (id.isNotEmpty()) profile.claimedAchievements.add(id)
+                    }
+                }
+
+                val settings = GameSettings.fromJson(root.optJSONObject("settings"))
+                profile.copySettings(settings)
             } catch (error: Throwable) {
                 Log.w("BLF-SAVE", "Could not parse save data, starting fresh", error)
                 return PlayerProfile()
@@ -126,6 +213,16 @@ class PlayerProfile {
             profile.refreshUnlocks()
             return profile
         }
+    }
+
+    private fun copySettings(other: GameSettings) {
+        settings.quality = other.quality
+        settings.waterReflections = other.waterReflections
+        settings.volumetricFog = other.volumetricFog
+        settings.highResTextures = other.highResTextures
+        settings.masterVolume = other.masterVolume
+        settings.engineVolume = other.engineVolume
+        settings.ambienceVolume = other.ambienceVolume
     }
 }
 

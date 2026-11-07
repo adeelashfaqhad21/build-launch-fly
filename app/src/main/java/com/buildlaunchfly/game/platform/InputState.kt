@@ -70,4 +70,15 @@ class InputState {
             return value
         }
     }
+
+    /** Clears any in-flight gesture (used when the UI opens a modal). */
+    fun reset() {
+        synchronized(lock) {
+            pointerDown = false
+            hasLast = false
+            pendingDragX = 0f
+            pendingDragY = 0f
+            pendingRelease = false
+        }
+    }
 }

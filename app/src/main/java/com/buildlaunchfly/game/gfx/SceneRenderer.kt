@@ -163,9 +163,15 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, shadowMap.depthTexture)
     }
 
-    fun drawWater(mesh: Mesh, normals: Texture2D, deepColor: Vec3, shallowColor: Vec3) {
+    fun drawWater(
+        mesh: Mesh,
+        normals: Texture2D,
+        deepColor: Vec3,
+        shallowColor: Vec3,
+        reflections: Boolean = true
+    ) {
         val cam = camera ?: return
-        water.render(mesh, normals, deepColor, shallowColor, cam, env, identity)
+        water.render(mesh, normals, deepColor, shallowColor, cam, env, identity, reflections)
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0 + EnvUniforms.SHADOW_TEXTURE_UNIT)
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, shadowMap.depthTexture)
     }

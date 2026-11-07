@@ -18,7 +18,8 @@ class WaterRenderer {
         shallowColor: Vec3,
         camera: Camera,
         env: EnvUniforms,
-        model: Mat4
+        model: Mat4,
+        reflections: Boolean = true
     ) {
         program.use()
         env.apply(program, camera)
@@ -28,6 +29,7 @@ class WaterRenderer {
         program.set("uDeepColor", deepColor)
         program.set("uShallowColor", shallowColor)
         program.set("uTime", env.time)
+        program.set("uReflections", if (reflections) 1f else 0f)
         normals.bind(0)
         program.set("uNormals", 0)
 
