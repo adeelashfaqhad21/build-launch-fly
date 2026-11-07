@@ -18,10 +18,10 @@ enum class GraphicsQuality(
     val shadowRadius: Float,
     val particleScale: Float
 ) {
-    LOW("Power Saver 30 FPS", 0, 50f, 0.4f),
-    MEDIUM("Balanced 60 FPS", 1, 80f, 0.7f),
-    HIGH("High Fidelity 90 FPS", 2, 120f, 1f),
-    ULTRA("Ultra Extreme 120 FPS", 3, 160f, 1.4f);
+    LOW("Power Saver 30 FPS", 0, 48f, 0.30f),
+    MEDIUM("Balanced 60 FPS", 1, 68f, 0.52f),
+    HIGH("High Fidelity 90 FPS", 2, 96f, 0.78f),
+    ULTRA("Ultra Extreme 120 FPS", 3, 128f, 1.0f);
 
     companion object {
         fun fromName(value: String?): GraphicsQuality {
