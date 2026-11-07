@@ -105,11 +105,19 @@ class Terrain(val definition: WorldDefinition) {
             val cliffBand = M.smoothStep(185f, 260f, inland) *
                 (1f - M.smoothStep(520f, 720f, inland))
             val cliffNoise = Noise.fbm2(x * 0.004f, z * 0.006f, 3, 2f, 0.55f, s + 117)
-            h += cliffBand * (13f + cliffNoise * 8f)
-            // Erosion gullies descend from the cliff top toward the beach.
-            val gullyLine = shoreline + 230f + 22f * sin(z * 0.006f + cliffNoise * 2f)
-            val gully = abs(x - gullyLine)
-            h -= (1f - M.smoothStep(2.5f, 12f, gully)) * cliffBand * 4.2f
+            val strata = sin((inland * 0.075f + cliffNoise * 2.8f).toDouble()).toFloat()
+            h += cliffBand * (13f + cliffNoise * 8f + strata * 1.15f)
+            // Several branching drainage lines cut the cliff face, with wider talus fans at its foot.
+            for (gullyIndex in 0..2) {
+                val offset = gullyIndex * 37f
+                val gullyLine = shoreline + 230f + offset +
+                    22f * sin(z * (0.0054f + gullyIndex * 0.0007f) + cliffNoise * 2f + gullyIndex)
+                val gully = abs(x - gullyLine)
+                val channel = 1f - M.smoothStep(2.5f, 12f + gullyIndex * 2f, gully)
+                val fan = 1f - M.smoothStep(12f, 48f, gully)
+                h -= channel * cliffBand * (3.2f + gullyIndex * 0.45f)
+                h -= fan * cliffBand * 0.85f
+            }
         }
 
         // Shallow valley along the launch corridor.
