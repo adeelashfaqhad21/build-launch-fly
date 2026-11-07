@@ -80,9 +80,20 @@ vec3 shadeSurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos, float roughness, f
 }
 
 vec3 applyFog(vec3 color, vec3 worldPos) {
-    float dist = length(uCameraPos - worldPos);
-    float fog = 1.0 - exp(-max(uFogDensity, 0.0) * dist);
-    return mix(color, uFogColor, clamp(fog, 0.0, 1.0));
+    vec3 toCamera = uCameraPos - worldPos;
+    float dist = length(toCamera);
+    float horizontalDist = length(toCamera.xz);
+
+    // Low-altitude sight lines accumulate more suspended moisture/dust than
+    // elevated alpine views. This keeps nearby aircraft and terrain crisp while
+    // progressively veiling distant ground layers toward the horizon.
+    float viewHeight = max(min(worldPos.y, uCameraPos.y), 0.0);
+    float lowAltitudeDensity = mix(1.22, 0.76, smoothstep(24.0, 210.0, viewHeight));
+    float horizonWeight = 1.0 + 0.12 * smoothstep(180.0, 1250.0, horizontalDist);
+    float opticalDepth = max(uFogDensity, 0.0) * dist *
+                         lowAltitudeDensity * horizonWeight;
+    float fog = 1.0 - exp(-opticalDepth);
+    return mix(color, uFogColor, clamp(fog, 0.0, 0.92));
 }
 
 vec3 applyTonemap(vec3 c) {
