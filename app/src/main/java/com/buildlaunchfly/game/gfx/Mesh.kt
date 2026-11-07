@@ -129,7 +129,8 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
     fun setInstances(matrices: FloatArray, count: Int) {
         sourceMatrices = matrices
         sourceCount = count.coerceIn(0, capacity)
-        uploadVisible(sourceCount) { index -> System.arraycopy(matrices, index * 16, uploadBuffer, index * 16, 16) }
+        System.arraycopy(matrices, 0, uploadBuffer, 0, sourceCount * 16)
+        uploadVisible(sourceCount)
     }
 
     /**
@@ -155,14 +156,13 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
             System.arraycopy(sourceMatrices, offset, uploadBuffer, visible * 16, 16)
             visible++
         }
-        uploadVisible(visible) { }
+        uploadVisible(visible)
     }
 
-    private inline fun uploadVisible(count: Int, fill: (Int) -> Unit) {
+    private fun uploadVisible(count: Int) {
         instanceCount = count.coerceIn(0, capacity)
         if (instanceCount == 0) return
         val floats = instanceCount * 16
-        if (fill !== {}) { /* no-op marker; source copy is performed by caller */ }
         uploadFloatBuffer.clear()
         uploadFloatBuffer.put(uploadBuffer, 0, floats)
         uploadFloatBuffer.flip()
