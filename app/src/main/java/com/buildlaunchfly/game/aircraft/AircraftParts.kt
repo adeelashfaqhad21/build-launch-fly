@@ -61,14 +61,14 @@ object AircraftCatalog {
             mass = 2.4f, stability = 0.55f, maxRpm = 0f
         ),
         PartUpgrade(
-            PartSlot.PROPELLER, 1, "propeller_1", "Propeller — Stage 5",
-            "Two-blade propeller on a polished hub. Windmills in the airflow.",
+            PartSlot.PROPELLER, 1, "propeller_1", "Three-Blade Variable-Pitch Propeller — Stage 5",
+            "Three forged blades on a variable-pitch hub. Windmills in airflow and responds to engine power.",
             price = 420, lift = 0f, dragArea = 0.03f, thrust = 0f,
             mass = 2.0f, stability = 0.02f, maxRpm = 900f
         ),
         PartUpgrade(
-            PartSlot.ENGINE, 1, "engine_1", "Engine — Stage 6",
-            "Light aircraft engine. Turns the propeller into real thrust.",
+            PartSlot.ENGINE, 1, "engine_1", "Light Aircraft Engine",
+            "Optional propulsion upgrade. Drives the installed propeller to produce powered thrust.",
             price = 900, lift = 0f, dragArea = 0.05f, thrust = 340f,
             mass = 9.0f, stability = 0.05f, maxRpm = 2400f
         ),
@@ -91,8 +91,8 @@ object AircraftCatalog {
             mass = 0.8f, stability = 0.45f, maxRpm = 0f
         ),
         PartUpgrade(
-            PartSlot.PROPELLER, 2, "propeller_2", "Three-Blade Propeller",
-            "Better blade loading and smoother thrust delivery.",
+            PartSlot.PROPELLER, 2, "propeller_2", "Variable-Pitch Propeller Mk II",
+            "Larger reinforced blades and a refined pitch-control hub for smoother thrust delivery.",
             price = 2400, lift = 0f, dragArea = -0.01f, thrust = 40f,
             mass = 0.6f, stability = 0.02f, maxRpm = 400f
         ),
