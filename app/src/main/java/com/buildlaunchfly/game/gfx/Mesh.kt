@@ -138,7 +138,7 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
      * thin distant foliage/ground clutter, and discard instances outside the useful horizon.
      * The original transforms remain cached; no per-frame arrays are allocated.
      */
-    fun applyDistanceLod(camera: com.buildlaunchfly.game.math.Vec3, maxDistance: Float, fullDetailDistance: Float) {
+    fun applyDistanceLod(camera: com.buildlaunchfly.game.math.Vec3, maxDistance: Float, fullDetailDistance: Float, thinDistant: Boolean = true) {
         if (sourceCount == 0) return
         val max2 = maxDistance * maxDistance
         val full2 = fullDetailDistance * fullDetailDistance
@@ -152,7 +152,7 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
             if (distance2 > max2) continue
             // Keep all near instances. At distance, deterministically thin repeated
             // understory silhouettes; larger tree/rock forms retain their full count.
-            if (distance2 > full2 && (index % 3 == 1)) continue
+            if (thinDistant && distance2 > full2 && (index % 3 == 1)) continue
             System.arraycopy(sourceMatrices, offset, uploadBuffer, visible * 16, 16)
             visible++
         }
