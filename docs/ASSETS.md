@@ -77,7 +77,19 @@ that currently cost two draw calls.
 
 ### How it is integrated
 
-- `app/src/main/assets/quaternius/` holds the OBJ + leaf/rock PNG files (≈6.7 MB total).
+- **The whole prop set was downloaded** from the supplied Drive folder, file by file, using
+  the folder listing + direct `drive.usercontent.google.com/download?id=…` method:
+  5 variants each of Birch, Maple, Normal, Pine and Palm; 10 DeadTrees; 6 bushes; 7 flowers;
+  3 grasses; 3 plants; 4 petals; 5 rocks; plus the leaf, flower, grass, rock and palm maps
+  (17 textures). They live in `assets-source/quaternius/` with the licence record.
+- **Shipped in the APK** are the models that earn their cost:
+  - Forest: `BirchTree_1/2`, `MapleTree_1/2`; Alpine: `PineTree_1/2`; Coast:
+    `PalmTree_1/2`; Desert: `DeadTree_1/2` (bark-only models, drawn as single-mesh props)
+  - All realms: `Bush`, `Bush_Small`, `Flower_1_Clump`, `Flower_2_Clump`, `Grass_Large`,
+    `Rock_1`, `Rock_2`
+- The pack's 4K bark/trunk maps (19.9 MB NormalTree bark, 20.4 MB PalmTree trunk) are **not**
+  shipped — bark is drawn with the game's procedurally generated texture, which is a few
+  hundred kilobytes and matches the aircraft's timber.
 - `gfx/ObjLoader` parses OBJ at load time: triangulates Blender's n-gon faces, splits the
   geometry into the bark and foliage material groups, flips the OBJ V coordinate to match the
   decoded PNG orientation, and normalises both groups with one shared transform (1 unit tall,

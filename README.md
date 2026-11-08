@@ -53,10 +53,11 @@ rock rather than a uniform green carpet.
 The external nature packs that were investigated for this are reviewed in
 [`docs/ASSETS.md`](docs/ASSETS.md) with licences, formats, style fit, animation requirements
 and the decision. **Quaternius' Ultimate Stylized Nature pack (CC0) is adopted** as a
-near-field hero layer: birch/maple/pine/palm trees plus bushes, flower clumps, grass and rocks
-are loaded from OBJ at runtime (`gfx/ObjLoader`, `gfx/AssetTextures`) and instanced around the
-launch area at HIGH/ULTRA detail, while the procedural species still fill the distance. Every
-load is guarded, so a missing asset simply falls back to the procedural set.
+near-field hero layer: two variants each of birch/maple/pine/palm, dead trees for the desert,
+plus bushes, flower clumps, grass and rocks are loaded from OBJ at runtime
+(`gfx/ObjLoader`, `gfx/AssetTextures`) and instanced around the launch area at HIGH/ULTRA
+detail, while the procedural species still fill the distance. Every load is guarded, so a
+missing asset simply falls back to the procedural set.
 
 **Aircraft (`aircraft`)** — procedural vintage biplane per
 [`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with
