@@ -674,6 +674,13 @@ class GameApp(private val context: Context, private val input: InputState) {
         if (showSling) {
             rig.drawLength = sling.drawLengthMeters()
             rig.thicknessBoost = slingStateBandBoost()
+            // Ref-2: the plane parked in the hangar breathes on its cradle (±2 cm). The band
+            // geometry is derived from the same offset, so the sling moves with it.
+            rig.idleBob = if (pull < 0.02f && cameraMode == CameraMode.ORBIT_AIRCRAFT) {
+                kotlin.math.sin(time * 1.6f) * 0.02f
+            } else {
+                0f
+            }
 
             // Each band is two segments hung from a sagging midpoint: slack bands droop,
             // a full draw pulls them dead straight.

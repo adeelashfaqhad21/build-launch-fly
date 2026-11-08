@@ -265,6 +265,12 @@ class SlingshotMesh(textures: TextureFactory) {
 
     var thicknessBoost: Float = 0f
 
+    /**
+     * Slow vertical breath of the parked aircraft, in metres. It is added to the hold point, so
+     * the bands and the leather cradle travel with the fuselage instead of leaving it behind.
+     */
+    var idleBob: Float = 0f
+
     /** Rendered draw length at full stretch; the frame upgrades change this. */
     var drawLength: Float = DRAW_LENGTH
 
@@ -272,7 +278,7 @@ class SlingshotMesh(textures: TextureFactory) {
         val d = pull.coerceIn(0f, 1f) * drawLength
         return tempEye.set(
             SlingshotLayout.HOLD_POINT.x,
-            SlingshotLayout.HOLD_POINT.y - d * 0.12f,
+            SlingshotLayout.HOLD_POINT.y - d * 0.12f + idleBob,
             SlingshotLayout.HOLD_POINT.z + d
         )
     }

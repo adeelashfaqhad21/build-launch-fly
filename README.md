@@ -33,7 +33,8 @@ Engine, gameplay and the full screen set are implemented.
   toggle from Settings.
 - Particle renderer (snow, dust).
 - Procedurally generated, mip-mapped tiling textures at 256² or 128² (High-Resolution
-  Textures toggle) — the build ships no binary assets, so CI cannot miss files.
+  Textures toggle). Surfaces, timber, bark and the striped elastics are all generated in code,
+  so a missing or renamed art file can never break a world.
 
 **Worlds (`world`)** — five ecosystems with distinct terrain shaping, palettes,
 atmosphere, water level, vegetation, wildlife and weather: forest, desert, snow/glacier,

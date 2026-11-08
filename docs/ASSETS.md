@@ -200,8 +200,8 @@ the matching PNG through `AssetTextures.loadFromBytes`. Both stand beside the la
 - Licence is **CC BY 4.0**, not CC0: attribution is required and is provided in the README
   "Credits" section and `docs/licenses/LowPolyAircraftKit-CC-BY-4.0.txt`.
 - The kit's trainer plane, helicopter, runway tiles and hangar are not used: the aircraft is
-  the game's own procedural biplane, the hangar is the reference barn, and the animated kit
-  parts would need a part-hierarchy animator.
+  the game's own procedural biplane, the hangar is the reference timber shed built in
+  `world/HangarMesh`, and the animated kit parts would need a part-hierarchy animator.
 - If the archive's layout differs from the names above, the loader simply adds nothing — the
   pad keeps its crates and barrel.
 
