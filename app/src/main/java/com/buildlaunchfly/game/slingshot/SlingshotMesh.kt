@@ -7,50 +7,70 @@ import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
+import kotlin.math.sin
 import kotlin.math.sqrt
 
-/** Fixed local geometry of the launching rig. All values are relative to the pad origin. */
+/**
+ * The reference slingshot, kept deliberately simple: two wooden poles planted slightly wider
+ * apart than the aircraft's wingspan and one elastic band that runs from tip to tip, pulled
+ * back through a small leather cradle. No ramp, no braces, no metal.
+ *
+ * All values are relative to the pad origin.
+ */
 object SlingshotLayout {
     const val SEAT_HEIGHT = 3.05f
-    val LEFT_PRONG = Vec3(-2.05f, 3.62f, 0f)
-    val RIGHT_PRONG = Vec3(2.05f, 3.62f, 0f)
-    val HOLD_POINT = Vec3(0f, 3.05f, 0f)
+
+    /** Poles sit just outside the 3.56 m wingspan so the band clears the wing tips. */
+    const val POST_X = 2.10f
+    const val POST_HEIGHT = 3.80f
+
+    /** Inward lean of each pole, in radians. */
+    const val POST_LEAN = 0.045f
+
+    /** X of the pole tips after the lean. */
+    val POST_TIP_X: Float = POST_X - sin(POST_LEAN) * POST_HEIGHT
+
+    val LEFT_PRONG = Vec3(-POST_TIP_X, POST_HEIGHT - 0.06f, 0f)
+    val RIGHT_PRONG = Vec3(POST_TIP_X, POST_HEIGHT - 0.06f, 0f)
+    val HOLD_POINT = Vec3(0f, SEAT_HEIGHT, 0f)
     val BASE = Vec3(0f, 0f, 0f)
 }
 
 /**
- * Static slingshot frame, the dark trapezoidal launch ramp between the posts, and two
- * yellow/cream striped elastic bands drawn as unit cylinders whose model matrix is rebuilt
- * from the current draw position every frame.
+ * Two simple poles, one continuous elastic band drawn as two segments from the pole tips to
+ * the cradle, and the leather pad that holds the aircraft.
+ *
+ * The band segments are unit cylinders whose model matrix is rebuilt from the current draw
+ * position every frame, so the band stretches and sags with the pull.
  */
 class SlingshotMesh(textures: TextureFactory) {
 
     val frameMesh: Mesh
-    val rampMesh: Mesh
     val bandMesh: Mesh
+    val pouchMesh: Mesh
 
     val frameMaterial = Material(
         albedo = textures.bark,
-        tint = Vec3(0.62f, 0.46f, 0.32f),
-        roughness = 0.78f,
+        tint = Vec3(0.66f, 0.48f, 0.32f),
+        roughness = 0.88f,
         metallic = 0f,
         uvScale = 2.2f
     )
 
-    /** Dark graphite ramp deck, per DESIGN §3.6. */
-    val rampMaterial = Material(
-        albedo = textures.metal,
-        tint = Vec3(0.34f, 0.30f, 0.27f),
-        roughness = 0.92f,
-        metallic = 0f,
-        uvScale = 2f
-    )
-
-    /** Yellow/cream warning-striped elastics; the texture carries the two colours. */
+    /** Yellow/cream warning-striped elastic; the texture carries both colours. */
     val bandMaterial = Material(
         albedo = textures.hazard,
         tint = Vec3(1f, 1f, 1f),
         roughness = 0.72f,
+        metallic = 0f,
+        uvScale = 1f
+    )
+
+    /** Dark leather cradle pad at the centre of the band. */
+    val pouchMaterial = Material(
+        albedo = textures.rubber,
+        tint = Vec3(0.45f, 0.30f, 0.20f),
+        roughness = 0.80f,
         metallic = 0f,
         uvScale = 1f
     )
@@ -63,67 +83,41 @@ class SlingshotMesh(textures: TextureFactory) {
 
     init {
         frameMesh = Mesh("slingshotFrame", buildFrameData())
-        rampMesh = Mesh("slingshotRamp", buildRampData())
         bandMesh = Mesh("slingshotBand", buildBandData())
+        pouchMesh = Mesh("slingshotPouch", buildPouchData())
     }
 
+    /** Two poles, each a single tapered post leaning in toward the cradle. */
     private fun buildFrameData(): MeshData {
         val b = MeshBuilder()
-
-        // Ground plate.
-        b.addBox(0f, 0.14f, 0f, 2.7f, 0.14f, 1.0f, 2f)
-        b.addBox(0f, 0.34f, 0f, 1.1f, 0.22f, 0.7f, 2f)
-
-        // Two uprights leaning slightly outward.
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.10f, 1f)
-        b.addCylinder(-1.82f, 1.75f, 0f, 0.19f, 0.15f, 3.4f, 9, true, true, 2f)
-        b.pop()
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.10f, 1f)
-        b.addCylinder(1.82f, 1.75f, 0f, 0.19f, 0.15f, 3.4f, 9, true, true, 2f)
-        b.pop()
-
-        // Cross braces.
-        b.addBox(0f, 1.55f, 0f, 1.72f, 0.075f, 0.075f, 2f)
-        b.addBox(0f, 2.75f, 0f, 1.58f, 0.065f, 0.065f, 2f)
-
-        // Prong tips.
-        b.addSphere(-2.02f, 3.60f, 0f, 0.20f, 5, 8)
-        b.addSphere(2.02f, 3.60f, 0f, 0.20f, 5, 8)
-
-        // Back stays.
-        b.pushTrs(0f, 0f, 0f, 0.42f, 0f, 0.10f, 1f)
-        b.addCylinder(-1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
-        b.pop()
-        b.pushTrs(0f, 0f, 0f, 0.42f, 0f, -0.10f, 1f)
-        b.addCylinder(1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
-        b.pop()
-
-        return b.build()
-    }
-
-    /** Dark trapezoidal deck sloping down toward -Z, with rails and a front lip. */
-    private fun buildRampData(): MeshData {
-        val b = MeshBuilder()
-
-        b.pushTrs(0f, 0.52f, -0.18f, -0.24f, 0f, 0f, 1f)
-        b.addBox(0f, 0f, 0f, 0.90f, 0.06f, 0.95f, 2f)
-        b.pop()
-
         for (side in intArrayOf(-1, 1)) {
-            b.pushTrs(side * 0.84f, 0.60f, -0.18f, -0.24f, 0f, 0f, 1f)
-            b.addBox(0f, 0f, 0f, 0.05f, 0.10f, 0.95f, 2f)
+            b.pushTrs(
+                side * SlingshotLayout.POST_X, 0f, 0f,
+                0f, 0f, -side * SlingshotLayout.POST_LEAN,
+                1f
+            )
+            b.addCylinder(
+                0f, SlingshotLayout.POST_HEIGHT * 0.5f, 0f,
+                0.20f, 0.13f, SlingshotLayout.POST_HEIGHT,
+                10, true, true, 2f
+            )
             b.pop()
         }
-
-        b.addBox(0f, 0.22f, -1.12f, 0.86f, 0.20f, 0.05f, 2f)
-
         return b.build()
     }
 
     /** Unit cylinder from y=0 to y=1, radius 1, so a model matrix can stretch it. */
     private fun buildBandData(): MeshData {
         val b = MeshBuilder()
-        b.addCylinder(0f, 0.5f, 0f, 0.07f, 0.07f, 1f, 8, false, false, BAND_STRIPE_TILES)
+        b.addCylinder(0f, 0.5f, 0f, 0.09f, 0.09f, 1f, 8, false, false, BAND_STRIPE_TILES)
+        return b.build()
+    }
+
+    /** Small flattened leather pad where the band meets the aircraft. */
+    private fun buildPouchData(): MeshData {
+        val b = MeshBuilder()
+        b.addBox(0f, 0f, 0f, 0.30f, 0.055f, 0.19f, 1f)
+        b.addBox(0f, -0.01f, 0.07f, 0.16f, 0.045f, 0.06f, 1f)
         return b.build()
     }
 
@@ -162,7 +156,7 @@ class SlingshotMesh(textures: TextureFactory) {
         return out
     }
 
-    /** Left band as two segments hung from a sagging midpoint, so slack reads as slack. */
+    /** Left half of the single band, as two segments hung from a sagging midpoint. */
     fun leftBandMatrices(draw: Float, sag: Float, outA: Mat4, outB: Mat4) {
         val thickness = 1f + thicknessBoost
         val from = SlingshotLayout.LEFT_PRONG
@@ -172,6 +166,7 @@ class SlingshotMesh(textures: TextureFactory) {
         bandMatrix(tempSag, to, thickness, outB)
     }
 
+    /** Right half of the single band. */
     fun rightBandMatrices(draw: Float, sag: Float, outA: Mat4, outB: Mat4) {
         val thickness = 1f + thicknessBoost
         val from = SlingshotLayout.RIGHT_PRONG
@@ -191,6 +186,13 @@ class SlingshotMesh(textures: TextureFactory) {
         return out
     }
 
+    /** World-space matrix of the leather cradle pad. */
+    fun pouchMatrix(pull: Float, out: Mat4): Mat4 {
+        val hold = holdPoint(pull)
+        out.identity().translate(hold.x, hold.y, hold.z)
+        return out
+    }
+
     var thicknessBoost: Float = 0f
 
     /** Rendered draw length at full stretch; the frame upgrades change this. */
@@ -207,8 +209,8 @@ class SlingshotMesh(textures: TextureFactory) {
 
     fun dispose() {
         frameMesh.dispose()
-        rampMesh.dispose()
         bandMesh.dispose()
+        pouchMesh.dispose()
     }
 
     companion object {

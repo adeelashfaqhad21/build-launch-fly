@@ -141,11 +141,14 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         textureA: Texture2D,
         textureB: Texture2D,
         textureC: Texture2D,
+        soil: Texture2D,
         tintA: Vec3,
         tintB: Vec3,
         tintC: Vec3,
         rockThreshold: Float,
-        snowLine: Float
+        snowLine: Float,
+        soilStart: Float = 0.52f,
+        soilEnd: Float = 0.68f
     ) {
         val cam = camera ?: return
         terrainProgram.use()
@@ -160,12 +163,16 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         terrainProgram.set("uTexB", 1)
         textureC.bind(2)
         terrainProgram.set("uTexC", 2)
+        soil.bind(4)
+        terrainProgram.set("uTexD", 4)
 
         terrainProgram.set("uTintA", tintA)
         terrainProgram.set("uTintB", tintB)
         terrainProgram.set("uTintC", tintC)
         terrainProgram.set("uRockThreshold", rockThreshold)
         terrainProgram.set("uSnowLine", snowLine)
+        terrainProgram.set("uSoilStart", soilStart)
+        terrainProgram.set("uSoilEnd", soilEnd)
 
         mesh.draw()
 

@@ -40,6 +40,13 @@ atmosphere, water level, vegetation, wildlife and weather: forest, desert, snow/
 ocean/coast, mountain/countryside. Non-uniform terrain grid (dense corridor, cheap
 horizon).
 
+Vegetation is scattered per species instead of as one cloned population: three tree shapes
+(broadleaf, conifer, poplar), three shrubs, three rock forms and three tall grass clumps, each
+with its own mesh and tint, chosen from noise fields so stands cluster the way real plants do.
+Grass grows only in noise-driven meadows at roughly three to four feet tall; between them the
+terrain shader exposes bare soil patches, so the ground reads as a mix of grass, earth and
+rock rather than a uniform green carpet.
+
 **Aircraft (`aircraft`)** — procedural vintage biplane per
 [`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with
 orange-brown rib decals, a narrow timber lattice fuselage, cabane and interplane struts,
@@ -48,10 +55,11 @@ spin-blur disc. Geometry is split by material (canvas, rib, wood, metal, glazing
 propeller), so every stage changes visible structure rather than colour: wing halves,
 longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
 
-**Slingshot (`slingshot`)** — five upgrade categories, launch-speed model, and the Ref-3 rig:
-two wooden posts with a dark trapezoidal ramp between them, and yellow/cream striped elastic
-bands that sag when slack and pull straight as the draw deepens. Band thickness and draw
-length follow the upgrade levels, both band segments cast shadows, and the release plays a
+**Slingshot (`slingshot`)** — five upgrade categories and the reference rig: two plain wooden
+poles planted just wider than the wingspan, one yellow/cream striped elastic band running
+tip to tip through a small leather cradle, and nothing else — no ramp, braces or metalwork.
+The band sags when slack and pulls straight as the draw deepens; band thickness and draw
+length follow the upgrade levels, every band segment casts a shadow, and the release plays a
 recoil wobble, a dust puff and a camera impulse. Launch elevation (20°–55°) is stored in the
 profile.
 
@@ -109,8 +117,10 @@ checked in); CI installs Gradle 8.7 explicitly. Locally, use any Gradle 8.7+ ins
 1. JDK 17 (Temurin)
 2. Android SDK setup (licenses accepted)
 3. Gradle 8.7
-4. `assembleDebug` → installable APK artifact
-5. `assembleRelease` (unsigned) + artifact upload
+4. `assembleDebug` → debug APK artifact
+5. Release keystore (from `BLF_*` repository secrets when present, otherwise a cached or
+   generated one) → **signed** `assembleRelease` APK artifact
+6. `apksigner verify --print-certs` is printed in the log to confirm the signature
 
 ## Controls
 
@@ -139,6 +149,23 @@ docs/                     master brief, design system, architecture
 .github/workflows/        automated APK builds
 ```
 
+## Installing the CI builds
+
+Use the **`build-launch-fly-release-signed`** artifact. The release build is signed (from
+`BLF_*` repository secrets when set, otherwise a cached CI keystore) and not debuggable, so
+Android installs it over the previous signed build.
+
+Why the two APKs behaved differently before:
+
+- **Release APK — "Can't install app":** it was built unsigned, and Android refuses an APK
+  with no signature. The release build type now always has a signing config (a real keystore
+  when one is provided, the debug key otherwise), so it can never ship unsigned again.
+- **Debug APK — Play Protect "Harmful app blocked":** this is Play Protect's standard warning
+  for a debug-signed app installed from outside the store, not an indication of anything in
+  the code. It cannot be removed by the app itself; installing the signed release APK above
+  avoids the debug certificate. If Play Protect still offers "Install anyway", that is the
+  expected path for a self-signed sideload.
+
 ## Known gaps (honest list)
 
 - UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks are
@@ -146,5 +173,7 @@ docs/                     master brief, design system, architecture
 - Wildlife uses simple procedural meshes with scripted motion.
 - Ecosystem layouts are still procedural: reference plates in `docs/reference/` guide art
   direction but are not baked into authored terrain or building assets.
+- Play Protect warnings on self-signed sideloads are outside the app's control; publishing to
+  Play would require a Play-signed build and a developer account.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the engine and UI architecture.

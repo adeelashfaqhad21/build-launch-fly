@@ -63,7 +63,51 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Compile release APK (unsigned)
+      - name: Restore cached signing key
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/blf-release.jks
+          key: blf-release-keystore-v1
+
+      - name: Prepare release signing
+        env:
+          SECRET_KEYSTORE: ${{ secrets.BLF_KEYSTORE_BASE64 }}
+          SECRET_STORE_PASSWORD: ${{ secrets.BLF_STORE_PASSWORD }}
+          SECRET_KEY_ALIAS: ${{ secrets.BLF_KEY_ALIAS }}
+          SECRET_KEY_PASSWORD: ${{ secrets.BLF_KEY_PASSWORD }}
+        run: |
+          set -e
+          KEYSTORE="$RUNNER_TEMP/blf-release.jks"
+          if [ -f "$KEYSTORE" ]; then
+            echo "Using the cached release keystore"
+            STORE_PASS="buildlaunchfly-release"
+            KEY_ALIAS="blf-release"
+            KEY_PASS="$STORE_PASS"
+          elif [ -n "$SECRET_KEYSTORE" ]; then
+            echo "Using the keystore from repository secrets"
+            printf '%s' "$SECRET_KEYSTORE" | base64 --decode > "$KEYSTORE"
+            STORE_PASS="$SECRET_STORE_PASSWORD"
+            KEY_ALIAS="$SECRET_KEY_ALIAS"
+            KEY_PASS="$SECRET_KEY_PASSWORD"
+          else
+            echo "Generating a release keystore (add BLF_* secrets to keep one permanently)"
+            STORE_PASS="buildlaunchfly-release"
+            KEY_ALIAS="blf-release"
+            KEY_PASS="$STORE_PASS"
+            keytool -genkeypair -keystore "$KEYSTORE" \
+              -storepass "$STORE_PASS" -keypass "$KEY_PASS" \
+              -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Build Launch Fly, OU=Game, O=BuildLaunchFly, L=Unknown, ST=Unknown, C=US"
+          fi
+          {
+            echo "BLF_STORE_FILE=$KEYSTORE"
+            echo "BLF_STORE_PASSWORD=$STORE_PASS"
+            echo "BLF_KEY_ALIAS=$KEY_ALIAS"
+            echo "BLF_KEY_PASSWORD=$KEY_PASS"
+          } >> "$GITHUB_ENV"
+          ls -l "$KEYSTORE"
+
+      - name: Compile signed release APK
         run: gradle :app:assembleRelease --no-daemon --stacktrace
 
       - name: Collect APK outputs
@@ -72,12 +116,30 @@ jobs:
           find app/build/outputs/apk -name "*.apk" -exec cp {} artifacts/ \;
           ls -la artifacts
 
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name apksigner -type f 2>/dev/null | sort | tail -n 1)"
+          if [ -n "$APKSIGNER" ]; then
+            RELEASE_APK="$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)"
+            if [ -n "$RELEASE_APK" ]; then
+              echo "===== RELEASE APK SIGNATURE ====="
+              "$APKSIGNER" verify --print-certs "$RELEASE_APK" | head -n 30 || true
+              echo "===== END RELEASE APK SIGNATURE ====="
+            fi
+          fi
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: build-launch-fly-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-launch-fly-release-signed
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Upload all APKs

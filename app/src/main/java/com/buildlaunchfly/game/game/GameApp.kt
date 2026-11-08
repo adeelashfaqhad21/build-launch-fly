@@ -62,6 +62,10 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var state = GameState.SEATED
     private var initialized = false
 
+    /** 0..1 start-up progress, shown by the splash screen while the engine warms up. */
+    @Volatile
+    private var loadProgressValue = 0f
+
     private var time = 0f
     private var pull = 0f
     private var stretchActive = false
@@ -93,6 +97,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val leftBandB = Mat4()
     private val rightBand = Mat4()
     private val rightBandB = Mat4()
+    private val pouchModel = Mat4()
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
     private val focusPoint = Vec3()
@@ -111,7 +116,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     var paused: Boolean = false
 
     @Volatile
-    var cameraMode: CameraMode = CameraMode.ORBIT_AIRCRAFT
+    var cameraMode: CameraMode = CameraMode.LAUNCH
 
     /** Extra yaw applied to workshop/menu orbits from UI drag. */
     @Volatile
@@ -161,14 +166,18 @@ class GameApp(private val context: Context, private val input: InputState) {
         val textureSize = if (settings.highResTextures) TextureFactory.SIZE else 128
         val textureFactory = TextureFactory(seed = 1337, size = textureSize)
         textures = textureFactory
+        loadProgressValue = 0.35f
 
         val sceneRenderer = SceneRenderer(width, height, textureFactory.white)
         renderer = sceneRenderer
+        loadProgressValue = 0.45f
 
         aircraft = AircraftMesh(textureFactory).also { it.updateFor(build) }
         slingMesh = SlingshotMesh(textureFactory)
+        loadProgressValue = 0.55f
 
         rebuildScene(profile.selectedWorld)
+        loadProgressValue = 0.85f
 
         val padY = scene?.terrain?.padHeight ?: 6f
         padPosition.set(0f, padY, 0f)
@@ -180,7 +189,11 @@ class GameApp(private val context: Context, private val input: InputState) {
         physics.reset(seatPosition)
 
         cameraDirector.snapTo(
-            Vec3(seatPosition.x + 6.4f, seatPosition.y + 2f, seatPosition.z + 9f),
+            Vec3(
+                seatPosition.x,
+                padPosition.y + CameraDirector.SEATED_HEIGHT,
+                padPosition.z + CameraDirector.SEATED_DISTANCE
+            ),
             seatPosition
         )
 
@@ -189,8 +202,11 @@ class GameApp(private val context: Context, private val input: InputState) {
         audio.setAmbience(scene?.definition?.ambience ?: AmbienceStyle.FOREST)
         hud?.onCoinsChanged(profile.coins)
         hud?.onStateChanged(state)
+        loadProgressValue = 1f
         Log.i(TAG, "Engine ready\n${build.summary()}")
     }
+
+    fun loadProgress(): Float = loadProgressValue
 
     private fun applyAudioVolumes() {
         audio.applyVolumes(
@@ -469,13 +485,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         sceneRenderer.env.time = time
 
-        input.consumeDrag(dragScratch)
+        input.stick(dragScratch)
         val released = input.consumeRelease()
-        steerRoll = (steerRoll + dragScratch[0] * 0.06f).coerceIn(-1f, 1f)
-        steerPitch = (steerPitch - dragScratch[1] * 0.06f).coerceIn(-1f, 1f)
-        val decay = (1f - 1.6f * dt).coerceAtLeast(0f)
-        steerRoll *= decay
-        steerPitch *= decay
+        // Held virtual stick: pitch and roll follow the finger and recentre on release.
+        val steerEase = 1f - kotlin.math.exp(-dt / 0.09f)
+        steerRoll += (dragScratch[0] - steerRoll) * steerEase
+        steerPitch += (-dragScratch[1] - steerPitch) * steerEase
 
         when (state) {
             GameState.SEATED -> updateSeated(dt, released)
@@ -623,7 +638,11 @@ class GameApp(private val context: Context, private val input: InputState) {
         paused = false
         audio.setFlight(0f, 0f, false)
         cameraDirector.snapTo(
-            Vec3(seatPosition.x + 6.4f, seatPosition.y + 2f, seatPosition.z + 9f),
+            Vec3(
+                seatPosition.x,
+                padPosition.y + CameraDirector.SEATED_HEIGHT,
+                padPosition.z + CameraDirector.SEATED_DISTANCE
+            ),
             seatPosition
         )
         hud?.onStateChanged(state)
@@ -655,6 +674,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             rig.rightBandMatrices(slingDraw, sag, bandLocal, bandLocalB)
             rightBand.setProduct(slingshotModel, bandLocal)
             rightBandB.setProduct(slingshotModel, bandLocalB)
+            rig.pouchMatrix(slingDraw, bandLocal)
+            pouchModel.setProduct(slingshotModel, bandLocal)
             applyBandTension(rig, slingDraw)
         }
 
@@ -685,14 +706,18 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         if (showSling) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
-            sceneRenderer.shadowMesh(rig.rampMesh, slingshotModel)
+            sceneRenderer.shadowMesh(rig.pouchMesh, pouchModel)
             sceneRenderer.shadowMesh(rig.bandMesh, leftBand)
             sceneRenderer.shadowMesh(rig.bandMesh, leftBandB)
             sceneRenderer.shadowMesh(rig.bandMesh, rightBand)
             sceneRenderer.shadowMesh(rig.bandMesh, rightBandB)
         }
-        sceneRenderer.shadowInstanced(currentScene.treeTrunks)
-        sceneRenderer.shadowInstanced(currentScene.rocks)
+        for (tree in currentScene.trees) {
+            sceneRenderer.shadowInstanced(tree.trunk.instanced)
+            sceneRenderer.shadowInstanced(tree.canopy.instanced)
+        }
+        for (part in currentScene.shrubs) sceneRenderer.shadowInstanced(part.instanced)
+        for (part in currentScene.rockParts) sceneRenderer.shadowInstanced(part.instanced)
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
@@ -701,6 +726,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             textureFactory.surface(definition.surfaceA),
             textureFactory.surface(definition.surfaceB),
             textureFactory.surface(definition.surfaceC),
+            textureFactory.soil,
             definition.tintA,
             definition.tintB,
             definition.tintC,
@@ -708,10 +734,19 @@ class GameApp(private val context: Context, private val input: InputState) {
             definition.snowLine
         )
 
-        sceneRenderer.drawInstanced(currentScene.treeTrunks, currentScene.treeMaterial)
-        sceneRenderer.drawInstanced(currentScene.treeCanopies, currentScene.canopyMaterial)
-        sceneRenderer.drawInstanced(currentScene.rocks, currentScene.rockMaterial)
-        currentScene.grass?.let { sceneRenderer.drawInstanced(it, currentScene.grassMaterial) }
+        for (tree in currentScene.trees) {
+            sceneRenderer.drawInstanced(tree.trunk.instanced, tree.trunk.material)
+            sceneRenderer.drawInstanced(tree.canopy.instanced, tree.canopy.material)
+        }
+        for (part in currentScene.shrubs) {
+            sceneRenderer.drawInstanced(part.instanced, part.material)
+        }
+        for (part in currentScene.rockParts) {
+            sceneRenderer.drawInstanced(part.instanced, part.material)
+        }
+        for (part in currentScene.grassParts) {
+            sceneRenderer.drawInstanced(part.instanced, part.material)
+        }
         sceneRenderer.drawInstanced(currentScene.birdsMesh, currentScene.birdMaterial)
         sceneRenderer.drawInstanced(currentScene.animalsMesh, currentScene.animalMaterial)
 
@@ -727,7 +762,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (showSling) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-            sceneRenderer.drawMesh(rig.rampMesh, rig.rampMaterial, slingshotModel)
+            sceneRenderer.drawMesh(rig.pouchMesh, rig.pouchMaterial, pouchModel)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBandB)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)

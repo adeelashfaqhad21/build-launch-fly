@@ -20,6 +20,7 @@ import com.buildlaunchfly.game.ui.screens.ResultsScreen
 import com.buildlaunchfly.game.ui.screens.RewardScreen
 import com.buildlaunchfly.game.ui.screens.SettingsScreen
 import com.buildlaunchfly.game.ui.screens.SlingshotWorkshopScreen
+import com.buildlaunchfly.game.ui.screens.SplashScreen
 import com.buildlaunchfly.game.world.WorldCatalog
 
 /**
@@ -117,6 +118,14 @@ class GameOverlayView(
         canvas.save()
         canvas.scale(density, density)
 
+        if (!app.isInitialized) {
+            lastHits.clear()
+            SplashScreen.draw(frame)
+            canvas.restore()
+            postInvalidateOnAnimation()
+            return
+        }
+
         when {
             state == GameState.FLIGHT -> FlightHudScreen.drawFlight(frame)
             state == GameState.RESULTS && result != null -> ResultsScreen.draw(frame, result)
@@ -143,8 +152,8 @@ class GameOverlayView(
 
         app.cameraMode = when (screen) {
             UiScreen.SLINGSHOT -> CameraMode.ORBIT_SLINGSHOT
-            UiScreen.LAUNCH -> CameraMode.LAUNCH
-            else -> CameraMode.ORBIT_AIRCRAFT
+            UiScreen.AIRCRAFT -> CameraMode.ORBIT_AIRCRAFT
+            else -> CameraMode.LAUNCH
         }
 
         postInvalidateOnAnimation()

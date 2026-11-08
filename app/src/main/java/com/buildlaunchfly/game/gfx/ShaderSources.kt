@@ -173,13 +173,33 @@ in vec2 vUv;
 uniform sampler2D uTexA;
 uniform sampler2D uTexB;
 uniform sampler2D uTexC;
+uniform sampler2D uTexD;
 uniform vec3 uTintA;
 uniform vec3 uTintB;
 uniform vec3 uTintC;
 uniform float uRockThreshold;
 uniform float uSnowLine;
+uniform float uSoilStart;
+uniform float uSoilEnd;
 
 out vec4 fragColor;
+
+float hash21(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+float valueNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
 
 void main() {
     vec3 n = normalize(vNormal);
@@ -194,6 +214,15 @@ void main() {
 
     float highMask = smoothstep(uSnowLine, uSnowLine + 45.0, vWorldPos.y);
     albedo = mix(albedo, c, highMask);
+
+    // Bare earth: broad noise patches on ground that is not rock or snow, so grass never
+    // covers the whole landscape.
+    float patch = valueNoise(vWorldPos.xz * 0.020) * 0.62 +
+        valueNoise(vWorldPos.xz * 0.081) * 0.38;
+    float soilMask = smoothstep(uSoilStart, uSoilEnd, patch);
+    soilMask *= (1.0 - rockMask) * (1.0 - highMask);
+    vec3 d = texture(uTexD, vUv * 1.7).rgb * vec3(1.05, 0.98, 0.92);
+    albedo = mix(albedo, d, soilMask * 0.92);
 
     float detail = texture(uTexC, vUv * 0.07).r;
     albedo *= 0.92 + detail * 0.16;

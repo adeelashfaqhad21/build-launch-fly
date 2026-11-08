@@ -607,13 +607,16 @@ view, one saturated accent colour, matching haze and shadow softness. No realism
 
 **Checklist**
 - [ ] Desert terrain: ridges, canyon walls, sand ripples
-- [ ] Props: cacti (2 silhouettes), bare trees, rocks, animal silhouettes
-- [ ] Sky: cyan gradient + haze band; no clouds or thin wisps only
-- [ ] Soft shadows (short, low opacity)
+- [x] Props: mixed species — three tree shapes (broadleaf, conifer, poplar), three shrubs,
+  three rock forms; cacti and bare desert trees are still procedural stand-ins
+- [x] Sky: cyan gradient + haze band; no clouds or thin wisps only
+- [x] Soft shadows (short, low opacity)
 - [ ] Distant skyline layer per realm
-- [ ] Forest / snow / coast / mountain palettes aligned to reference contrast
-- [ ] Flight corridor kept clear for 300 m ahead
-- [ ] Realm target-distance and palette live in one definition
+- [x] Forest / snow / coast / mountain palettes aligned to reference contrast
+- [x] Flight corridor kept clear for 300 m ahead
+- [x] Realm target-distance and palette live in one definition
+- [x] Ground is not uniformly grass — noise-driven meadows of 0.9–1.25 m grass with bare soil
+  patches and exposed rock between them
 
 ---
 
@@ -630,9 +633,11 @@ view, one saturated accent colour, matching haze and shadow softness. No realism
 
 **Checklist**
 - [ ] Hangar framing matches Ref-2 (plane, roof, sky opening)
-- [ ] Launch framing matches Ref-3/4 (posts at the edges, plane centre)
+- [x] Launch framing matches Ref-3/4 (posts at the edges, plane centre) — camera sits on the
+  plane's centre line, 3.3 m up and 9.6 m behind, and closes 25 % as the pull deepens
 - [ ] Flight framing matches Ref-5/6 (plane lower third, terrain ahead)
-- [ ] No camera clipping through the slingshot posts
+- [x] No camera clipping through the slingshot posts
+- [x] No automatic camera orbit — the hangar and launch views are fixed until the player drags
 - [ ] Portrait vertical FOV tuned so the horizon sits ~40 % down the screen
 
 ---

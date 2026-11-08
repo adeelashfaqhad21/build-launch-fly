@@ -21,6 +21,7 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
     val hazard: Texture2D
     val bark: Texture2D
     val leaf: Texture2D
+    val soil: Texture2D
     val waterNormals: Texture2D
 
     private val surfaces = HashMap<SurfaceKind, Texture2D>()
@@ -43,6 +44,7 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         hazard = register(Texture2D.create("hazard", texSize, texSize, hazardTexture(texSize)))
         bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
         leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
+        soil = register(Texture2D.create("soil", texSize, texSize, soilTexture(texSize)))
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
     }
 
@@ -178,6 +180,20 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         }
     }
 
+    /**
+     * Exposed earth for the barren patches between grass: clods, fine grit and a scatter of
+     * small stones, in a dry brown so it reads against the grass textures.
+     */
+    private fun soilTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
+        val clods = Noise.fbm2(u * 6f, v * 6f, 3, 2f, 0.5f, seed + 401)
+        val grit = Noise.value2(u * 130f, v * 130f, seed + 409)
+        val damp = Noise.fbm2(u * 2.2f, v * 2.2f, 2, 2f, 0.5f, seed + 421)
+        val stone = if (Noise.value2(u * 24f, v * 24f, seed + 431) > 0.84f) 0.22f else 0f
+
+        val lum = 0.34f + clods * 0.06f + grit * 0.05f + damp * 0.05f + stone
+        rgb(lum, lum * 0.72f, lum * 0.50f)
+    }
+
     private fun barkTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
         val stripes = Noise.fbm2(u * 22f, v * 2.5f, 4, 2f, 0.55f, seed + 239)
         val cracks = 1f - M.smoothStep(
@@ -198,9 +214,13 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         rgb(lum * 0.62f, lum * 1.05f, lum * 0.48f)
     }
 
-    /** Tangent-space normal map derived from a small FBM height field. */
+    /**
+     * Tangent-space normal map derived from a small FBM height field. Built at half the
+     * surface resolution with two octaves: it is sampled at a low water UV scale, so the
+     * extra resolution only cost start-up time and bought nothing visible.
+     */
     private fun waterNormalTexture(size: Int): ByteArray {
-        val sz = size
+        val sz = (size / 2).coerceIn(32, 128)
         val out = ByteArray(sz * sz * 4)
         var i = 0
         val eps = 1f / sz
@@ -208,12 +228,9 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
             val v = y.toFloat() / sz
             for (x in 0 until sz) {
                 val u = x.toFloat() / sz
-                val h = Noise.fbm2(u * 6f, v * 6f, 4, 2.1f, 0.5f, seed + 293) * 0.5f +
-                    Noise.fbm2(u * 17f, v * 17f, 3, 2.1f, 0.5f, seed + 307) * 0.25f
-                val hx = Noise.fbm2((u + eps) * 6f, v * 6f, 4, 2.1f, 0.5f, seed + 293) * 0.5f +
-                    Noise.fbm2((u + eps) * 17f, v * 17f, 3, 2.1f, 0.5f, seed + 307) * 0.25f
-                val hy = Noise.fbm2(u * 6f, (v + eps) * 6f, 4, 2.1f, 0.5f, seed + 293) * 0.5f +
-                    Noise.fbm2(u * 17f, (v + eps) * 17f, 3, 2.1f, 0.5f, seed + 307) * 0.25f
+                val h = Noise.fbm2(u * 6f, v * 6f, 2, 2.1f, 0.5f, seed + 293) * 0.5f
+                val hx = Noise.fbm2((u + eps) * 6f, v * 6f, 2, 2.1f, 0.5f, seed + 293) * 0.5f
+                val hy = Noise.fbm2(u * 6f, (v + eps) * 6f, 2, 2.1f, 0.5f, seed + 293) * 0.5f
 
                 var nx = (h - hx) * 24f
                 var ny = (h - hy) * 24f

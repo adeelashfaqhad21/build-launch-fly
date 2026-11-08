@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sky blue from the reference palette: the window paints this before the GL surface
+         exists, so there is no black flash and the system splash blends into the game. -->
+    <color name="sky_background">#40B9E8</color>
+</resources>

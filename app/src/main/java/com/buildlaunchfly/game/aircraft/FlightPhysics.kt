@@ -119,19 +119,20 @@ class FlightPhysics {
         val dragAccel = 0.5f * rho * v2 * stats.dragArea / stats.mass
         val thrustAccel = stats.thrust / stats.mass * throttle
 
-        // Stability: the airframe drifts toward the flight path angle.
+        // Stability: the airframe drifts toward the flight path angle, but the player's
+        // stick keeps clear authority over the pitch.
         val stabilityGain = 0.8f + stats.stability
-        val targetPitchRate = input.pitch * 1.15f + (flightPathAngle - pitch) * stabilityGain * 0.9f
-        pitchRate = M.lerp(pitchRate, targetPitchRate, M.clamp(6f * dt, 0f, 1f))
-        pitch = M.clamp(pitch + pitchRate * dt, -1.1f, 1.1f)
+        val targetPitchRate = input.pitch * 2.1f + (flightPathAngle - pitch) * stabilityGain * 0.30f
+        pitchRate = M.lerp(pitchRate, targetPitchRate, M.clamp(8f * dt, 0f, 1f))
+        pitch = M.clamp(pitch + pitchRate * dt, -1.0f, 1.0f)
 
-        val targetRollRate = input.roll * 2.4f - roll * (1.6f + stats.stability)
-        rollRate = M.lerp(rollRate, targetRollRate, M.clamp(5f * dt, 0f, 1f))
+        val targetRollRate = input.roll * 3.4f - roll * 1.1f
+        rollRate = M.lerp(rollRate, targetRollRate, M.clamp(7f * dt, 0f, 1f))
         roll = M.clamp(roll + rollRate * dt, -1.0f, 1.0f)
 
         val speedFactor = M.clamp(speed / 35f, 0.15f, 1.6f)
-        val targetYawRate = -kotlin.math.sin(roll) * 0.55f * speedFactor + input.roll * 0.12f
-        yawRate = M.lerp(yawRate, targetYawRate, M.clamp(3f * dt, 0f, 1f))
+        val targetYawRate = -kotlin.math.sin(roll) * 0.9f * speedFactor + input.roll * 0.25f
+        yawRate = M.lerp(yawRate, targetYawRate, M.clamp(4f * dt, 0f, 1f))
         yaw = M.wrapAngle(yaw + yawRate * dt)
 
         updateOrientation()

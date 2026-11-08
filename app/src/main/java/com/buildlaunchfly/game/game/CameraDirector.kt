@@ -34,18 +34,23 @@ class CameraDirector(private val camera: Camera) {
         camera.update()
     }
 
+    /**
+     * Launch setup (Ref-3/Ref-4): directly behind the rig and the plane, ~3.3 m up, centred
+     * on the aircraft. Drawing brings the camera about a quarter closer, as specified.
+     */
     fun updateSeated(padPosition: Vec3, aircraftPosition: Vec3, pull: Float, dt: Float) {
+        val distance = SEATED_DISTANCE - pull.coerceIn(0f, 1f) * SEATED_DISTANCE * 0.25f
         desiredPosition.set(
-            padPosition.x + 6.4f,
-            padPosition.y + 2.6f,
-            padPosition.z + 7.2f + pull * 1.5f
+            aircraftPosition.x,
+            padPosition.y + SEATED_HEIGHT,
+            padPosition.z + distance
         )
         desiredTarget.set(
             aircraftPosition.x,
-            aircraftPosition.y - 0.2f,
-            aircraftPosition.z - 5.0f
+            aircraftPosition.y - 0.25f,
+            aircraftPosition.z - 1.1f
         )
-        follow(dt, 3.2f)
+        follow(dt, 4.5f)
     }
 
     fun updateFlight(aircraftPosition: Vec3, velocity: Vec3, speed: Float, dt: Float) {
@@ -81,29 +86,32 @@ class CameraDirector(private val camera: Camera) {
         follow(dt, 2.2f)
     }
 
-    /** Slow hero orbit of the aircraft on the launch pad (menu / workshop). */
+    /**
+     * Rear view of the aircraft for the hangar and the aircraft workshop. The camera no
+     * longer drifts on its own: orbiting happens only when the player drags.
+     */
     fun updateOrbitAircraft(center: Vec3, time: Float, dt: Float, radius: Float, yawOffset: Float) {
-        val angle = time * 0.22f + yawOffset
+        val angle = yawOffset
         desiredPosition.set(
             center.x + sin(angle) * radius,
             center.y + 2.6f,
             center.z + cos(angle) * radius
         )
         desiredTarget.set(center.x, center.y - 0.15f, center.z)
-        follow(dt, 2.4f)
+        follow(dt, 3.6f)
     }
 
-    /** Side-elevation orbit of the launching rig (slingshot lab). */
+    /** Side view of the launching rig (slingshot lab); orbit is driven by drag only. */
     fun updateOrbitSlingshot(pad: Vec3, time: Float, dt: Float, yawOffset: Float) {
-        val angle = 0.55f + sin(time * 0.18f) * 0.35f + yawOffset
+        val angle = 0.35f + yawOffset
         val radius = 9.5f
         desiredPosition.set(
             pad.x + sin(angle) * radius,
             pad.y + 3.6f,
             pad.z + cos(angle) * radius
         )
-        desiredTarget.set(pad.x, pad.y + 2.2f, pad.z)
-        follow(dt, 2.6f)
+        desiredTarget.set(pad.x, pad.y + 2.0f, pad.z)
+        follow(dt, 3.6f)
     }
 
     private fun follow(dt: Float, rate: Float) {
@@ -124,5 +132,11 @@ class CameraDirector(private val camera: Camera) {
             camera.position.set(smoothPosition)
         }
         camera.target.set(smoothTarget)
+    }
+
+    companion object {
+        /** Camera height above the pad and distance behind the aircraft. */
+        const val SEATED_HEIGHT = 3.3f
+        const val SEATED_DISTANCE = 9.6f
     }
 }
