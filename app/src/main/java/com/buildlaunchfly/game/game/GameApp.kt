@@ -799,6 +799,10 @@ class GameApp(private val context: Context, private val input: InputState) {
             }
         }
 
+        for (part in currentScene.shipParts) {
+            sceneRenderer.drawInstanced(part.instanced, part.material)
+        }
+
         currentScene.waterMesh?.let { water ->
             sceneRenderer.drawWater(
                 water,

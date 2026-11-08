@@ -157,6 +157,18 @@ clips, in OBJ/MTL plus glTF/FBX/Blend. **All 12 OBJ/MTL pairs are downloaded.**
 Python-style "everything else" (mountains, fields, sky, weather) stays procedural — see the
 table above; the packs contain no geometry for it.
 
+## Ships — Quaternius Ships Pack (CC0)
+
+Third supplied Drive folder, same method. Six static models: Boat, BoatWSail, CruiseShip,
+Lifeboat, Sail ship, Viking boat. **All six OBJ/MTL pairs are downloaded.**
+
+- Shipped and used in the **ocean realm only**: `VikingBoat`, `BoatWSail`, `Lifeboat`,
+  `SailShip`, `CruiseShip` — five vessels anchored at the water line (18 m and 22 m tall for
+  the sailing ship and cruise liner), each slowly bobbing and yawing on the swell.
+- Flat MTL colours again, so they reuse the same colour-splitting loader as the animals and
+  are drawn with the white texture tinted per material.
+- `Boat` (the rowing boat) stays in `assets-source/ships` unused.
+
 ## What was implemented in its place
 
 `WorldScene` now selects a plant family from the realm and builds different silhouettes with

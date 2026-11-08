@@ -82,6 +82,10 @@ floor, corner posts down the open right side and crates and bales outside in the
 hangar view is a fixed close rear-side oblique like Ref-2; the launch view stays centred
 behind the aircraft under the roof eave, as in Ref-3.
 
+**Fleet (`world/WorldScene`)** — the ocean realm anchors five Quaternius ships at the water
+line (Viking boat, sailing boat, lifeboat, tall ship, cruise liner), each rocking slowly on the
+swell. Flat MTL colours, instanced, no extra state.
+
 **Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
 gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
 

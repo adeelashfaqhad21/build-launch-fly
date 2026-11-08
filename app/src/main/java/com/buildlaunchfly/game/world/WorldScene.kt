@@ -58,6 +58,18 @@ class WorldScene(
         WorldId.FOREST -> PlantStyle.FOREST
     }
 
+    /** Ship moorings, declared before `init` so the scene build can use them. */
+    private val shipSpecs = listOf(
+        ShipSpec("VikingBoat", 4.5f, -120f, -230f, 0.7f),
+        ShipSpec("BoatWSail", 6.5f, 150f, -330f, 2.1f),
+        ShipSpec("Lifeboat", 2.0f, -55f, -150f, 4.0f),
+        ShipSpec("SailShip", 18f, -260f, -470f, 1.2f),
+        ShipSpec("CruiseShip", 22f, 330f, -600f, 3.4f)
+    )
+
+    private val shipTransforms = FloatArray(maxOf(shipSpecs.size, 1) * 16)
+    private val shipMatrix = Mat4()
+
     val terrainMesh: Mesh
     val waterMesh: Mesh?
 
@@ -94,6 +106,9 @@ class WorldScene(
      * procedural animal mesh and share the same scripted instance matrices.
      */
     val animalParts: List<InstancedPart>
+
+    /** Static ships anchored offshore: only the ocean realm has water for them. */
+    val shipParts: List<InstancedPart>
 
     val birds: Wildlife.Birds
     val animals: Wildlife.GroundAnimals
@@ -312,6 +327,12 @@ class WorldScene(
             emptyList()
         }
 
+        shipParts = if (assets != null && detailLevel >= 2 && definition.id == WorldId.OCEAN) {
+            buildShipParts(assets, textures)
+        } else {
+            emptyList()
+        }
+
         waterDeep = definition.waterDeep
         waterShallow = definition.waterShallow
     }
@@ -332,6 +353,7 @@ class WorldScene(
                 }
             }
         }
+        updateShips(time)
         weather.updateAndEmit(camera, dt, time, particles)
     }
 
@@ -369,6 +391,10 @@ class WorldScene(
         birdsMesh.dispose()
         animalsMesh.dispose()
         for (part in animalParts) {
+            part.mesh.dispose()
+            part.instanced.dispose()
+        }
+        for (part in shipParts) {
             part.mesh.dispose()
             part.instanced.dispose()
         }
@@ -564,6 +590,69 @@ class WorldScene(
                 instanced.setInstances(set.matrices, set.count)
                 outPlants.add(InstancedPart(mesh, instanced, deadMaterial))
             }
+        }
+    }
+
+    /** One mooring: species model, its height in metres, position and heading. */
+    private class ShipSpec(
+        val asset: String,
+        val height: Float,
+        val x: Float,
+        val z: Float,
+        val heading: Float
+    )
+
+    private fun buildShipParts(
+        assets: AssetManager,
+        textures: TextureFactory
+    ): List<InstancedPart> {
+        val out = ArrayList<InstancedPart>()
+        for (index in shipSpecs.indices) {
+            val spec = shipSpecs[index]
+            val parts = AnimalLoader.load(
+                assets,
+                "ships/${spec.asset}.obj",
+                "ships/${spec.asset}.mtl",
+                spec.height
+            )
+            for ((partIndex, part) in parts.withIndex()) {
+                val mesh = Mesh("ship${spec.asset}$partIndex", part.data)
+                val instanced = InstancedMesh(
+                    "ships${spec.asset}$partIndex",
+                    part.data,
+                    shipSpecs.size
+                )
+                val material = Material(
+                    albedo = textures.white,
+                    tint = Vec3(part.color.x, part.color.y, part.color.z),
+                    roughness = 0.82f,
+                    metallic = 0f,
+                    uvScale = 1f
+                )
+                out.add(InstancedPart(mesh, instanced, material))
+            }
+        }
+        return out
+    }
+
+    /** Ships sit at the waterline and rock slowly on the swell. */
+    private fun updateShips(time: Float) {
+        if (shipParts.isEmpty()) return
+        for (index in shipSpecs.indices) {
+            val spec = shipSpecs[index]
+            val bob = kotlin.math.sin(time * 0.45f + index * 1.3f) * 0.18f
+            val heading = spec.heading + kotlin.math.sin(time * 0.11f + index) * 0.025f
+            shipMatrix.setTrs(
+                spec.x,
+                definition.waterLevel + bob,
+                spec.z,
+                0f, heading, 0f,
+                1f, 1f, 1f
+            )
+            System.arraycopy(shipMatrix.m, 0, shipTransforms, index * 16, 16)
+        }
+        for (part in shipParts) {
+            part.instanced.setInstances(shipTransforms, shipSpecs.size)
         }
     }
 
