@@ -1,458 +1,755 @@
-# BUILD • LAUNCH • FLY — MASTER UI/UX & GRAPHICAL DESIGN SPECIFICATION
+# DESIGN — Build • Launch • Fly
 
-**Document:** `design.md`
-**Role:** Graphical Designer / UI/UX Designer / 3D Environment Visual Designer
-**Target Platform:** High-End Android (Portrait 1080×1920 px primary composition, Adaptive to 18:9, 19.5:9, 20:9 portrait)
-**Quality Benchmark:** AAA Mobile Visual Fidelity (Benchmark: PUBG Mobile / Call of Duty Mobile engine material shaders, atmospheric depth, and terrain fidelity) applied strictly to aviation, exploration, and realistic natural ecosystems without military or weapon motifs.
+**Status:** reference-derived. `Ref-1` … `Ref-6` were inspected frame by frame; they are the
+authoritative source for UI and engine look. `Ref-7` (a 39 MB recording) is committed but
+could not be opened in the browser, so nothing in this document is derived from it.
 
-This document is normative for visuals. Where it and an earlier document disagree about
-visuals, tokens, layout or screen content, this document wins. `docs/MASTER_BRIEF.md` stays
-normative for scope, technology and quality bar.
+**Supersedes:** the earlier glassmorphism / PUBG-realism design. The references show a
+stylised low-poly 3D game with a bright hypercasual UI, and that is the target.
 
-**Reference precedence.** The original reference plates `Ref-1` … `Ref-7` in
-`docs/reference/` are the primary source of truth for design, UI and engine look. Where the
-plates and this document disagree, the plates win; this document fills in the details the
-plates do not show. See `docs/reference/README.md` for the file list and the portrait versus
-landscape note.
+Companion documents: [`BRIEF.md`](BRIEF.md), [`MASTER_BRIEF.md`](MASTER_BRIEF.md) (original
+commission), [`reference/README.md`](reference/README.md) (plate index).
 
 ---
 
-## 1. PROJECT SCOPE & DESIGNER BOUNDARIES (Brief Sections 1 & 11)
+## 0. Sources and precedence
 
-### 1.1 Graphical & UI/UX Designer Deliverables (Editable Visual Scope)
-- **Visual Identity & Atmosphere:** Natural world aesthetics, aviation themes, physically based lighting (PBR), atmospheric depth grading, realistic sky and weather conditions.
-- **5 Complete Living Natural Ecosystems:** Forest/Green Landscape, Desert, Snow/Glacier, Ocean/Coastal, Mountain/Countryside. Every ecosystem designed as a complete piece of living land with geological consistency, multi-layered depth, authentic flora/fauna, and dynamic skies.
-- **Strict Aircraft Modular Visual Progression (Exact 6 Stages):**
-  1. Initial wingless aircraft body (fuselage chassis).
-  2. First wing installation (port-side primary wing).
-  3. Second wing installation (starboard wing completing dual dihedral airfoil).
-  4. Tail assembly (vertical fin and dual horizontal rudders).
-  5. Functional rotating propeller (hub assembly with motion-blur shader support).
-  6. Further visual aircraft upgrades (streamlined canopy, dihedral winglets, aerodynamic fairings).
-- **Kinetic Slingshot Visual System:** Heavy-duty launch frame, vulcanized tension elastics, cradle carriage, hydraulic recoil pylons, and trajectory angle guide.
-- **Complete Portrait UI/UX System (10 Dedicated Screens):** Main Menu, Aircraft Workshop, Slingshot Workshop, Environment Selection, Gameplay HUD, Flight Results, Upgrade & Reward Screens, Settings, Progress & Achievement Screens, Pilot Career Profile.
-- **Design Tokens & Asset Architecture:** Reusable typography scale, color tokens, glassmorphism panel metrics, vector telemetry icons, 9-patch slice specs, and 3D bone rigging hierarchy.
+| Plate | What it actually shows |
+|---|---|
+| `Ref-1` | Splash / loading: toy-room illustration, "Voodoo" mark, `PLANE EVOLUTION` logo, loading ring + `Loading level: 99%`. No controls. |
+| `Ref-2` | Hangar home: currency pills (`28.15K` coins, `0` gems), gear, `VINTAGE PLANE` plaque, promo rail (store, remove-ads, gems `x1 3/3`), chest `OPEN`, `VIP`, rocket `UNLOCK`, `TAP TO FLY`, three upgrade cards (`SLINGSHOT 41 / 69.55K`, `PLANE 58 / 421.04K`, `INCOME 18 x38.4 / 98.52K`). |
+| `Ref-3` | Launch setup: plane from behind inside the slingshot, striped bands from two posts, desert valley, red `BACK` button. No other UI. |
+| `Ref-4` | Aim / tension: tighter camera, curved segmented gauge (green centre, yellow/orange/red flanks). No text. |
+| `Ref-5` | Flight, good launch: speedometer `94 KM/H` top-left, pause, `PERFECT!`, `167M`, vertical progress track with checkered flag and `4%`, green speed trails. |
+| `Ref-6` | Flight, slow: `37 KM/H`, red `LOW SPEED` under the dial, `370M`, `9%`. |
 
-### 1.2 Developer Boundary (Hand-Off Systems Handled by Android / Game Dev)
-- Aerodynamic flight equations (lift, drag, thrust, gravity curves).
-- Slingshot release vector physics & Hooke's law elastic calculations.
-- Currency economy formulas and database persistence.
-- Android application architecture, Kotlin lifecycle, game engine scripts/shaders, and APK compilation.
-- *Note on Gameplay Proposals:* Features like gems, energy cooldowns, nitro boosts, loot crates, and daily quest systems are treated strictly as design proposals for UI layout demonstration and are unconfirmed until approved by the dev/product team.
+Precedence: plates → this document → `BRIEF.md` → `MASTER_BRIEF.md`.
+
+Originality: the reference game's branding, logo, artwork and copy are not reused. The
+layout language, palette relationships and component inventory are matched; our name, logo,
+art, numbers and text are our own.
 
 ---
 
-## 2. DESIGN TOKENS & VISUAL FOUNDATIONS (Brief Sections 2 & 9)
+## 1. Global design system
 
-### 2.1 Color System & Aesthetic Palette
+### 1.1 Palette
 
-#### Primary Aviation Palette
-
-| Token Name | Hex Code | RGBA | Usage |
-|---|---|---|---|
-| `color-primary-aero` | `#0284C7` | `rgba(2, 132, 199, 1.0)` | Core aviation buttons, active tab indicators, branding |
-| `color-primary-glow` | `#38BDF8` | `rgba(56, 189, 248, 1.0)` | Active neon accents, altimeter markers, highlight strokes |
-| `color-primary-deep` | `#03254C` | `rgba(3, 37, 76, 1.0)` | Submerged navigation chrome, secondary card containers |
-
-#### Currency & Status Accent Tokens (Proposals / Base Visuals)
-
-| Token Name | Hex Code | RGBA | Usage |
-|---|---|---|---|
-| `color-coin-gold` | `#F59E0B` | `rgba(245, 158, 11, 1.0)` | Aero Coins, primary Launch CTA, reward highlights |
-| `color-coin-gold-glow` | `#FBBF24` | `rgba(251, 191, 36, 0.4)` | Outer glow for launch button and upgrade cards |
-| `color-status-success` | `#10B981` | `rgba(16, 185, 129, 1.0)` | Stat improvement bars, positive climb indicator |
-| `color-status-hazard` | `#EF4444` | `rgba(239, 68, 68, 1.0)` | Stall warnings, critical pitch indicators, speed limits |
-
-#### Glassmorphism Surface & Background Tokens
-
-| Token Name | Hex Code | RGBA | Usage |
-|---|---|---|---|
-| `surface-hud-bg` | `#0A0F1D` | `rgba(10, 15, 29, 0.72)` | HUD panels, floating workshop cards (`backdrop-filter: blur(16px)`) |
-| `surface-modal-bg` | `#050814` | `rgba(5, 8, 20, 0.88)` | Fullscreen overlay backdrops (`backdrop-filter: blur(24px)`) |
-| `surface-glass-border` | `#38BDF8` | `rgba(56, 189, 248, 0.18)` | Fine 1px stroke around all interactive panels |
-| `surface-glass-highlight` | `#FFFFFF` | `rgba(255, 255, 255, 0.08)` | Top inner edge highlight line for tactile physical depth |
-
-### 2.2 Typography Scale (Aviation Instrumentation & Clean Ergonomics)
-- **Display & Headings:** `Rajdhani`, Bold / SemiBold (Geometric, aviation cockpit instrumentation feel).
-- **Body & Data:** `Plus Jakarta Sans` or `Inter`, Medium / Regular (Clean, highly legible on high-DPI Android displays).
-
-| Style | Font Family | Weight | Size (dp) | Line Height | Tracking | Usage |
-|---|---|---|---|---|---|---|
-| `Display Hero` | Rajdhani | 700 Bold | 36dp | 40dp | +0.02em | Game title, victory banners |
-| `Header 1` | Rajdhani | 700 Bold | 24dp | 28dp | +0.03em | Screen titles, distance meters |
-| `Header 2` | Rajdhani | 600 SemiBold | 18dp | 22dp | +0.02em | Section headers, card titles |
-| `Subhead HUD` | Rajdhani | 600 SemiBold | 14dp | 18dp | +0.05em | Telemetry labels (ALT, SPD, DIST) |
-| `Body Large` | Plus Jakarta Sans | 500 Medium | 14dp | 20dp | 0 | Dialog body, descriptions |
-| `Body Regular` | Plus Jakarta Sans | 400 Regular | 12dp | 16dp | 0 | Secondary specs, sub-labels |
-| `Badge / Tag` | Rajdhani | 700 Bold | 10dp | 12dp | +0.08em | MAX, NEW, LEVEL UP, 120 FPS |
-
-**Implementation note (Android):** both families ship as `res/font` assets —
-`rajdhani_bold.ttf`, `rajdhani_semibold.ttf` and the variable `plus_jakarta_sans.ttf` —
-loaded by `ui/UiFonts.kt`. They are licensed under the SIL Open Font License; the licence
-texts are in `docs/licenses/`. Platform typefaces remain as a fallback if a font resource
-fails to load.
-
-### 2.3 Layout & Safe-Area Grids
-- **Base Canvas:** portrait, per the authoritative reference plates (`Ref-1` … `Ref-7`).
-  Implemented as a `360 × 640 dp` design space (`density 3` equivalent), so values map 1:1
-  to dp on device.
-- **Adaptive Horizontal Margins:** Left & right padding `20dp` (accommodates punch-hole
-  cameras, curved bezel corners and gesture exclusion zones).
-- **Top Bar Safe Area:** `20dp` top offset clear of the Android status bar.
-- **Bottom Gesture Safe Area:** `16dp` bottom padding clear of the navigation bar.
-- **Minimum Touch Target:** `48 × 48dp` (primary buttons are 52–64dp tall).
-- **Adaptation:** width is fixed at 360dp; height expands with the device ratio (640dp at
-  16:9, ~800dp at 20:9). Top, bottom and edge content anchor to their margins; centre
-  content centres. Nothing stretches.
-
-> **Orientation decision:** the master brief called for landscape, but the reference plates
-> are portrait phone captures and take precedence (see `docs/reference/README.md`). The game
-> therefore runs portrait, and this section supersedes the earlier landscape grid.
-
----
-
-## 3. THE 5 COMPLETE REALISTIC NATURAL ECOSYSTEMS (Brief Sections 3, 4, 5, 6, 7)
-
-Every ecosystem is built as an actual, living piece of natural land. Each features 4 distinct visual depth layers (Foreground, Midground, Background, Sky), authentic geological undulation, high-definition textures, physically based lighting, and natural atmospheric depth without unnecessary clutter.
-
-### 3.1 Forest / Green Landscape Ecosystem (Temperate Montane Forest)
-- **Geological Terrain & Ground:**
-  - Naturally undulating terrain with varied elevations from gentle 5° grassy slopes to 35° rocky depressions.
-  - Multi-layer ground materials: rich dark humus earth, patches of damp loam, coarse river gravel, and moss-encrusted granite outcroppings.
-  - Meandering mountain stream featuring smooth river stones, clear running water with realistic reflections, and natural water-carved erosion banks.
-- **Vegetation Density & Species:**
-  - Multi-tier canopy: Mature Scots Pines and Birch trees (8m–22m) distributed with generous natural spacing.
-  - Understory layer: Wild ferns, berry bushes, heather, and textured grass tufts.
-  - Balanced composition: Sun-dappled open clearings with wildflowers contrasting against shadowy timber corridors.
-- **Atmosphere, Sky & Sunlight:**
-  - Sky: Morning crystalline azure sky with soft, non-uniform cumulus fractus clouds.
-  - Sunlight: Sun shafts filtering through the canopy.
-  - Atmospheric Haze: Soft emerald-tinted distance fog providing depth separation beyond 600m.
-- **Living Environment & Ambient Motion:**
-  - Flocks of alpine swallows circling thermals; subtle flutter of butterflies over sunny clearings.
-  - Wind sway across leafy branches and tall grasses; natural water ripple shaders along the stream.
-
-### 3.2 Desert Ecosystem (Grand Sand Dunes & Canyon Badlands)
-- **Geological Terrain & Ground:**
-  - Monumental barchan sand dunes featuring natural curved wind-sculpted ripples and sharp crescent slipfaces.
-  - Deep dry wadi riverbeds with sun-baked cracked clay mud tiles and scattered desert gravel.
-  - Massive red sandstone buttes, weathered mesas, natural arch cliff formations, and vertical canyon walls with authentic strata.
-- **Vegetation & Desert Flora:**
-  - Clustered Giant Saguaro and Prickly Pear cacti with realistic fibrous skin textures and needle clusters.
-  - Sparse desert sagebrush shrubs, tumbleweeds, and hardy bunchgrass emerging from rock fissures with ample breathing room.
-- **Atmosphere, Sky & Sunlight:**
-  - Sky: Deep cobalt sky grading smoothly into pale gold near the horizon, with faint wispy cirrus clouds.
-  - Sunlight: Intense golden sunlight casting crisp, deep natural shadows under overhangs and dunes.
-  - Atmospheric Depth: Subtle convective thermal heat shimmer above the dunes, and wind-blown dust curtains.
-- **Living Environment & Ambient Motion:**
-  - Desert hawks soaring on thermal air currents; tiny horned lizards darting between shaded rock crevices.
-
-### 3.3 Snow / Glacier Ecosystem (Sub-Zero Alpine Glacier & Ice Shelf)
-- **Geological Terrain & Ground:**
-  - Massive jagged tectonic granite peaks partially cloaked in eternal blue glacial ice.
-  - Deep glacial crevasses and ice falls exhibiting rich cerulean and cyan subsurface light scattering.
-  - Partially frozen alpine lake featuring subsurface stress fractures, milky air bubbles, and mirror-like dark ice patches contrasting against drifted powder snow layers.
-  - Windblown snow accumulation naturally drifting against the leeward face of rocks and trees.
-- **Vegetation:**
-  - Hardy Subarctic Siberian Larches and dwarf mountain pines heavily weighed down with realistic crusty snow.
-  - Exposed dark lichen-covered cliffs and arctic moss clinging to windswept rock faces.
-- **Atmosphere, Sky & Sunlight:**
-  - Sky: Crisp winter sky transitioning from steel-blue overcast to brilliant sub-zero sun breaks.
-  - Lighting: High-albedo crystalline snow reflections with subtle lens flare, and specular sparkle shaders on fresh powder.
-  - Atmosphere: Swirling subarctic blowing spindrift, crystalline ice fog, and cold purple distance mountain haze.
-- **Living Environment & Ambient Motion:**
-  - High-altitude snow eagles soaring over mountain passes; subtle drifting snowflakes carried by turbulent wind.
-
-### 3.4 Ocean / Coastal Ecosystem (Oceanic Cliffs, Shoreline & Sea Stacks)
-- **Geological Terrain & Ground:**
-  - Sheer basalt and limestone coastal cliffs with carved natural sea arches, wave-cut platforms, and sea caves.
-  - Expansive shoreline showing a realistic natural gradient: dry pale quartz dunes transitioning smoothly to wet, dark, reflective tidal sands.
-  - Craggy isolated sea stacks and emergent offshore reefs with foaming wave breakers.
-- **Water Bodies & Oceanic Realism:**
-  - Deep sapphire offshore water grading into aquamarine and turquoise surf zones.
-  - Physically based wave trains with foam lines, realistic sea spray particle bursts on cliff impact, and sky reflections.
-- **Vegetation & Wildlife:**
-  - Wind-sculpted coastal pines, salt-tolerant dune grasses, and sea lavender along cliff edges.
-  - Flocks of seabirds banking on coastal updrafts; visible schools of silver fish below clear tidal pools.
-- **Atmosphere, Sky & Sunlight:**
-  - Sky: Bright marine sky with billowing maritime cumulus clouds.
-  - Lighting: Brilliant shimmering sun path (glitter path) across the ocean surface; coastal sea spray mist.
-
-### 3.5 Mountain / Countryside Ecosystem (Alpine Terraces & Highland Valleys)
-- **Geological Terrain & Ground:**
-  - Sweeping alpine valleys, jagged ridge peaks, terraced hillside green pastures, and steep scree/talus slopes with authentic geological strata.
-  - Naturally carved river gorges with whitewater rapids leading to broad pastoral highland flats and gravel riverbanks.
-  - Exposed limestone strata and boulder fields resting on lush green mountain pastures.
-- **Vegetation:**
-  - Diverse emerald meadow grasses, alpine clover, golden buttercups, and scattered stands of silver firs and oak clusters with generous open breathing room.
-- **Atmosphere, Sky & Sunlight:**
-  - Sky: Crisp mountain blue sky with rolling fair-weather cumulus casting moving cloud shadows across valleys.
-  - Lighting: Warm golden-hour afternoon sunlight bathing ridges and highlighting fine terrain undulations.
-  - Atmosphere: Classic blue Rayleigh scattering distance haze giving realistic scale to distant mountain tiers.
-- **Living Environment & Ambient Motion:**
-  - Soaring falcons; fluttering swallowtail butterflies; gentle ripples across mountain tarns.
-
----
-
-## 4. ECOSYSTEM COMPOSITION & DEPTH ARCHITECTURE (Brief Sections 4, 5, 6, 7)
-
-### 4.1 The 4-Layer Visual Depth Model
-To ensure natural immersion without overcrowding or flat backdrop planes, every ecosystem enforces a strict 4-layer composition:
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ Layer 4: Dynamic Sky & Atmosphere (Clouds, Rayleigh Haze, Sun Path)    │
-├────────────────────────────────────────────────────────────────────────┤
-│ Layer 3: Background Silhouette (Distant Peaks, Buttes, Ocean Horizon)  │
-├────────────────────────────────────────────────────────────────────────┤
-│ Layer 2: Midground Landforms (Valleys, Cliffs, Dunes, Tree Stands)     │
-├────────────────────────────────────────────────────────────────────────┤
-│ Layer 1: Foreground Detail (Undulating Soil, Rocks, Grass, Flora)      │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
-1. **Layer 1 (Foreground):** High-definition ground textures, individual grass tufts, exposed loam, cracked clay, stones, and riverbanks.
-2. **Layer 2 (Midground):** Primary terrain formations (5°–35° slopes, dunes, river gorges, cliffs) and naturally clustered tree stands with open breathing room.
-3. **Layer 3 (Background):** Distant mountain ridges, sea stacks, or canyon mesas graded with atmospheric distance haze.
-4. **Layer 4 (Sky & Atmosphere):** Realistic non-uniform cloud formations, volumetric sun shafts, and weather-appropriate lighting.
-
-### 4.2 Contrast & Aircraft Readability
-- The player's aircraft must always remain visually distinguishable against all terrain surfaces.
-- Ambient occlusion, edge highlighting, and dynamic sun specular reflections on the aircraft fuselage ensure the craft never blends into dark forests, white snow, or red sandstone.
-
-
----
-
-## 5. AIRCRAFT & SLINGSHOT PROGRESSION ARCHITECTURE (Brief Section 8)
-
-### 5.1 Strict Aircraft Progression Stages (Exact Sequence)
-The aircraft is designed as a progressively developing physical object across 6 distinct visual stages:
-
-```
-Stage 1: Initial Wingless Aircraft Body
-   │     (Streamlined monocoque fuselage, cockpit canopy, nose cone)
-   ▼
-Stage 2: First Wing Installation
-   │     (Port-side high-lift NACA 2412 wing attached via visible titanium spar)
-   ▼
-Stage 3: Second Wing Installation
-   │     (Starboard wing installed, completing the symmetrical dual dihedral airfoil)
-   ▼
-Stage 4: Tail Assembly
-   │     (Empennage section: vertical stabilizer fin and dual horizontal rudders)
-   ▼
-Stage 5: Functional Rotating Propeller
-   │     (3-Blade variable-pitch propeller hub with high-speed rotation shader)
-   ▼
-Stage 6: Further Visual Aircraft Upgrades
-         (Streamlined canopy, dihedral winglets, low-drag aerodynamic fairings)
-```
-
-- **Material & PBR Shaders:**
-  - **Fuselage Chassis:** Aerospace composite lacquer (Roughness: `0.35`, Metallic: `0.15`) with subtle panel lines and visible structural rivets.
-  - **Cockpit Canopy:** Tinted polarized aeronautical glass (Opacity: `85%`, Specular: `0.95`, Fresnel reflectance).
-  - **Propeller:** Forged carbon-fiber blades with high-speed motion-blur alpha disc shader for rotation state.
-
-**Implementation status:** Stages 1–5 and the stage-6 geometry (canopy fairing, winglets,
-cowling, tail fairings) are modelled procedurally and rebuilt whenever parts change. The
-fuselage material uses the specified roughness/metallic values; the canopy is a separate
-mesh with its own low-roughness tinted-glass material. A translucent disc mesh fades in
-above ~30% RPM to stand in for the high-RPM motion-blur appearance.
-
-### 5.2 Kinetic Slingshot Visual System
-- **Frame & Mechanics:**
-  - Heavy-duty dual-pylon launch towers constructed from anodized aerospace titanium with visible hydraulic recoil dampers.
-  - Heavy vulcanized latex launch band showing dynamic elastomeric stretching and physical sag when tensioned.
-  - Padded leather/carbon aircraft carriage cradle with quick-release magnetic release latch.
-- **Launch States:**
-  - **Rest State:** Elastic bands rest with gentle catenary curve; launch trajectory guide laser inactive.
-  - **Draw State:** User drags aircraft backward; elastic bands stretch taut, tension meter glows from Amber to Neon Cyan, hydraulic pistons compress.
-  - **Release State:** Instant snappy spring-back, dynamic elastic recoil wobble, launch smoke puff, and camera impulse shake.
-
-**Implementation status:** bands are drawn as dynamically stretched tubes from both prongs
-to the cradle, their tint interpolating Amber → Neon Cyan with draw tension; the HUD tension
-meter matches the same ramp; release triggers a damped elastic recoil on the bands, a short
-smoke puff at the cradle and a camera impulse shake.
-
----
-
-## 6. COMPLETE PORTRAIT UI/UX DESIGN SYSTEM (Brief Section 9)
-
-### Screen 1: Main Menu
-- **Top Header Bar:**
-  - Left: Pilot Profile Pill (Rank avatar, `Capt. Alexander`, `Level 24`, Rank Title: `Ace Aeronaut`, XP bar).
-  - Right: Resource Cluster: Aero Coins (`48,250`), Settings gear button (`48 × 48dp`).
-- **Main Viewport Stage:**
-  - 3D interactive preview of current player aircraft resting on the polished launch pad against the chosen ecosystem backdrop.
-  - Aircraft inspection hotspot tags (`[Mk-IV Propeller]`, `[Carbon Dihedral Wing]`).
-- **Bottom Navigation Deck:**
-  - **Assembly / Plane Workshop** button (Plane icon).
-  - **Impulse Core / Slingshot Lab** button (Slingshot icon).
-  - **5 Worlds / Ecosystems** button (Globe icon, displays current active biome: *Glacier Valley*).
-  - **Primary CTA: "CHOOSE REALM & LAUNCH"** (Large high-contrast amber button `280 × 64dp`, animated play chevron, pulse glow).
-
-### Screen 2: Aircraft Workshop
-- **Layout:** Full 3D aircraft turntable with free 360° touch-orbit rotation and pinch-to-zoom.
-- **Component Category Tabs (Top Floating):**
-  - `[Fuselage]` • `[Wings]` • `[Tail & Rudders]` • `[Propeller]` • `[Upgrades]`
-- **Right Side Drawer (Part Specs & Upgrade Card):**
-  - Component Title: `Mk-IV Carbon Dihedral Wing`.
-  - Tier & Level: `Tier 3 - Level 4/5`.
-  - Aerodynamic Stats Delta:
-    - **Lift Coefficient ($C_L$):** `+18%` (Green comparative bar)
-    - **Aerodynamic Drag ($C_D$):** `-12%` (Lower resistance)
-    - **Gliding Stability:** `+24%`
-  - Upgrade Button: `"UPGRADE COMPONENT"` (Cost: `6,500 Aero Coins`).
-
-### Screen 3: Slingshot Workshop
-- **Layout:** Side-elevation 3D view of the kinetic slingshot apparatus with dynamic tension grid.
-- **Interactive Mechanical Controls:**
-  - **Band Tension Capacity:** Upgrades elastic thickness (Increases initial launch velocity $V_0$).
-  - **Launch Elevation Arc:** Mechanical angle adjustment (`20° to 55°` optimal ballistic arc).
-  - **Hydraulic Recoil Damper:** Minimizes launch vibrational turbulence.
-- **Stat Telemetry Display:** Base Velocity: `142 km/h` → `168 km/h` (with upgrade); Impulse Force: `8,400 N`.
-
-### Screen 4: Environment Selection (5 Ecosystems Biome Carousel)
-- **Layout:** Horizon card carousel presenting all 5 biomes with animated environmental parallax cards:
-  1. **Glacier Valley (Ice / Snow)** — Active / Unlocked. Weather: Light Spindrift, Wind: `12 km/h E`.
-  2. **Verdant Canopy (Forest)** — Unlocked. Weather: Mild Sun Shafts, Wind: `4 km/h S`.
-  3. **Canyon Spires (Desert)** — Unlocked. Weather: Thermal Updrafts, Wind: `18 km/h W`.
-  4. **Cerulean Coast (Ocean)** — Unlocked. Weather: Ocean Squalls, Wind: `22 km/h NE`.
-  5. **Highland Peaks (Mountain)** — Master Level Unlock (Requires `Level 25`).
-- **Per-Biome Metrics Display:** Personal Best Distance record, Wind conditions, and `"SELECT ECOSYSTEM"` button.
-
-### Screen 5: In-Flight Gameplay HUD (Clean & Non-Obstructive)
-- **Ergonomics:** Core central viewport remains 100% unobstructed; all instruments positioned on extreme edges.
-- **Top Center Telemetry Bar:**
-  - Distance Traveled: `2,842 m` (Large high-contrast display in Rajdhani Bold).
-  - Altitude: `415 m` (Mini altimeter ladder).
-  - Airspeed: `184 km/h` (Pitot tube speed gauge).
-- **Top Left:** Pause button (`48 × 48dp`), Flight Time (`01:24.8`).
-- **Center-Left Attitude Horizon Gimbal:** Subtle semi-transparent artificial horizon ladder showing aircraft pitch attitude and bank angle.
-- **Dynamic Contextual Flight Alerts:**
-  - `"THERMAL CAUGHT! +50m ALTITUDE"` (Animated upward cyan banner).
-  - `"STALL HAZARD — PITCH NOSE DOWN"` (Flashing amber caution alert).
-
-### Screen 6: Flight Results & Debrief
-- **Layout:** Semi-transparent glass modal overlaying the final landing position in the ecosystem.
-- **Headline Banner:** `"FLIGHT COMPLETED"` / `"NEW PERSONAL RECORD!"`.
-- **Primary Metric:** `4,892 METERS` (With animated distance odometer counter).
-- **Performance Breakdown Ledger:**
-  - Airtime Duration: `02:14.3`
-  - Max Altitude Reached: `612 m`
-  - Top Airspeed: `248 km/h`
-  - Thermals Caught: `6`
-- **Action Buttons:** `"RETRY FLIGHT"`, `"AIRCRAFT WORKSHOP"`, `"CLAIM & CONTINUE"`.
-
-### Screen 7: Upgrade & Reward Screens
-- **Layout:** Cinematic reward pedestal showcasing unlocked components (e.g. `Stage 5: 3-Blade Propeller Hub`).
-- **Component Card:** High-definition 3D turntable preview, stats delta, and `"EQUIP TO AIRCRAFT"` button.
-
-### Screen 8: Settings (Graphics & Audio Preferences)
-- **Graphics Quality Segmented Picker:** `[Power Saver 30FPS]` • `[Balanced 60FPS]` • `[High Fidelity 90FPS]` • `[Ultra Extreme 120FPS]`.
-- **Visual Fidelity Toggles:** Dynamic Water Reflections (`ON/OFF`), Atmospheric Volumetric Fog (`ON/OFF`), High-Resolution Textures (`ON/OFF`).
-- **Audio Sliders:** Master Volume, Propeller Engine FX, Natural Environmental Ambiance.
-
-### Screen 9: Progress & Achievement Screens
-- **Badge Showcase Grid:**
-  - *Cloud Piercer:* Reach 1,000m Altitude (`UNLOCKED`).
-  - *Desert Falcon:* Fly 5,000m in Canyon Spires (`PROGRESS: 4,200 / 5,000m`).
-  - *Glacier Master:* Cross frozen crevasse zone (`COMPLETED`).
-- **Claim Rewards:** Interactive claim buttons for unlocked achievement tiers.
-
-### Screen 10: Pilot Career Profile
-- **Career Stats:** Total Flights (`148`), Total Distance Flown (`412,650 m`), Favorite Aircraft Configuration, Favorite Biome (`Glacier Valley`).
-
-**Implementation note:** every screen above is implemented in the `ui` package and is
-driven by live game data (profile, aircraft build, slingshot levels, telemetry, results).
-Numbers in this document are illustrative mock values; the running game shows real values.
-
----
-
-## 7. ASSET EXPORT & DEVELOPER HAND-OFF MANIFEST (Brief Section 10)
-
-### 7.1 UI Slices & 9-Patch Assets (`res/drawable-nodpi/`)
-- `btn_primary_amber_9patch.9.png` (Stretchable center, fixed rounded corners 12dp).
-- `panel_hud_glass_bg_9patch.9.png` (72% dark glass, 1px cyan stroke, 16dp radius).
-- `gauge_horizon_gimbal_ring.svg` (256 × 256px).
-- `icon_altitude_ladder.svg` (48 × 48dp).
-- `icon_airspeed_indicator.svg` (48 × 48dp).
-- `icon_currency_coin.png` (96 × 96px, 3D rendered gold coin with alpha).
-
-**Implementation note:** the UI is drawn procedurally on a `Canvas` overlay instead of
-9-patch bitmaps, so panels, buttons, gauges and icons are resolution-independent vector
-drawing at any density. When authored 9-patch/SVG assets are supplied they can replace the
-primitives in `ui/UiPainter.kt` without touching screen layout.
-
-### 7.2 3D Model Hierarchy & Bone Rigging Convention (`assets/models/`)
-All models authored in FBX/glTF formats, centered at $(0, 0, 0)$ origin in real-world metric units ($1\text{ unit} = 1\text{ meter}$):
-
-```
-Aircraft_Assembly_Root
-├── Meshes
-│   ├── Mesh_Fuselage_Stage1 (Tris: 4,200, PBR 2K Texture)
-│   ├── Mesh_Wing_Left_Stage2 (Tris: 2,100)
-│   ├── Mesh_Wing_Right_Stage3 (Tris: 2,100)
-│   ├── Mesh_Tail_Assembly_Stage4 (Tris: 1,400)
-│   └── Mesh_Propeller_Stage5 (Tris: 850)
-└── Bones / Attachment Locators
-    ├── Bone_Fuselage_Root
-    ├── Bone_Wing_Left_Mount
-    ├── Bone_Wing_Right_Mount
-    ├── Bone_Tail_Mount
-    └── Bone_Propeller_Shaft (Anim Channel: Rot_Z, continuous 360°)
-```
-
-**Implementation note:** the current build generates this hierarchy procedurally in
-`aircraft/AircraftMesh.kt` using the same local convention (forward = −Z, up = +Y,
-right = +X, 1 unit = 1 m) and the same part slots, so authored glTF meshes can drop into the
-existing mount points later.
-
-### 7.3 Android Kotlin Data Contracts Reference
-```kotlin
-// Android UI State Binding Data Contract
-data class FlightTelemetryState(
-    val currentDistanceMeters: Float = 0.0f,
-    val currentAltitudeMeters: Float = 0.0f,
-    val currentAirspeedKmh: Float = 0.0f,
-    val pitchAngleDegrees: Float = 0.0f,
-    val rollAngleDegrees: Float = 0.0f,
-    val isStallWarningActive: Boolean = false,
-    val activeThermalAlert: String? = null
-)
-
-data class EcosystemProfile(
-    val id: String,
-    val displayName: String,
-    val themeColorHex: String,
-    val unlocked: Boolean,
-    val personalBestDistanceMeters: Float,
-    val windConditionDescription: String,
-    val atmosphericModifierDescription: String
-)
-```
-
-**Implementation note:** `game/FlightTelemetry.kt` provides the live telemetry object and
-`world/WorldDefinition.kt` + `PlayerProfile.bestPerWorld` provide the ecosystem rows the
-carousel binds to.
-
----
-
-## 8. VERIFICATION MATRIX AGAINST ASSIGNMENT REQUIREMENTS
-
-| Brief Requirement | Status | Implementation in Master Design Suite |
+| Token | Hex | Use |
 |---|---|---|
-| **Fully Editable Files** (Sec 1, 10) | Verified | Design tokens in `gfx/DesignTokens.kt`, UI primitives in `ui/`, complete screen suite |
-| **Realistic Quality Benchmark** (Sec 2) | Verified | High-definition PBR material tokens, natural lighting, shadow treatments, atmospheric depth |
-| **Portrait reference layout** (Sec 2, 9) | Verified | 360×640 dp portrait design space, adaptive height, safe zones for punch-holes & gestures |
-| **Forest Ecosystem** (Sec 3.1) | Verified | Undulating slopes, multi-tier canopy, visible soil, haze, water body |
-| **Desert Ecosystem** (Sec 3.2) | Verified | Dunes with slipfaces, wadis, sparse flora, red rock, dust |
-| **Snow/Glacier Ecosystem** (Sec 3.3) | Verified | Jagged peaks, ice, frozen water, conifers, blowing spindrift |
-| **Ocean/Coastal Ecosystem** (Sec 3.4) | Verified | Coastal cliffs, quartz beaches, wave shading, sea stacks, coastal pines |
-| **Mountain/Countryside Ecosystem** (Sec 3.5) | Verified | Alpine terraces, valleys, talus slopes, Rayleigh haze |
-| **No Simple Flat Planes / Natural Composition** (Sec 4, 5) | Verified | 4-layer composition: Foreground, Midground, Background, Sky |
-| **Sky, Sunlight, Clouds & Atmosphere** (Sec 6) | Verified | Distinct atmospheric properties, light scattering, cloud formations for all 5 realms |
-| **Aircraft Progressive Development** (Sec 8) | Verified | Exact 6-stage progression from wingless body to wings, tail, rotating propeller, upgrades |
-| **Kinetic Slingshot Workshop** (Sec 8) | Verified | Stretched elastics with amber→cyan tension tint, heavy launch frame, angle/elevation controls |
-| **Complete UI Screens Suite** (Sec 9) | Verified | All 10 mandatory portrait screens implemented with live data and tokens |
-| **Developer Hand-Off Clarity** (Sec 10, 11, 12) | Verified | Clean separation of design vs code; 3D locator conventions and Kotlin models |
+| `sky` | `#40B9E8` | sky, primary HUD accent |
+| `sand` | `#C5A078` | terrain base |
+| `sandLight` | `#D4B183` | lit terrain, dunes |
+| `card` | `#FFF9EF` | every white card / panel |
+| `blue` | `#1975D1` | primary buttons, HUD fills |
+| `navy` | `#185AB7` | text outlines, deep strokes |
+| `green` | `#35D52D` | progress, positive, coin "+" |
+| `gold` | `#FFB51F` | coins, price text highlights |
+| `yellow` | `#FFD52B` | launch bands, markers, VIP |
+| `red` | `#F33135` | BACK, LOW SPEED, destructive |
+| `purple` | `#9A4BEA` | income card, UNLOCK button |
+| `lavender` | `#E7B5F3` | price panel on cards |
+| `cyan` | `#19A9ED` | plane card header |
+| `orange` | `#FF9D12` | slingshot card header |
+| `gem` | `#22B7F0` | gems |
+| `plaque` | `#A58B70` | hangar title plaque |
+| `plaqueText` | `#583B1E` | plaque lettering |
+| `scrim` | `#000000` @ 55 % | modal backdrop |
+| `shadow` | `#000000` @ 25 % | card/button drop shadows |
+
+Rules: 3–5 saturated colours per screen, never more. Cards are always `card` white with a
+light bevel border; saturated colour appears in headers, buttons and pills only. Text on
+colour is white with a navy outline; text on white is navy/plaque brown.
+
+### 1.2 Typography
+
+| Role | Spec |
+|---|---|
+| Display / numbers / buttons | Rounded heavy sans, uppercase, tight tracking, white fill + 2–3 dp navy outline + 1 dp shadow. Target face: **Fredoka One / Baloo 2 Bold** (OFL). |
+| HUD numerals | Same rounded face, tabular, 28–40 dp |
+| Body / helper text | Plus Jakarta Sans Medium, 12–14 dp, `#583B1E` on white, white on colour |
+| Card headings | 14–16 dp heavy uppercase, white |
+| Price | 12–14 dp bold, `#583B1E` on `lavender` |
+
+The repo currently bundles Rajdhani + Plus Jakarta Sans (OFL). Rajdhani is an instrument
+face, not a rounded casual face — a checklist item below covers adding a rounded display
+face so headings match the plates.
+
+### 1.3 Shape, surface and depth
+
+- Corner radii: cards 20 dp, buttons 22 dp (pill), small chips 12 dp, dials circular.
+- Card recipe: fill `card`, 2 dp `#FFFFFF` inner border, 1 dp `navy` @ 20 % outer stroke,
+  0/3 dp shadow at 25 % black, header band with 20 dp top radii.
+- Button recipe: pill, saturated fill, 2 dp white border, 3 dp bottom shadow, label centred
+  with outline; pressed state = 4 % scale down + shadow removed.
+- Glass/blur is **not** used anywhere. Depth comes from bevels and shadows only.
+- Metallic dials: outer ring in two greys (`#BFCBD4`, `#8E9AA6`), inner face `#39BCE6`,
+  dark needle, tick marks, green safe zone.
+
+### 1.4 Layout grid (portrait)
+
+- Design space **360 × 640 dp**, width fixed, height adaptive (16:9 → ~800 dp on 20:9).
+- Safe areas: top 20 dp, bottom 16 dp, horizontal margin 16 dp; 48 dp minimum touch target.
+- Home: currency row y 20–52; plaque y 60–92; scene free middle; upgrade card row pinned
+  16 dp above the bottom safe area, cards 104 dp tall with 8 dp gaps.
+- Flight: dial top-left (x 16, y 20, 88 dp), pause under it, distance centred at 50 % height,
+  progress track right edge x 336–352, aircraft lower third.
+- Modal: width 328 dp, centred vertically, 16 dp padding, 16 dp radius, `scrim` behind.
+
+### 1.5 Iconography
+
+Chunky, glossy, single-object icons with white 2 dp strokes: coin, gem, gear, pause,
+checkered flag, plane marker, chest, VIP cap, rocket, storefront, video/ad, plus. Rendered as
+code-path vectors at 24/32/48 dp, or 96 px PNG for the coin and gem.
+
+### 1.6 Motion and feedback
+
+- Buttons: 4 % press scale, 90 ms; releases 120 ms.
+- Cards: idle 1.5 % breathing scale on the primary card only.
+- `PERFECT!`: 280 ms pop-in (scale 0.6 → 1.12 → 1.0) + 12 ° tilt settle; holds 900 ms.
+- `LOW SPEED`: 2 Hz pulse between 80 % and 100 % opacity while speed < 45 km/h.
+- Progress track marker slides with distance; checkered flag bounce on completion.
+- Launch: band snap, camera shake 0.35 s, smoke puff 0.6 s.
+- Screen transitions: 180 ms slide/fade; modals scale 0.92 → 1.
+
+### 1.7 Audio language
+
+Short, punchy, arcade: card tap "pop", purchase "coin cascade", launch "twang + whoosh",
+flight loop wind + engine hum, PERFECT chime, LOW SPEED low beep every 1.2 s, results
+fanfare. Ambience per biome (desert wind). All UI sounds under 300 ms.
+
+---
+
+## 2. Component catalog index
+
+Each catalog below contains: purpose, layout, colours, surfaces, assets to generate, states,
+data, motion, audio, an implementation checklist and acceptance criteria.
+
+| # | Component | Source |
+|---|---|---|
+| 3.1 | Splash / loading | Ref-1 |
+| 3.2 | Hangar home | Ref-2 |
+| 3.3 | Currency bars | Ref-2 |
+| 3.4 | Upgrade cards (3) | Ref-2 |
+| 3.5 | Promotions (store, ads, gems, chest, VIP, rocket) | Ref-2 |
+| 3.6 | Slingshot rig | Ref-3, Ref-4 |
+| 3.7 | Launch setup screen | Ref-3 |
+| 3.8 | Aim / tension gauge | Ref-4 |
+| 3.9 | Flight HUD | Ref-5, Ref-6 |
+| 3.10 | Speedometer | Ref-5, Ref-6 |
+| 3.11 | Distance + progress track | Ref-5, Ref-6 |
+| 3.12 | Feedback and warnings | Ref-5, Ref-6 |
+| 3.13 | Results | derived |
+| 3.14 | Aircraft and build stages | Ref-2 … Ref-6 |
+| 3.15 | Environments | Ref-3 … Ref-6 |
+| 3.16 | Camera | Ref-2 … Ref-6 |
+| 3.17 | Settings | derived |
+| 3.18 | Achievements / career | derived |
+| 3.19 | Economy and save | Ref-2 |
+| 3.20 | Performance budget | all |
+
+
+---
+
+## 3. Component catalogs
+
+### 3.1 Splash / loading (Ref-1)
+
+**Purpose:** brand moment while the world and save load; communicates progress.
+
+**Layout (portrait 360×640):** full-bleed illustration; logo block y 110–210; loading ring
+centred at y 560, diameter 44; progress text baseline y 610.
+
+**Colours:** warm room peach `#F3B6A8`; balloon red `#E21E2C`; logo navy `#123F7B`, blue
+`#2679C7`, yellow `#FFC51B`; overlay white text. Our own version uses the game palette
+(`sky`, `gold`, `card`) rather than the reference's toy-room art.
+
+**Surfaces:** no panels. Illustration + extruded logo + circular progress ring (track white
+@ 30 %, fill `gold`, round cap).
+
+**Assets to generate:** our wordmark; 1024×1024 key-art plate (or a 3D hangar still); ring.
+
+**States:** loading 0–100 %; fade to hangar at 100 % (300 ms).
+
+**Data:** real initialisation progress (texture generation, terrain build, save load),
+mapped to 0–100 %.
+
+**Motion:** subtle logo breathing; ring spins; particles drift.
+
+**Audio:** soft ambience bed, no UI ticks.
+
+**Checklist**
+- [ ] Logo wordmark asset (vector or generated) in `res/drawable`
+- [ ] Loading screen state before the GL surface reports ready
+- [ ] Progress driven by real init stages, not a fake timer
+- [ ] Skip on tap after 1.5 s minimum
+- [ ] Cross-fade into hangar
+- [ ] No reference branding ("Voodoo", "Plane Evolution") anywhere
+
+**Acceptance:** first frame shows branded art within 300 ms; progress reaches 100 % only
+when the hangar is ready to draw.
+
+---
+
+### 3.2 Hangar home (Ref-2)
+
+**Purpose:** the hub. Shows the owned plane, currencies, mode entry and the three upgrade
+tracks.
+
+**Layout (360×640 dp):**
+
+| Region | Rect |
+|---|---|
+| Coin pill | `16, 20, 150×30` |
+| Gem pill | `172, 20, 90×30` |
+| Gear button | `312, 20, 32×32` |
+| Plaque `VINTAGE PLANE` | `80, 62, 200×32` |
+| Promo rail (3 icons) | `16, 110 / 170 / 230, 40×40` |
+| Chest + OPEN | `244, 112, 100×62` |
+| VIP | `244, 182, 100×48` |
+| Rocket + UNLOCK | `244, 240, 100×72` |
+| `TAP TO FLY` | centred at `y 330`, 32 dp |
+| Upgrade cards | `16, 520, 104×104` ×3, 8 dp gaps |
+
+**Colours:** background is the live 3D hangar scene; UI `card` white, headers `orange` /
+`cyan` / `purple`; plaque `plaque` with `plaqueText`; CTA text white with `navy` outline.
+
+**Surfaces:** white cards (radius 20, 2 dp white inner border, `navy` 20 % outer stroke,
+25 % shadow); pills with 2 dp white bevel; circular gear button `blue` with white rim.
+
+**Assets to generate:** hangar interior set (roof beams, open side to sky, floor); plaque
+plate; chest/VIP/rocket icons; card icons (slingshot, plane, income).
+
+**States:** plane idle bob; chest ready/empty; promo slots enabled/disabled; card
+affordable/unaffordable; `TAP TO FLY` pulses until first flight.
+
+**Data:** coin balance, gem balance, plane name + tier, three upgrade levels, prices,
+affordability, chest timer, VIP status.
+
+**Motion:** plane slow bob ±2 cm; cards breathe 1.5 %; currency count-up on gain; gear spins
+on tap.
+
+**Audio:** hangar ambience; tap pops; purchase cascade.
+
+**Checklist**
+- [ ] Hangar 3D set: roof, beam, open side to sky, floor, props
+- [ ] Plane displayed in hangar, idle bob
+- [ ] Two currency pills with compact formatting (`28.15K`)
+- [ ] Gear opens settings
+- [ ] Title plaque bound to plane tier name
+- [ ] Promo rail with 3 slots (store, remove-ads, rewarded gems)
+- [ ] Chest / VIP / rocket slots as modular components
+- [ ] `TAP TO FLY` entry into launch setup
+- [ ] Three upgrade cards pinned to the bottom row
+- [ ] Scene camera framing: rear-side, plane lower-middle, sky opening right
+- [ ] No glass/blur panels
+
+**Acceptance:** the whole hub reads in one glance; all four currencies/promotions and three
+upgrade tracks visible without scrolling; 60 fps with the 3D scene behind.
+
+---
+
+### 3.3 Currency bars (Ref-2)
+
+**Purpose:** balances + shortcuts to earn more.
+
+**Layout:** pill `150×30` (coins), `90×30` (gems), 2 dp white bevel, 3 dp shadow, icon
+24 dp at left inset 4 dp, value right-aligned inset 10 dp, green "+" circle 20 dp at right
+edge overlapping the pill.
+
+**Colours:** coin pill `gold` face with `#E08A00` edge; gem pill `gem` face with `#0E86B8`
+edge; "+" `green` with white rim; value white with `navy` outline.
+
+**Assets:** coin 96 px PNG/vector, gem, plus.
+
+**States:** pulse on gain; "+" opens the relevant store tab; low-balance flash red for 200 ms
+on a failed purchase.
+
+**Data:** int balances, compact formatter (K/M, 2 decimals).
+
+**Checklist**
+- [ ] Compact number formatter shared with cards and results
+- [ ] Coin and gem pill components
+- [ ] "+" hit areas 48 dp with visual 20 dp
+- [ ] Count-up animation on reward
+- [ ] Insufficient-funds shake + red flash
+
+---
+
+### 3.4 Upgrade cards (Ref-2)
+
+**Purpose:** the three progression tracks: SLINGSHOT, PLANE, INCOME.
+
+**Layout (104×104 dp):** header band 20 dp (colour by track, white uppercase label +
+level), icon 40×40 centred at y 26, five pips 8×4 dp at y 70, price panel `86×18` at
+y 82 (`lavender`, coin icon, compact price).
+
+**Colours:** slingshot `orange #FF9D12`; plane `cyan #19A9ED`; income `purple #9A4BEA`;
+filled pips `green`, empty `#D9D9D9`; price text `plaqueText`.
+
+**Assets:** three card icons; pip; coin mini.
+
+**States:** affordable (normal), unaffordable (price greyed, 60 % opacity), max level
+(pips gold, price replaced with `MAX`), just-upgraded (flash + pip fill animation).
+
+**Data:** track id, level, max level, price, multiplier (income `x38.4`), affordability.
+
+**Motion:** tap scale, pip fill 180 ms, icon bounce on purchase.
+
+**Checklist**
+- [ ] Card component with header colour parameter
+- [ ] Five-pip progress row
+- [ ] Price panel with compact formatting
+- [ ] MAX state
+- [ ] Income multiplier display (`x38.4`)
+- [ ] Tap → upgrade or store if unaffordable
+- [ ] Left/right wing upgrades kept symmetric in the PLANE track
+
+**Acceptance:** all three cards fit the bottom row at 360 dp; each level of each track
+changes a visible game value.
+
+---
+
+### 3.5 Promotions (Ref-2)
+
+Slots, all modular and individually disableable:
+
+| Slot | Visual | Behaviour |
+|---|---|---|
+| Store | storefront icon, 40 dp | opens shop |
+| Remove ads | red "ADS" crossed badge | one-time purchase |
+| Rewarded gems | gem + video mark + `x1` / `3/3` | rewarded video, cap 3/day |
+| Chest | blue/silver chest + green `OPEN` | timed free reward |
+| VIP | gold cap + `VIP` wordmark | VIP offer screen |
+| Rocket unlock | rocket + purple `UNLOCK` + gem cost | skip to a realm/rank |
+
+**Rules:** none of these may block play; all can be hidden by config until the economy is
+validated. No pay-to-progress wall in the first 30 minutes.
+
+**Checklist**
+- [ ] Generic promo-slot component (icon, label, badge, button)
+- [ ] Config flags per slot
+- [ ] Chest timer + claim state persisted
+- [ ] Rewarded-video cap (3/3) persisted
+- [ ] VIP/rocket screens are stubs unless enabled
+- [ ] All disabled slots collapse cleanly (layout without gaps)
+
+---
+
+### 3.6 Slingshot rig (Ref-3, Ref-4)
+
+**Purpose:** the launch device — visible, physical, readable from behind.
+
+**Form:** two wooden posts at the rear left/right, a dark trapezoidal launch ramp between
+them, and two thick elastic bands running from the post tips to the aircraft cradle. Bands
+are yellow/white striped. In Ref-3 the plane sits back; in Ref-4 the camera is closer and the
+bands form a wide V.
+
+**Layout in world space:** posts at x ±2.05 m, height 3.6 m, ramp 1.8 m wide sloping down
+toward −Z; cradle at 3.05 m; camera directly behind at ~3.3 m height.
+
+**Colours:** timber `#8A6A4A` posts, ramp `#554B45`, bands `yellow #FFD52B` + `cream
+#F5F2E8` stripes, dark metal brackets.
+
+**Surfaces:** flat-shaded, no gloss; band stripes are geometry or a two-colour texture.
+
+**Assets to generate:** post meshes, ramp mesh, band tube mesh (stripable), cradle, back
+button plate.
+
+**States:** rest (bands slack, slight sag), draw (bands taut, plane pulled back), release
+(snap, recoil wobble, smoke).
+
+**Data:** pull 0–1, band length, tension, launch angle, upgrade level → thickness/length.
+
+**Motion:** band stretch with catenary sag, 0.6 s recoil after release, dust puff.
+
+**Audio:** creak on draw (pitch rises), twang + whoosh on release.
+
+**Checklist**
+- [ ] Rear-view framing with both posts visible
+- [ ] Yellow/white striped bands (currently single-colour)
+- [ ] Ramp/trapezoid geometry between posts
+- [ ] Bands articulate with draw and launch angle
+- [ ] Rest sag, taut draw, recoil
+- [ ] Upgrade level visibly changes band thickness/length
+- [ ] Bands cast shadows
+
+**Acceptance:** from the launch camera a first-time player understands "pull back here".
+
+---
+
+### 3.7 Launch setup screen (Ref-3)
+
+**Purpose:** the pre-pull state.
+
+**Layout:** full-bleed 3D behind; a single red `BACK` pill centred near the bottom
+(`y 560`, 120×40 dp); no meter, no HUD, no other text.
+
+**Colours:** button `red #F33135`, 2 dp white border, white uppercase label, 3 dp shadow.
+
+**States:** idle (plane seated), first-time hint (one-shot "drag back" ghost arrow, fades
+after 3 s), returning (no hint).
+
+**Data:** selected realm, plane tier.
+
+**Motion:** plane settles into cradle; hint arrow loops.
+
+**Audio:** wind ambience; button pop.
+
+**Checklist**
+- [ ] Launch screen uses the ref layout (single BACK at the bottom)
+- [ ] BACK returns to hangar
+- [ ] First-run drag hint
+- [ ] No telemetry on this screen
+- [ ] Realm-appropriate environment behind
+
+---
+
+### 3.8 Aim / tension gauge (Ref-4)
+
+**Purpose:** tells the player how hard the slingshot is drawn and where the "perfect" zone is.
+
+**Form:** a curved arc in world space or screen space just below the ramp, made of segments:
+centre 5 segments green, then yellow, then orange, then red at both ends. A pointer or
+highlight marks the current pull.
+
+**Layout:** arc width 300 dp, height 28 dp, centred at y 300 (world-anchored under the
+ramp), springing from the cradle.
+
+**Colours:** green `#19C92C`, yellow `#EAC514`, orange `#F58D12`, red-orange `#E8471C`,
+inactive segments 25 % white.
+
+**States:** hidden at rest; visible while dragging; perfect zone flashes on release.
+
+**Data:** pull 0–1 mapped to arc position; perfect band from slingshot upgrade level.
+
+**Motion:** segment fill follows finger; perfect band pulses; on release the arc collapses
+into the plane with a 150 ms flash.
+
+**Audio:** rising creak tied to arc position; "perfect" chime if released in the green.
+
+**Checklist**
+- [ ] Arc gauge replacing the linear meter
+- [ ] 5-zone colour mapping
+- [ ] Perfect-release band, widened by slingshot upgrades
+- [ ] Gauge tracks pull exactly (no smoothing lag)
+- [ ] PERFECT trigger when release lands in the green zone
+- [ ] Arc hides on release
+
+**Acceptance:** a player can intentionally hit the green zone after two or three attempts.
+
+
+---
+
+### 3.9 Flight HUD (Ref-5, Ref-6)
+
+**Purpose:** minimum instruments, maximum world. The references show only four things.
+
+**Layout (360×640 dp):**
+
+| Element | Rect / anchor |
+|---|---|
+| Speedometer dial | `16, 20, 88×88` |
+| Pause | `24, 116, 32×32` |
+| Warning text (`LOW SPEED`) | centred under dial at `x 60, y 132` |
+| Distance (`167M`) | centred `x 180, y 300`, 30 dp |
+| Progress track | `x 326–346, y 20–320` |
+| Feedback (`PERFECT!`) | centred `x 180, y 236`, 40 dp |
+| Aircraft | lower third, camera-framed |
+
+**Rules:** no top telemetry bar, no artificial horizon, no altitude readout, no coins during
+flight. Anything not in the reference HUD goes to results.
+
+**Colours:** white text with `navy` outline; red warnings; blue/white track; green trails.
+
+**Checklist**
+- [ ] Remove the top three-column telemetry panel
+- [ ] Remove the attitude gimbal from the flight HUD
+- [ ] Dial top-left, pause beneath
+- [ ] Distance centred over the world
+- [ ] Progress track pinned right, vertically centred on the flight window
+- [ ] Feedback overlays at the reference position
+- [ ] Safe margins respected on 20:9
+
+**Acceptance:** screenshot parity with Ref-5/Ref-6 composition at 1284×2778.
+
+---
+
+### 3.10 Speedometer (Ref-5, Ref-6)
+
+**Form:** circular gauge 88 dp: outer chrome ring (two greys), cyan face, tick marks every
+10 km/h, dark needle, green "safe" zone from 45–100, digital value and `KM/H` beneath centre.
+
+**Colours:** face `#39BCE6`, rim `#BFCBD4`/`#8E9AA6`, needle `#123`, ticks white 70 %,
+value `#37DD6B`, unit white.
+
+**States:** needle eases with real airspeed; below 45 km/h the dial rim flashes red and
+`LOW SPEED` appears; above 100 the needle sits in the red.
+
+**Data:** airspeed km/h from the flight model.
+
+**Checklist**
+- [ ] Arc-dial renderer with tick marks
+- [ ] Needle smoothing (200 ms)
+- [ ] Green zone / red zone mapping to gameplay thresholds
+- [ ] Digital value + unit
+- [ ] Red rim flash tied to the LOW SPEED state
+
+---
+
+### 3.11 Distance and progress track (Ref-5, Ref-6)
+
+**Form:** tall rounded capsule 20×300 dp with a checkered flag at the top, a yellow arrow
+marker, and a small plane icon with a percentage near the bottom.
+
+**Semantics:** the track shows progress toward the realm's target distance, not a lap; the
+marker's vertical position equals `distance / target`.
+
+**Colours:** track `#E9F3F9` with `#2F79C7` edge; marker `#FFD52B` with `#1975D1` arrow; flag
+black/white; plane icon white.
+
+**States:** marker climbs; flag bounces and the track flashes gold on target; percentage
+ticks up in 1 % steps.
+
+**Checklist**
+- [ ] Capsule track with rim
+- [ ] Checkered flag asset
+- [ ] Yellow marker + arrow
+- [ ] Plane icon + percentage readout
+- [ ] Percentage = distance / target (per realm)
+- [ ] Completion flash
+
+---
+
+### 3.12 Feedback and warnings (Ref-5, Ref-6)
+
+| Trigger | Visual | Audio |
+|---|---|---|
+| Release in green zone | `PERFECT!` pop-in, 40 dp white with blue outline | bright chime |
+| Airspeed < 45 km/h | `LOW SPEED` red, pulsing under the dial | low beep every 1.2 s |
+| Stall (derived) | `STALL` red banner + nose-down arrow | warning buzz |
+| New best distance | `NEW RECORD` gold banner at results | fanfare |
+| Thermal/climb (derived, optional) | cyan `+X m` chip | soft whoosh |
+
+**Checklist**
+- [ ] Central feedback component with entrance/exit animation
+- [ ] Warning component anchored under the dial
+- [ ] Thresholds driven by the flight model, not timers
+- [ ] One feedback at a time, priority: stall > low speed > perfect
+- [ ] Haptics on perfect and stall (respect system setting)
+
+---
+
+### 3.13 Results (derived, not shown in references)
+
+**Purpose:** convert a flight into reward and a next action.
+
+**Layout:** modal 328 dp wide, 300 dp tall: headline (`FLIGHT COMPLETE` / `NEW RECORD`),
+distance (32 dp) + best, three stat rows (top speed, flight time, perfect launch bonus),
+coin reward pill with count-up, buttons `RETRY` (blue), `HANGAR` (white), and an optional
+`DOUBLE` rewarded-video slot.
+
+**Data:** distance, best, max speed, duration, coins breakdown, record flag.
+
+**Checklist**
+- [ ] Results state after landing/crash
+- [ ] Reward calculation visible as rows, not a single number
+- [ ] Count-up coin pill using the currency component
+- [ ] RETRY restarts at the launch screen with the same realm and plane
+- [ ] HANGAR returns home and plays the coin cascade
+- [ ] Double-reward slot hidden unless enabled
+
+---
+
+### 3.14 Aircraft and build stages (Ref-2 … Ref-6)
+
+**Reference aircraft:** vintage biplane — tan canvas wings with orange-brown rib lines, dark
+struts and bracing wires, narrow wooden lattice fuselage, dark cockpit opening, two-blade
+green propeller, two dark wheels, small tailplane. Flat-shaded, no gloss, soft shadow.
+
+**Stage catalog (each stage must be visible on the model):**
+
+| Stage | Adds | Gameplay effect |
+|---|---|---|
+| 1 Fuselage | lattice body, cockpit, wheels | baseline mass |
+| 2 Upper wing | broad top wing + struts | lift + |
+| 3 Lower wing + wires | second wing, bracing wires | lift ++, drag + |
+| 4 Tail assembly | fin + stabiliser | stability + |
+| 5 Propeller | 2-blade prop + spinner | windmill, prop wash |
+| 6 Engine + paint | engine block, skin/paint scheme, wing rib decals | thrust +, glide + |
+
+**Materials:** flat `#DB9854` canvas, `#8A6A4A` timber, `#3A3A3A` metal/wires, `#53683A`
+prop, `#1E1E1E` tyres. No metallic reflections; roughness ~0.9.
+
+**Checklist**
+- [ ] Biplane mesh: two wings, struts, wires, lattice fuselage, tail, wheels
+- [ ] Wing rib line decals
+- [ ] Stage meshes toggle with visible change
+- [ ] Propeller spin + blur disc
+- [ ] Flat-shaded material set matching the palette
+- [ ] Scale and framing: plane reads at 1/3 screen height in flight
+- [ ] Planes per tier change silhouette, not just colour
+
+---
+
+### 3.15 Environments (Ref-3 … Ref-6)
+
+**Desert (from refs):** pale sand ridges and canyons, saguaro cacti, leafless trees, rocky
+rises, distant animal silhouettes, bright cyan sky with light haze, soft directional shadows,
+no water.
+
+**Rules for the other four realms (derived):** same low-poly density, one hero landmark per
+view, one saturated accent colour, matching haze and shadow softness. No realism escalation.
+
+**Checklist**
+- [ ] Desert terrain: ridges, canyon walls, sand ripples
+- [ ] Props: cacti (2 silhouettes), bare trees, rocks, animal silhouettes
+- [ ] Sky: cyan gradient + haze band; no clouds or thin wisps only
+- [ ] Soft shadows (short, low opacity)
+- [ ] Distant skyline layer per realm
+- [ ] Forest / snow / coast / mountain palettes aligned to reference contrast
+- [ ] Flight corridor kept clear for 300 m ahead
+- [ ] Realm target-distance and palette live in one definition
+
+---
+
+### 3.16 Camera (Ref-2 … Ref-6)
+
+| Context | Spec |
+|---|---|
+| Hangar | rear-side, slightly elevated, plane lower-middle, slow orbit; sky opening to the right |
+| Launch setup | directly behind, ~3.3 m up, centred on the plane |
+| Aim | same axis, ~25 % closer as pull increases |
+| Flight | rear chase, low, 3–4 m behind, looking slightly down; FOV wide enough for 360 dp |
+| Perfect / launch | 0.35 s shake, no cut |
+| Results | slow orbit around the landing point |
+
+**Checklist**
+- [ ] Hangar framing matches Ref-2 (plane, roof, sky opening)
+- [ ] Launch framing matches Ref-3/4 (posts at the edges, plane centre)
+- [ ] Flight framing matches Ref-5/6 (plane lower third, terrain ahead)
+- [ ] No camera clipping through the slingshot posts
+- [ ] Portrait vertical FOV tuned so the horizon sits ~40 % down the screen
+
+---
+
+### 3.17 Settings (derived)
+
+Rows: graphics quality (4), water reflections, fog, high-res textures, master/engine/ambience
+sliders, haptics, reset progress. Portrait panel, one column, grouped with white cards.
+
+**Checklist**
+- [ ] One-column portrait settings panel
+- [ ] Haptics toggle wired to a single settings flag
+- [ ] Reset progress with double confirm
+- [ ] Values persisted in the profile JSON
+
+---
+
+### 3.18 Achievements / career (derived)
+
+Badge grid (2 columns), six badges, progress bars, claim buttons; plus career totals
+(flights, distance, best, favourite realm, configuration). Same card language as the hangar.
+
+**Checklist**
+- [ ] Badge card component reusing the upgrade-card surface
+- [ ] Claim state persisted
+- [ ] Career totals derived from the profile, not stored twice
+
+---
+
+### 3.19 Economy and save (Ref-2)
+
+- Coins: earned per metre + speed + perfect bonus + record bonus, multiplied by the INCOME
+  track (`x1.0` → `x38.4` style).
+- Gems: premium, earned from rewarded slots; not required for the first 30 minutes.
+- Costs: each upgrade level costs more than the last; balance so the first upgrade is
+  affordable after 1–2 flights.
+- Save: JSON in SharedPreferences; schema versioned; corrupt save falls back to defaults.
+
+**Checklist**
+- [ ] Compact formatter (`1.2K`, `28.15K`, `1.2M`)
+- [ ] Income multiplier applied to all coin sources
+- [ ] Save migration from earlier schemas
+- [ ] No gem-gated progression in the first hour
+- [ ] Chest/rewarded caps persisted
+- [ ] All numbers visible in the UI come from one economy model
+
+---
+
+### 3.20 Performance budget (all)
+
+- 60 fps on mid-range; 30 fps floor on the low preset.
+- Flight: ≤ 120 draw calls, ≤ 150 k triangles, one 1024² shadow map.
+- Hangar: ≤ 60 draw calls, plane ≤ 25 k triangles.
+- UI: one overlay pass, ≤ 120 draw ops per frame, no allocations in the draw loop where
+  avoidable.
+- Textures: ≤ 60 MB total, procedural where possible.
+- Load to hangar: ≤ 4 s on mid-range.
+
+**Checklist**
+- [ ] Frame-time overlay in debug builds
+- [ ] Quality presets that actually change draw distance, shadows, texture size
+- [ ] No allocation in per-frame UI paths
+- [ ] Thermal test: 10-minute flight, no frame collapse
+
+---
+
+## 4. Implementation sequence
+
+Follow this order; each phase ends with a green CI build.
+
+**Phase A — Design system swap**
+- [ ] Replace the glass palette in `gfx/DesignTokens.kt` with the reference palette (§1.1)
+- [ ] Add a rounded display font (Fredoka One / Baloo 2 Bold, OFL) for headings
+- [ ] Card, pill and outlined-text primitives in `ui/UiFrame.kt`
+- [ ] Icon set: coin, gem, gear, pause, flag, plane marker, chest, VIP, rocket, video, plus
+
+**Phase B — Hangar**
+- [ ] Hangar 3D set and framing
+- [ ] Currency bars + gear
+- [ ] Plaque, promo rail, chest/VIP/rocket slots
+- [ ] Three upgrade cards bound to slingshot / plane / income
+- [ ] TAP TO FLY → launch setup
+
+**Phase C — Launch**
+- [ ] Slingshot rig rebuild with striped bands and ramp
+- [ ] Launch setup screen with bottom BACK
+- [ ] Pull interaction and arc gauge with perfect zone
+- [ ] Release: snap, recoil, smoke, shake
+
+**Phase D — Flight HUD**
+- [ ] Speedometer dial
+- [ ] Distance readout
+- [ ] Progress track with flag and percentage
+- [ ] PERFECT / LOW SPEED / STALL feedback
+- [ ] Remove legacy telemetry panel and gimbal
+
+**Phase E — Results and economy**
+- [ ] Results modal with breakdown and count-up
+- [ ] Income multiplier across all sources
+- [ ] Rewarded slots (configurable)
+
+**Phase F — Content and polish**
+- [ ] Biplane stage meshes
+- [ ] Five realms aligned to reference density
+- [ ] Settings, achievements, career
+- [ ] Audio pass
+- [ ] Performance pass and presets
+
+---
+
+## 5. Acceptance matrix
+
+| Requirement | Evidence |
+|---|---|
+| Portrait 360 dp UI | screenshots at 1284×2778 match Ref-2/3/5/6 composition |
+| Reference palette | tokens match §1.1; no glass panels remain |
+| Hangar completeness | currencies, plaque, promos, chest/VIP/rocket, 3 cards, TAP TO FLY |
+| Launch readability | posts at frame edges, plane centred, BACK at bottom |
+| Perfect-release mechanic | arc gauge with green zone, PERFECT! feedback |
+| Flight HUD parity | dial, pause, distance, progress track only |
+| Speed state feedback | LOW SPEED below 45 km/h |
+| Aircraft stages | each stage visibly changes the biplane |
+| Economy | income multiplier applies, values formatted compactly |
+| Build | CI green, installable APK artifact |

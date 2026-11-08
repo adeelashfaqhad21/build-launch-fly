@@ -6,12 +6,17 @@ OpenGL ES 3.0, and the portrait UI system modelled on the reference plates.
 
 **Read first:**
 
-- [`docs/MASTER_BRIEF.md`](docs/MASTER_BRIEF.md) — creative and technical directive.
-- [`docs/DESIGN.md`](docs/DESIGN.md) — normative visual/UI specification (tokens, five
-  ecosystems, aircraft stages, all ten screens).
+- [`docs/MASTER_BRIEF.md`](docs/MASTER_BRIEF.md) — the original creative and technical
+  commission (historical reference; its landscape and realism requirements are superseded
+  by the plates).
+- [`docs/BRIEF.md`](docs/BRIEF.md) — working brief derived from the reference plates.
+- [`docs/DESIGN.md`](docs/DESIGN.md) — the design system and **per-component catalogs with
+  implementation checklists** (hangar, currencies, upgrade cards, promos, slingshot, launch,
+  aim gauge, flight HUD, results, aircraft, environments, camera, settings, economy,
+  performance).
 - [`docs/reference/`](docs/reference/README.md) — **authoritative** visual references
-  (`Ref-1` … `Ref-7`): the primary truth for design, UI and engine look, ahead of the
-  written design where they disagree (documentation only, never packaged in the APK).
+  (`Ref-1` … `Ref-7`): the primary truth for design, UI and engine look (documentation only,
+  never packaged in the APK).
 
 ## Current status
 
@@ -49,24 +54,22 @@ release.
 **Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
 gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
 
-**UI (`ui`)** — every screen from `docs/DESIGN.md` §6, driven by live data:
+**UI (`ui`)** — portrait screens modelled on the reference plates, with the full component
+catalog and checklists in [`docs/DESIGN.md`](docs/DESIGN.md) §3:
 
-1. Main Menu (profile pill, level/rank, coins, hotspots, nav deck, primary CTA)
-2. Aircraft Workshop (five tabs, airframe stat bars, part drawer with deltas and price)
-3. Slingshot Lab (telemetry, five upgrade rows with level pips, elevation-arc slider)
-4. Environment Selection (five cards, weather/wind, personal best, lock gates)
-5. Gameplay HUD (distance/altitude/airspeed, attitude gimbal, stall and thermal alerts,
-   launch tension meter)
-6. Flight Results (record banner, breakdown ledger, retry/workshop/claim)
-7. Upgrade & Reward (installed part, resulting stats, equip action)
-8. Settings (four quality tiers, three fidelity toggles, three audio sliders)
-9. Progress & Achievements (six claimable badges with progress)
-10. Pilot Career Profile (career totals, favourite realm, configuration)
+1. Splash / loading (brand + real load progress)
+2. Hangar home (currency pills, plaque, promo rail, chest/VIP/rocket, `TAP TO FLY`)
+3. Upgrade cards: SLINGSHOT / PLANE / INCOME with level pips and prices
+4. Launch setup (plane in the rig, bottom BACK)
+5. Aim gauge (segmented arc with a green perfect zone)
+6. Flight HUD (speed dial, pause, distance, progress track, PERFECT / LOW SPEED / STALL)
+7. Results with a reward breakdown and count-up
+8. Settings, achievements/career, and the settings/career surfaces
 
-Plus a pause modal. Design tokens live in `gfx/DesignTokens.kt`; the UI is drawn at a
-360×640 dp portrait design scale (height adapts to long phones) without distortion. The
-Rajdhani and Plus Jakarta Sans typefaces are bundled (`app/src/main/res/font`) and licensed
-under the SIL OFL — see `docs/licenses/`.
+Design tokens live in `gfx/DesignTokens.kt`; the UI is drawn at a 360×640 dp portrait
+design scale (height adapts to long phones). The Rajdhani and Plus Jakarta Sans typefaces
+are bundled (`app/src/main/res/font`, SIL OFL — see `docs/licenses/`); the catalog also
+calls for a rounded display face for headings.
 
 **Orientation:** portrait. The master brief asked for landscape, but the reference plates
 (`Ref-1` … `Ref-7`) are portrait captures and take precedence — see

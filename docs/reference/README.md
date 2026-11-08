@@ -1,13 +1,12 @@
 # Reference plates — authoritative
 
 `Ref-1` … `Ref-7` are the **primary source of truth for the game's design, UI and engine
-look**. Where the references and `docs/DESIGN.md` disagree, the references win. The written
-documents stay authoritative only for what the references do not show: tokens, exact copy,
-build and engineering constraints.
+look**. Where the references and `docs/DESIGN.md` disagree, the references win; the written
+documents fill in what the references do not show.
 
 ## Files
 
-| File | Kind | Size | Measured dimensions |
+| File | Kind | Size | Dimensions |
 |---|---|---|---|
 | `Ref-1.png` | PNG screenshot | 3.5 MB | 1284 × 2778 |
 | `Ref-2.png` | PNG screenshot | 1.4 MB | 1284 × 2778 |
@@ -15,37 +14,37 @@ build and engineering constraints.
 | `Ref-4.png` | PNG screenshot | 708 KB | 1284 × 2778 |
 | `Ref-5.png` | PNG screenshot | 1.0 MB | 1284 × 2778 |
 | `Ref-6.png` | PNG screenshot | 825 KB | 1284 × 2778 |
-| `Ref-7.mp4` | Screen recording | 39.2 MB | — |
+| `Ref-7.mp4` | Screen recording | 39.2 MB | not inspectable in-browser |
 
 `Ref.zip` is a local duplicate of the stills and is git-ignored.
+
+## Inspected contents (Ref-1 … Ref-6)
+
+| Plate | Screen | Key elements |
+|---|---|---|
+| Ref-1 | Splash / loading | Toy-room illustration, "Voodoo" mark, `PLANE EVOLUTION` logo, loading ring, `Loading level: 99%` |
+| Ref-2 | Hangar home | Coin `28.15K` + gem `0` pills, gear, `VINTAGE PLANE` plaque, promo rail (store, remove-ads, gems `x1 3/3`), chest `OPEN`, `VIP`, rocket `UNLOCK`, `TAP TO FLY`, cards `SLINGSHOT 41 / 69.55K`, `PLANE 58 / 421.04K`, `INCOME 18 x38.4 / 98.52K` |
+| Ref-3 | Launch setup | Plane from behind in the slingshot, striped bands from two posts, desert valley, red `BACK` button |
+| Ref-4 | Aim / tension | Closer camera, curved segmented gauge (green centre; yellow/orange/red flanks), no text |
+| Ref-5 | Flight (good launch) | `94 KM/H` dial top-left, pause, `PERFECT!`, `167M`, right-hand progress track with flag and `4%`, green speed trails |
+| Ref-6 | Flight (slow) | `37 KM/H`, red `LOW SPEED`, `370M`, `9%`, plane tilted, same dial/track |
+
+Ref-7: the recording is committed but the browser refused it (20 MB CDN limit), so its
+contents are **not** described. Nothing in the design documents is derived from it.
 
 ## Precedence
 
 1. `Ref-1` … `Ref-7` (this folder)
 2. `docs/DESIGN.md`
-3. `docs/MASTER_BRIEF.md`
+3. `docs/BRIEF.md`
+4. `docs/MASTER_BRIEF.md`
 
 ## Aspect and orientation decision
 
 All six stills are **portrait** (1284 × 2778). The master brief originally asked for
-landscape, but the references take precedence and the game now runs **portrait**
-(`sensorPortrait` in the manifest, 360 dp design width). The UI has been re-laid out for
-portrait, and `docs/DESIGN.md` §2.3 and §6 record that this supersedes the landscape grid.
-
-## What each plate is used for
-
-To be completed from the plates themselves (screen type, biome, HUD elements, aircraft
-stage, slingshot state). Keep this table in sync whenever a plate is added or replaced:
-
-| File | Screen / state | Biome | Notes |
-|---|---|---|---|
-| `Ref-1.png` | _to fill_ | _to fill_ | |
-| `Ref-2.png` | _to fill_ | _to fill_ | |
-| `Ref-3.png` | _to fill_ | _to fill_ | |
-| `Ref-4.png` | _to fill_ | _to fill_ | |
-| `Ref-5.png` | _to fill_ | _to fill_ | |
-| `Ref-6.png` | _to fill_ | _to fill_ | |
-| `Ref-7.mp4` | _to fill_ | _to fill_ | moving reference for flight/launch feel |
+landscape, but the references take precedence: the game runs **portrait**
+(`sensorPortrait`, 360 dp design width) and the UI has been re-laid out for it. See
+`docs/DESIGN.md` §1.4.
 
 ## Packaged?
 
