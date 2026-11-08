@@ -54,7 +54,7 @@ object MenuScreen {
             Paint.Align.CENTER,
             outline = true
         )
-        f.hit(f.rect(w / 2f - 90f, tapY - 36f, 180f, 60f)) { f.nav.go(UiScreen.LAUNCH) }
+        f.hit(f.rect(w / 2f - 90f, tapY - 36f, 180f, 60f), { f.nav.go(UiScreen.LAUNCH) })
 
         val cardY = h - DesignTokens.SAFE_BOTTOM - 104f
         val cardWidth = (w - DesignTokens.MARGIN_H * 2f - 16f) / 3f
