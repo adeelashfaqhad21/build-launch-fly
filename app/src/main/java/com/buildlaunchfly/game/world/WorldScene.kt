@@ -373,44 +373,60 @@ class WorldScene(
 
     private fun heroTreeSpecs(): List<HeroSpec> = when (plantStyle) {
         PlantStyle.FOREST -> listOf(
-            HeroSpec("BirchTree_1", "BirchTree_Leaves.png", 10, 7.0f, 1),
-            HeroSpec("BirchTree_2", "BirchTree_Leaves.png", 9, 6.5f, 21),
-            HeroSpec("MapleTree_1", "MapleTree_Leaves.png", 9, 7.5f, 2),
-            HeroSpec("MapleTree_2", "MapleTree_Leaves.png", 8, 8.0f, 22)
+            HeroSpec("BirchTree_1", "BirchTree_Leaves.png", 8, 7.0f, 1),
+            HeroSpec("BirchTree_2", "BirchTree_Leaves.png", 7, 6.5f, 21),
+            HeroSpec("MapleTree_1", "MapleTree_Leaves.png", 7, 7.5f, 2),
+            HeroSpec("MapleTree_2", "MapleTree_Leaves.png", 6, 8.0f, 22),
+            HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25)
         )
         PlantStyle.ALPINE -> listOf(
-            HeroSpec("PineTree_1", "PineTree_Leaves.png", 12, 7.5f, 3),
-            HeroSpec("PineTree_2", "PineTree_Leaves.png", 10, 6.8f, 23)
+            HeroSpec("PineTree_1", "PineTree_Leaves.png", 10, 7.5f, 3),
+            HeroSpec("PineTree_2", "PineTree_Leaves.png", 8, 6.8f, 23),
+            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26)
         )
         PlantStyle.COAST -> listOf(
-            HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 8, 8.5f, 4),
-            HeroSpec("PalmTree_2", "PalmTree_Leaves.png", 7, 7.5f, 24)
+            HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 6, 8.5f, 4),
+            HeroSpec("PalmTree_2", "PalmTree_Leaves.png", 6, 7.5f, 24),
+            HeroSpec("PalmTree_3", "PalmTree_Leaves.png", 5, 9.0f, 33),
+            HeroSpec("PalmTree_4", "PalmTree_Leaves.png", 5, 7.0f, 34)
         )
         PlantStyle.DESERT -> emptyList()
     }
 
     private fun heroPlantSpecs(): List<HeroSpec> {
-        val plants = ArrayList<HeroSpec>(7)
+        val plants = ArrayList<HeroSpec>(12)
         when (plantStyle) {
             PlantStyle.FOREST -> {
-                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 50, 1.5f, 11))
-                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 40, 0.9f, 27))
-                plants.add(HeroSpec("Flower_1_Clump", "Flowers.png", 40, 0.7f, 12))
-                plants.add(HeroSpec("Flower_2_Clump", "Flowers.png", 30, 0.6f, 28))
-                plants.add(HeroSpec("Grass_Large", "Grass.png", 50, 1.0f, 13))
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 40, 1.5f, 11))
+                plants.add(HeroSpec("Bush_Large", "Bush_Leaves.png", 24, 2.2f, 41))
+                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 34, 0.9f, 27))
+                plants.add(HeroSpec("Flower_1_Clump", "Flowers.png", 34, 0.7f, 12))
+                plants.add(HeroSpec("Flower_2_Clump", "Flowers.png", 26, 0.6f, 28))
+                plants.add(HeroSpec("Flower_3_Clump", "Flowers.png", 26, 0.65f, 42))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 40, 1.0f, 13))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 40, 0.6f, 43))
+                plants.add(HeroSpec("Plant_1", "Flowers.png", 26, 0.9f, 44))
             }
             PlantStyle.ALPINE -> {
-                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 34, 1.2f, 14))
-                plants.add(HeroSpec("Grass_Large", "Grass.png", 40, 0.9f, 15))
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 28, 1.2f, 14))
+                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 24, 0.8f, 45))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 30, 0.6f, 46))
+                plants.add(HeroSpec("Plant_1", "Flowers.png", 18, 0.7f, 47))
             }
             PlantStyle.COAST -> {
-                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 30, 1.5f, 16))
-                plants.add(HeroSpec("Grass_Large", "Grass.png", 50, 1.3f, 17))
+                plants.add(HeroSpec("Bush_Large", "Bush_Leaves.png", 24, 2.0f, 16))
+                plants.add(HeroSpec("Bush_Flowers", "Bush_Leaves.png", 22, 1.4f, 48))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 34, 1.3f, 17))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 30, 0.7f, 49))
+                plants.add(HeroSpec("Plant_1", "Flowers.png", 20, 0.8f, 50))
             }
-            PlantStyle.DESERT -> Unit
+            PlantStyle.DESERT -> {
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 22, 0.5f, 51))
+            }
         }
-        plants.add(HeroSpec("Rock_1", "Rocks.png", 20, 2.0f, 18))
-        plants.add(HeroSpec("Rock_2", "Rocks.png", 14, 1.6f, 29))
+        plants.add(HeroSpec("Rock_1", "Rocks.png", 18, 2.0f, 18))
+        plants.add(HeroSpec("Rock_2", "Rocks.png", 12, 1.6f, 29))
+        plants.add(HeroSpec("Rock_3", "Rocks.png", 10, 2.4f, 52))
         return plants
     }
 
@@ -484,8 +500,10 @@ class WorldScene(
         // The desert has no leafy trees in this pack; its dead trees are bark-only models.
         if (plantStyle == PlantStyle.DESERT) {
             for (spec in listOf(
-                HeroSpec("DeadTree_1", "", 10, 5.5f, 31),
-                HeroSpec("DeadTree_2", "", 8, 6.5f, 32)
+                HeroSpec("DeadTree_1", "", 9, 5.5f, 31),
+                HeroSpec("DeadTree_2", "", 7, 6.5f, 32),
+                HeroSpec("DeadTree_5", "", 6, 4.5f, 35),
+                HeroSpec("DeadTree_9", "", 6, 4.0f, 36)
             )) {
                 val model = ObjLoader.load(assets, "quaternius/${spec.file}.obj") ?: continue
                 val data = model.bark ?: model.foliage ?: continue

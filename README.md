@@ -53,8 +53,9 @@ rock rather than a uniform green carpet.
 The external nature packs that were investigated for this are reviewed in
 [`docs/ASSETS.md`](docs/ASSETS.md) with licences, formats, style fit, animation requirements
 and the decision. **Quaternius' Ultimate Stylized Nature pack (CC0) is adopted** as a
-near-field hero layer: two variants each of birch/maple/pine/palm, dead trees for the desert,
-plus bushes, flower clumps, grass and rocks are loaded from OBJ at runtime
+near-field hero layer, mapped per realm: birch/maple/broadleaf for the forest, three pines for
+the alpine worlds, four palms for the coast, dead trees for the desert, and bushes, flower
+clumps, grasses, plants and three rock forms everywhere. They are loaded from OBJ at runtime
 (`gfx/ObjLoader`, `gfx/AssetTextures`) and instanced around the launch area at HIGH/ULTRA
 detail, while the procedural species still fill the distance. Every load is guarded, so a
 missing asset simply falls back to the procedural set.

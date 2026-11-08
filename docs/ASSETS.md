@@ -82,11 +82,17 @@ that currently cost two draw calls.
   5 variants each of Birch, Maple, Normal, Pine and Palm; 10 DeadTrees; 6 bushes; 7 flowers;
   3 grasses; 3 plants; 4 petals; 5 rocks; plus the leaf, flower, grass, rock and palm maps
   (17 textures). They live in `assets-source/quaternius/` with the licence record.
-- **Shipped in the APK** are the models that earn their cost:
-  - Forest: `BirchTree_1/2`, `MapleTree_1/2`; Alpine: `PineTree_1/2`; Coast:
-    `PalmTree_1/2`; Desert: `DeadTree_1/2` (bark-only models, drawn as single-mesh props)
-  - All realms: `Bush`, `Bush_Small`, `Flower_1_Clump`, `Flower_2_Clump`, `Grass_Large`,
-    `Rock_1`, `Rock_2`
+- **Shipped in the APK**, mapped per realm:
+
+  | Realm | Trees | Plants / props |
+  |---|---|---|
+  | Greenwood Forest | BirchTree_1/2, MapleTree_1/2, NormalTree_1 | Bush, Bush_Large, Bush_Small, Flower_1/2/3_Clump, Grass_Large, Grass_Small, Plant_1, Rock_1/2/3 |
+  | Snow / Mountain | PineTree_1/2/3 | Bush, Bush_Small, Grass_Small, Plant_1, Rock_1/2/3 |
+  | Ocean coast | PalmTree_1/2/3/4 | Bush_Large, Bush_Flowers, Grass_Large, Grass_Small, Plant_1, Rock_1/2/3 |
+  | Desert | DeadTree_1/2/5/9 (bark-only) | Grass_Small, Rock_1/2/3 |
+
+  Each model is 240–2,300 faces; counts are 5–10 instances per model, so the near
+  ring stays in the low hundreds of thousands of triangles at HIGH/ULTRA.
 - The pack's 4K bark/trunk maps (19.9 MB NormalTree bark, 20.4 MB PalmTree trunk) are **not**
   shipped — bark is drawn with the game's procedurally generated texture, which is a few
   hundred kilobytes and matches the aircraft's timber.
