@@ -445,18 +445,22 @@ class WorldScene(
             HeroSpec("BirchTree_2", "BirchTree_Leaves.png", 7, 6.5f, 21, "BirchTree_Bark.jpg"),
             HeroSpec("MapleTree_1", "MapleTree_Leaves.png", 7, 7.5f, 2, "MapleTree_Bark.jpg"),
             HeroSpec("MapleTree_2", "MapleTree_Leaves.png", 6, 8.0f, 22, "MapleTree_Bark.jpg"),
-            HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25, "NormalTree_Bark.jpg")
+            HeroSpec("MapleTree_4", "MapleTree_Leaves.png", 5, 7.2f, 57, "MapleTree_Bark.jpg"),
+            HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25, "NormalTree_Bark.jpg"),
+            HeroSpec("NormalTree_5", "NormalTree_Leaves.png", 5, 9.0f, 58, "NormalTree_Bark.jpg")
         )
         PlantStyle.ALPINE -> listOf(
             HeroSpec("PineTree_1", "PineTree_Leaves.png", 10, 7.5f, 3, "PineTree_Bark.jpg"),
             HeroSpec("PineTree_2", "PineTree_Leaves.png", 8, 6.8f, 23, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26, "PineTree_Bark.jpg")
+            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_5", "PineTree_Leaves.png", 6, 9.4f, 59, "PineTree_Bark.jpg")
         )
         PlantStyle.COAST -> listOf(
             HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 6, 8.5f, 4, "PalmTree_Trunk.jpg"),
             HeroSpec("PalmTree_2", "PalmTree_Leaves.png", 6, 7.5f, 24, "PalmTree_Trunk.jpg"),
             HeroSpec("PalmTree_3", "PalmTree_Leaves.png", 5, 9.0f, 33, "PalmTree_Trunk.jpg"),
-            HeroSpec("PalmTree_4", "PalmTree_Leaves.png", 5, 7.0f, 34, "PalmTree_Trunk.jpg")
+            HeroSpec("PalmTree_4", "PalmTree_Leaves.png", 5, 7.0f, 34, "PalmTree_Trunk.jpg"),
+            HeroSpec("PalmTree_5", "PalmTree_Leaves.png", 4, 8.0f, 60, "PalmTree_Trunk.jpg")
         )
         PlantStyle.DESERT -> emptyList()
     }
@@ -495,6 +499,7 @@ class WorldScene(
         plants.add(HeroSpec("Rock_1", "Rocks.jpg", 18, 2.0f, 18))
         plants.add(HeroSpec("Rock_2", "Rocks.jpg", 12, 1.6f, 29))
         plants.add(HeroSpec("Rock_3", "Rocks.jpg", 10, 2.4f, 52))
+        plants.add(HeroSpec("Rock_4", "Rocks.jpg", 10, 1.9f, 53))
         return plants
     }
 
@@ -596,6 +601,7 @@ class WorldScene(
             for (spec in listOf(
                 HeroSpec("DeadTree_1", "", 9, 5.5f, 31),
                 HeroSpec("DeadTree_2", "", 7, 6.5f, 32),
+                HeroSpec("DeadTree_3", "", 5, 5.0f, 37),
                 HeroSpec("DeadTree_5", "", 6, 4.5f, 35),
                 HeroSpec("DeadTree_9", "", 6, 4.0f, 36)
             )) {
