@@ -86,6 +86,12 @@ behind the aircraft under the roof eave, as in Ref-3.
 line (Viking boat, sailing boat, lifeboat, tall ship, cruise liner), each rocking slowly on the
 swell. Flat MTL colours, instanced, no extra state.
 
+**Landmarks (`world/WorldScene`)** — the Quaternius fantasy RTS set dresses the worlds: houses,
+a windmill and a watchtower in the forest; town centre and tower house in the alpine realms;
+a dock on the coast; a mine in the desert; crates and a barrel at the launch pad; and large
+mountain meshes building the skyline 300–700 m out. Loaded through `gfx/PropLoader` with each
+model's own PNG texture.
+
 **Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
 gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
 

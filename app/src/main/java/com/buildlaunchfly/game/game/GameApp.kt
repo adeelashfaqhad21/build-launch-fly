@@ -799,6 +799,10 @@ class GameApp(private val context: Context, private val input: InputState) {
             }
         }
 
+        for (part in currentScene.structures) {
+            sceneRenderer.drawInstanced(part.instanced, part.material)
+        }
+
         for (part in currentScene.shipParts) {
             sceneRenderer.drawInstanced(part.instanced, part.material)
         }

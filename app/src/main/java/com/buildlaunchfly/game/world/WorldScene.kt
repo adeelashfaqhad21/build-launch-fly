@@ -12,6 +12,7 @@ import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.ObjLoader
 import com.buildlaunchfly.game.gfx.ParticleRenderer
+import com.buildlaunchfly.game.gfx.PropLoader
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
@@ -109,6 +110,9 @@ class WorldScene(
 
     /** Static ships anchored offshore: only the ocean realm has water for them. */
     val shipParts: List<InstancedPart>
+
+    /** Hand-authored buildings, props and mountains placed on the terrain. */
+    val structures: List<InstancedPart>
 
     val birds: Wildlife.Birds
     val animals: Wildlife.GroundAnimals
@@ -333,6 +337,12 @@ class WorldScene(
             emptyList()
         }
 
+        structures = if (assets != null && detailLevel >= 2) {
+            buildStructures(assets, textures)
+        } else {
+            emptyList()
+        }
+
         waterDeep = definition.waterDeep
         waterShallow = definition.waterShallow
     }
@@ -395,6 +405,10 @@ class WorldScene(
             part.instanced.dispose()
         }
         for (part in shipParts) {
+            part.mesh.dispose()
+            part.instanced.dispose()
+        }
+        for (part in structures) {
             part.mesh.dispose()
             part.instanced.dispose()
         }
@@ -591,6 +605,134 @@ class WorldScene(
                 outPlants.add(InstancedPart(mesh, instanced, deadMaterial))
             }
         }
+    }
+
+    // ---- hand-authored buildings and mountains ----------------------------
+
+    private class StructureSpec(
+        val asset: String,
+        val height: Float,
+        val spots: List<Triple<Float, Float, Float>>
+    )
+
+    private fun structureSpecs(): List<StructureSpec> {
+        val specs = ArrayList<StructureSpec>()
+        when (definition.id) {
+            WorldId.FOREST -> {
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 9f, listOf(
+                    Triple(-44f, -70f, 0.5f),
+                    Triple(48f, -104f, -0.7f)
+                )))
+                specs.add(StructureSpec("Windmill_FirstAge", 15f, listOf(
+                    Triple(78f, -140f, 0.2f)
+                )))
+                specs.add(StructureSpec("WatchTower_FirstAge_Level2", 16f, listOf(
+                    Triple(-88f, -175f, 0f)
+                )))
+                specs.add(StructureSpec("Mountain_Single", 95f, listOf(
+                    Triple(-320f, -520f, 0.6f)
+                )))
+                specs.add(StructureSpec("MountainLarge_Single", 140f, listOf(
+                    Triple(360f, -640f, 2.1f)
+                )))
+            }
+            WorldId.MOUNTAIN -> {
+                specs.add(StructureSpec("TownCenter_FirstAge_Level1", 13f, listOf(
+                    Triple(52f, -150f, -0.4f)
+                )))
+                specs.add(StructureSpec("TowerHouse_FirstAge", 18f, listOf(
+                    Triple(-64f, -190f, 0.9f)
+                )))
+                specs.add(StructureSpec("MountainLarge_Single", 160f, listOf(
+                    Triple(-380f, -560f, 0.3f),
+                    Triple(420f, -720f, 2.4f)
+                )))
+                specs.add(StructureSpec("Mountain_Single", 100f, listOf(
+                    Triple(220f, -430f, 1.5f)
+                )))
+            }
+            WorldId.SNOW -> {
+                specs.add(StructureSpec("TownCenter_FirstAge_Level1", 12f, listOf(
+                    Triple(-46f, -140f, 0.8f)
+                )))
+                specs.add(StructureSpec("TowerHouse_FirstAge", 17f, listOf(
+                    Triple(68f, -185f, -0.5f)
+                )))
+                specs.add(StructureSpec("MountainLarge_Single", 150f, listOf(
+                    Triple(-300f, -600f, 1.1f)
+                )))
+            }
+            WorldId.OCEAN -> {
+                specs.add(StructureSpec("Dock_FirstAge", 4f, listOf(
+                    Triple(-34f, -78f, 1.57f)
+                )))
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 8f, listOf(
+                    Triple(58f, -118f, 0.4f)
+                )))
+                specs.add(StructureSpec("WatchTower_FirstAge_Level2", 15f, listOf(
+                    Triple(-130f, -240f, 0f)
+                )))
+            }
+            WorldId.DESERT -> {
+                specs.add(StructureSpec("Mine", 11f, listOf(
+                    Triple(-70f, -145f, 0.7f)
+                )))
+                specs.add(StructureSpec("TowerHouse_FirstAge", 15f, listOf(
+                    Triple(88f, -200f, -1.1f)
+                )))
+            }
+        }
+        // Crates and barrels dress every realm's launch area.
+        specs.add(StructureSpec("Crate", 1.2f, listOf(
+            Triple(11f, -26f, 0.3f),
+            Triple(13.5f, -28.5f, 1.1f)
+        )))
+        specs.add(StructureSpec("Barrel", 1.4f, listOf(
+            Triple(-12.5f, -24f, 0f)
+        )))
+        return specs
+    }
+
+    private fun buildStructures(
+        assets: AssetManager,
+        textures: TextureFactory
+    ): List<InstancedPart> {
+        val out = ArrayList<InstancedPart>()
+        val matrix = Mat4()
+        for (spec in structureSpecs()) {
+            val data = PropLoader.load(assets, "buildings/${spec.asset}.obj", spec.height)
+                ?: continue
+            val texture =
+                AssetTextures.load(assets, "buildings/${spec.asset}.png") ?: continue
+            if (spec.spots.isEmpty()) continue
+
+            val matrices = FloatArray(spec.spots.size * 16)
+            for (index in spec.spots.indices) {
+                val spot = spec.spots[index]
+                val y = terrain.height(spot.first, spot.second) - 0.15f
+                matrix.setTrs(
+                    spot.first,
+                    y,
+                    spot.second,
+                    0f, spot.third, 0f,
+                    1f, 1f, 1f
+                )
+                System.arraycopy(matrix.m, 0, matrices, index * 16, 16)
+            }
+
+            val mesh = Mesh("structure${spec.asset}", data)
+            val instanced = InstancedMesh("structures${spec.asset}", data, spec.spots.size)
+            instanced.setInstances(matrices, spec.spots.size)
+            val material = Material(
+                albedo = texture,
+                tint = Vec3(1f, 1f, 1f),
+                roughness = 0.90f,
+                metallic = 0f,
+                uvScale = 1f
+            )
+            out.add(InstancedPart(mesh, instanced, material))
+        }
+        return out
     }
 
     /** One mooring: species model, its height in metres, position and heading. */

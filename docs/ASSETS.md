@@ -169,6 +169,34 @@ Lifeboat, Sail ship, Viking boat. **All six OBJ/MTL pairs are downloaded.**
   are drawn with the white texture tinted per material.
 - `Boat` (the rowing boat) stays in `assets-source/ships` unused.
 
+## Buildings & mountains — Ultimate Fantasy RTS (CC0)
+
+Fourth supplied Drive folder. It is the *Ultimate Fantasy RTS* pack: houses, town centres,
+towers, walls, farms, windmill, market, temple, mine, port, dock, mountains, crates and
+barrels. Each model is an OBJ **with its own PNG texture**, so it does not fit the flat-colour
+animal/ship path.
+
+- **Downloaded and shipped:** Houses_FirstAge_1_Level2, Windmill_FirstAge,
+  WatchTower_FirstAge_Level2, Dock_FirstAge, Mine, TowerHouse_FirstAge,
+  TownCenter_FirstAge_Level1, Mountain_Single, MountainLarge_Single, Crate, Barrel.
+- `gfx/PropLoader` merges each OBJ into one mesh (UVs kept, V flipped for the decoded PNG),
+  normalises it to a target height with its base at y = 0, and binds the matching PNG through
+  `AssetTextures`.
+- Placement is static, per realm: houses/windmill/watchtower and two distant mountains in the
+  forest, town centre + tower house + three mountains in the alpine worlds, a dock and houses
+  on the coast, a mine and tower house in the desert, and crates and a barrel dressing the
+  launch area everywhere. `WorldScene.structureSpecs` holds the table.
+- Draw cost: one instanced draw per model per realm (1–2 instances each). Mountains are large
+  normalised meshes placed 300–700 m out to build the skyline.
+
+### itch.io — Low-Poly Aircraft Kit Free
+
+Reviewed but **not downloaded**: it is an itch.io JavaScript download (702 kB ZIP) rather than
+a direct file, so it cannot be fetched here. It is usable in principle — GLB/FBX/static OBJ,
+metre scale, one atlas, CC BY 4.0 — but CC BY requires visible attribution ("Low-Poly Aircraft
+Kit Free by heyheythere", with page link and licence), and the kit's trainer/helicopter would
+also need skinless-part animation for the propeller and control surfaces. Not adopted.
+
 ## What was implemented in its place
 
 `WorldScene` now selects a plant family from the realm and builds different silhouettes with
