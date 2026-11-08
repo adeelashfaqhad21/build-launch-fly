@@ -65,7 +65,7 @@ colour is white with a navy outline; text on white is navy/plaque brown.
 
 | Role | Spec |
 |---|---|
-| Display / numbers / buttons | Rounded heavy sans, uppercase, tight tracking, white fill + 2–3 dp navy outline + 1 dp shadow. Target face: **Fredoka One / Baloo 2 Bold** (OFL). |
+| Display / numbers / buttons | Rounded heavy sans, uppercase, tight tracking, white fill + 2–3 dp navy outline + 1 dp shadow. Bundled face: **Fredoka** (`res/font/fredoka.ttf`, OFL). |
 | HUD numerals | Same rounded face, tabular, 28–40 dp |
 | Body / helper text | Plus Jakarta Sans Medium, 12–14 dp, `#583B1E` on white, white on colour |
 | Card headings | 14–16 dp heavy uppercase, white |

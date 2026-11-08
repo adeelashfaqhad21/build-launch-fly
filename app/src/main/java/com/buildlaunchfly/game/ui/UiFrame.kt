@@ -13,7 +13,7 @@ class UiHit(
     val onDrag: ((Float) -> Unit)? = null
 )
 
-enum class UiButtonStyle { PRIMARY, SECONDARY, GHOST, DANGER }
+enum class UiButtonStyle { PRIMARY, SECONDARY, GHOST, DANGER, SUCCESS, PURPLE }
 
 /**
  * Immediate-mode drawing surface for one frame. The canvas is already scaled so all
@@ -42,16 +42,84 @@ class UiFrame(
         fill: Int = DesignTokens.SURFACE_HUD_BG,
         border: Int = DesignTokens.GLASS_BORDER
     ) {
+        painter.fill.color = DesignTokens.CARD_SHADOW
+        canvas.drawRoundRect(
+            RectF(r.left, r.top + 2.5f, r.right, r.bottom + 2.5f),
+            radius, radius, painter.fill
+        )
+
         painter.fill.color = fill
         canvas.drawRoundRect(r, radius, radius, painter.fill)
 
-        painter.stroke.color = DesignTokens.GLASS_HIGHLIGHT
-        painter.stroke.strokeWidth = 1f
-        canvas.drawLine(r.left + radius, r.top + 1f, r.right - radius, r.top + 1f, painter.stroke)
+        painter.stroke.color = DesignTokens.WHITE
+        painter.stroke.strokeWidth = 2f
+        canvas.drawRoundRect(
+            RectF(r.left + 1f, r.top + 1f, r.right - 1f, r.bottom - 1f),
+            (radius - 1f).coerceAtLeast(0f), (radius - 1f).coerceAtLeast(0f), painter.stroke
+        )
 
         painter.stroke.color = border
-        painter.stroke.strokeWidth = 1f
+        painter.stroke.strokeWidth = 1.5f
         canvas.drawRoundRect(r, radius, radius, painter.stroke)
+    }
+
+    /** Saturated pill with white bevel and a soft drop shadow (reference button style). */
+    fun pill(r: RectF, fill: Int) {
+        val radius = minOf(r.height() / 2f, DesignTokens.RADIUS_BUTTON)
+        painter.fill.color = DesignTokens.CARD_SHADOW
+        canvas.drawRoundRect(
+            RectF(r.left, r.top + 2.5f, r.right, r.bottom + 2.5f),
+            radius, radius, painter.fill
+        )
+        painter.fill.color = fill
+        canvas.drawRoundRect(r, radius, radius, painter.fill)
+        painter.stroke.color = DesignTokens.WHITE
+        painter.stroke.strokeWidth = 2f
+        canvas.drawRoundRect(
+            RectF(r.left + 1f, r.top + 1f, r.right - 1f, r.bottom - 1f),
+            (radius - 1f).coerceAtLeast(0f), (radius - 1f).coerceAtLeast(0f), painter.stroke
+        )
+    }
+
+    fun currencyPill(
+        r: RectF,
+        fill: Int,
+        icon: UiIcon,
+        value: String,
+        plus: Boolean = false,
+        onPlus: (() -> Unit)? = null
+    ) {
+        val body = RectF(r.left, r.top, r.right - if (plus) 9f else 0f, r.bottom)
+        pill(body, fill)
+        val iconSize = r.height() - 8f
+        UiIcons.draw(
+            canvas,
+            painter,
+            icon,
+            RectF(body.left + 2f, body.centerY() - iconSize / 2f, body.left + 2f + iconSize, body.centerY() + iconSize / 2f),
+            DesignTokens.WHITE
+        )
+        label(
+            value,
+            body.left + iconSize + 5f,
+            body.centerY() + 4f,
+            UiTextStyle.BADGE,
+            DesignTokens.WHITE,
+            outline = true
+        )
+        if (plus) {
+            val cx = r.right - 9f
+            val cy = r.centerY()
+            circle(cx, cy, 10f, DesignTokens.GREEN)
+            ringCircle(cx, cy, 10f, DesignTokens.WHITE, 2f)
+            painter.stroke.color = DesignTokens.WHITE
+            painter.stroke.strokeWidth = 2f
+            canvas.drawLine(cx - 4.5f, cy, cx + 4.5f, cy, painter.stroke)
+            canvas.drawLine(cx, cy - 4.5f, cx, cy + 4.5f, painter.stroke)
+            if (onPlus != null) {
+                hit(RectF(cx - 14f, cy - 14f, cx + 14f, cy + 14f), onPlus)
+            }
+        }
     }
 
     fun panelGlow(r: RectF, radius: Float, color: Int, width: Float = 2f) {
@@ -84,7 +152,7 @@ class UiFrame(
     }
 
     fun divider(x1: Float, x2: Float, y: Float) {
-        painter.stroke.color = DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.08f)
+        painter.stroke.color = DesignTokens.withAlpha(DesignTokens.INK, 0.12f)
         painter.stroke.strokeWidth = 1f
         canvas.drawLine(x1, y, x2, y, painter.stroke)
     }
@@ -97,7 +165,8 @@ class UiFrame(
         y: Float,
         style: UiTextStyle,
         color: Int = DesignTokens.TEXT_PRIMARY,
-        align: Paint.Align = Paint.Align.LEFT
+        align: Paint.Align = Paint.Align.LEFT,
+        outline: Boolean = false
     ) {
         val p = painter.text
         p.typeface = painter.typeface(style.font)
@@ -105,6 +174,14 @@ class UiFrame(
         p.textSize = style.sizeDp
         p.color = color
         p.textAlign = Paint.Align.LEFT
+
+        val stroke = painter.textStroke
+        if (outline) {
+            stroke.typeface = p.typeface
+            stroke.textSize = p.textSize
+            stroke.strokeWidth = style.sizeDp * 0.13f
+            stroke.color = DesignTokens.NAVY
+        }
 
         val tracking = style.sizeDp * style.tracking
         val rawWidth = p.measureText(text)
@@ -117,12 +194,14 @@ class UiFrame(
         }
 
         if (tracking <= 0.01f) {
+            if (outline) canvas.drawText(text, cursor, y, stroke)
             canvas.drawText(text, cursor, y, p)
             return
         }
 
         for (index in text.indices) {
             val ch = text[index].toString()
+            if (outline) canvas.drawText(ch, cursor, y, stroke)
             canvas.drawText(ch, cursor, y, p)
             cursor += p.measureText(ch) + tracking
         }
@@ -133,7 +212,8 @@ class UiFrame(
         text: String,
         style: UiTextStyle,
         color: Int = DesignTokens.TEXT_PRIMARY,
-        align: Paint.Align = Paint.Align.CENTER
+        align: Paint.Align = Paint.Align.CENTER,
+        outline: Boolean = false
     ) {
         val baseline = r.centerY() + style.sizeDp * 0.35f
         val x = when (align) {
@@ -141,7 +221,7 @@ class UiFrame(
             Paint.Align.RIGHT -> r.right
             else -> r.left
         }
-        label(text, x, baseline, style, color, align)
+        label(text, x, baseline, style, color, align, outline)
     }
 
     fun textWidth(text: String, style: UiTextStyle): Float {
@@ -160,7 +240,8 @@ class UiFrame(
         maxWidth: Float,
         style: UiTextStyle,
         color: Int = DesignTokens.TEXT_MUTED,
-        lineHeight: Float = style.sizeDp * 1.35f
+        lineHeight: Float = style.sizeDp * 1.35f,
+        outline: Boolean = false
     ): Float {
         val p = painter.text
         p.typeface = painter.typeface(style.font)
@@ -169,11 +250,20 @@ class UiFrame(
         p.color = color
         p.textAlign = Paint.Align.LEFT
 
+        val stroke = painter.textStroke
+        if (outline) {
+            stroke.typeface = p.typeface
+            stroke.textSize = p.textSize
+            stroke.strokeWidth = style.sizeDp * 0.13f
+            stroke.color = DesignTokens.NAVY
+        }
+
         var cursorY = y
         var line = StringBuilder()
         for (word in text.split(' ')) {
             val candidate = if (line.isEmpty()) word else "$line $word"
             if (p.measureText(candidate) > maxWidth && line.isNotEmpty()) {
+                if (outline) canvas.drawText(line.toString(), x, cursorY, stroke)
                 canvas.drawText(line.toString(), x, cursorY, p)
                 cursorY += lineHeight
                 line = StringBuilder(word)
@@ -182,6 +272,7 @@ class UiFrame(
             }
         }
         if (line.isNotEmpty()) {
+            if (outline) canvas.drawText(line.toString(), x, cursorY, stroke)
             canvas.drawText(line.toString(), x, cursorY, p)
             cursorY += lineHeight
         }
@@ -207,43 +298,33 @@ class UiFrame(
         enabled: Boolean = true,
         onClick: () -> Unit
     ) {
-        val alpha = if (enabled) 1f else 0.45f
+        val alpha = if (enabled) 1f else 0.5f
+        val radius = minOf(r.height() / 2f, DesignTokens.RADIUS_BUTTON)
 
         when (style) {
-            UiButtonStyle.PRIMARY -> {
-                val pulse = 0.5f + 0.5f * kotlin.math.sin(time * 3.4f)
-                solid(r, DesignTokens.RADIUS_BUTTON, DesignTokens.withAlpha(DesignTokens.COLOR_COIN_GOLD, alpha))
-                panelGlow(
-                    r,
-                    DesignTokens.RADIUS_BUTTON,
-                    DesignTokens.withAlpha(DesignTokens.COLOR_COIN_GOLD_GLOW, 0.35f + pulse * 0.35f),
-                    2f
-                )
-                solid(
-                    RectF(r.left + 2f, r.top + 2f, r.right - 2f, r.centerY()),
-                    DesignTokens.RADIUS_BUTTON - 2f,
-                    DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.14f * alpha)
-                )
-                labelIn(r, text, UiTextStyle.H2, DesignTokens.withAlpha(DesignTokens.TEXT_INVERSE, alpha))
-            }
-
             UiButtonStyle.SECONDARY -> {
-                panel(
-                    r,
-                    DesignTokens.RADIUS_BUTTON,
-                    DesignTokens.withAlpha(DesignTokens.SURFACE_HUD_BG, 0.85f * alpha),
-                    DesignTokens.withAlpha(DesignTokens.GLASS_BORDER, alpha)
-                )
-                labelIn(r, text, UiTextStyle.BODY_LARGE, DesignTokens.withAlpha(DesignTokens.TEXT_PRIMARY, alpha))
+                panel(r, radius, DesignTokens.CARD, DesignTokens.CARD_EDGE)
+                labelIn(r, text, UiTextStyle.H2, DesignTokens.withAlpha(DesignTokens.INK, alpha))
             }
 
             UiButtonStyle.GHOST -> {
                 labelIn(r, text, UiTextStyle.BODY_LARGE, DesignTokens.withAlpha(DesignTokens.TEXT_MUTED, alpha))
             }
 
-            UiButtonStyle.DANGER -> {
-                solid(r, DesignTokens.RADIUS_BUTTON, DesignTokens.withAlpha(DesignTokens.COLOR_HAZARD, 0.88f * alpha))
-                labelIn(r, text, UiTextStyle.BODY_LARGE, DesignTokens.withAlpha(DesignTokens.TEXT_PRIMARY, alpha))
+            else -> {
+                val fill = when (style) {
+                    UiButtonStyle.PRIMARY -> DesignTokens.GOLD
+                    UiButtonStyle.DANGER -> DesignTokens.RED
+                    UiButtonStyle.SUCCESS -> DesignTokens.GREEN
+                    UiButtonStyle.PURPLE -> DesignTokens.PURPLE
+                    else -> DesignTokens.BLUE
+                }
+                if (enabled) {
+                    pill(r, fill)
+                } else {
+                    solid(r, radius, DesignTokens.withAlpha(fill, alpha))
+                }
+                labelIn(r, text, UiTextStyle.H2, DesignTokens.WHITE, outline = true)
             }
         }
 
@@ -276,7 +357,7 @@ class UiFrame(
         solid(
             track,
             trackHeight / 2f,
-            if (on) DesignTokens.COLOR_PRIMARY_AERO else DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.16f)
+            if (on) DesignTokens.COLOR_PRIMARY_AERO else DesignTokens.withAlpha(DesignTokens.INK, 0.16f)
         )
         val knobX = if (on) track.right - 10f else track.left + 10f
         circle(knobX, track.centerY(), 7.5f, DesignTokens.TEXT_PRIMARY)
@@ -286,7 +367,7 @@ class UiFrame(
     fun slider(r: RectF, value: Float, onChange: (Float) -> Unit) {
         val v = value.coerceIn(0f, 1f)
         val track = RectF(r.left, r.centerY() - 3f, r.right, r.centerY() + 3f)
-        solid(track, 3f, DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.14f))
+        solid(track, 3f, DesignTokens.withAlpha(DesignTokens.INK, 0.16f))
         solid(
             RectF(track.left, track.top, track.left + track.width() * v, track.bottom),
             3f,
@@ -302,7 +383,7 @@ class UiFrame(
         r: RectF,
         fraction: Float,
         fill: Int = DesignTokens.COLOR_PRIMARY_GLOW,
-        background: Int = DesignTokens.withAlpha(0xFFFFFFFF.toInt(), 0.12f)
+        background: Int = DesignTokens.withAlpha(DesignTokens.INK, 0.15f)
     ) {
         val f = fraction.coerceIn(0f, 1f)
         solid(r, r.height() / 2f, background)
@@ -354,7 +435,8 @@ class UiFrame(
             x = DesignTokens.MARGIN_H,
             y = DesignTokens.SAFE_TOP + 64f,
             style = UiTextStyle.H1,
-            color = DesignTokens.TEXT_PRIMARY
+            color = DesignTokens.WHITE,
+            outline = true
         )
 
         return DesignTokens.SAFE_TOP + 74f

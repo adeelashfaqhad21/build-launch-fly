@@ -5,6 +5,7 @@ import android.graphics.RectF
 import com.buildlaunchfly.game.aircraft.AircraftCatalog
 import com.buildlaunchfly.game.aircraft.PartSlot
 import com.buildlaunchfly.game.gfx.DesignTokens
+import com.buildlaunchfly.game.slingshot.SlingUpgrade
 import com.buildlaunchfly.game.ui.UiButtonStyle
 import com.buildlaunchfly.game.ui.UiFormat
 import com.buildlaunchfly.game.ui.UiFrame
@@ -14,7 +15,10 @@ import com.buildlaunchfly.game.ui.UiScreen
 import com.buildlaunchfly.game.ui.UiTextStyle
 import com.buildlaunchfly.game.world.WorldCatalog
 
-/** Screen 1 — Main Menu (portrait, per the reference plates). */
+/**
+ * Screen 2 — Hangar home, following Ref-2:
+ * currency pills, plaque, promo rail, chest/VIP/rocket, TAP TO FLY and three upgrade cards.
+ */
 object MenuScreen {
 
     fun draw(f: UiFrame) {
@@ -23,139 +27,252 @@ object MenuScreen {
         val profile = f.app.playerProfile
         val world = WorldCatalog.byId(profile.selectedWorld)
 
-        drawProfilePill(f)
-        drawTopRightCluster(f)
+        drawCurrencies(f)
+        drawPromos(f)
 
-        f.label("BUILD \u2022 LAUNCH \u2022 FLY", DesignTokens.MARGIN_H, 154f, UiTextStyle.DISPLAY_HERO)
+        val plaque = f.rect(80f, 62f, 200f, 30f)
+        f.solid(plaque, 10f, DesignTokens.PLAQUE)
+        f.ring(plaque, 10f, DesignTokens.withAlpha(DesignTokens.INK, 0.35f), 2f)
+        f.labelIn(plaque, "VINTAGE PLANE", UiTextStyle.HUD_LABEL, DesignTokens.PLAQUE_TEXT)
+
+        val tapY = h * 0.52f
         f.label(
-            "READY ON THE PAD \u2014 ${world.displayName.uppercase()}",
-            DesignTokens.MARGIN_H,
-            176f,
-            UiTextStyle.BODY,
-            DesignTokens.TEXT_MUTED
+            "TAP TO FLY",
+            w / 2f,
+            tapY,
+            UiTextStyle.DISPLAY_HERO,
+            DesignTokens.WHITE,
+            Paint.Align.CENTER,
+            outline = true
         )
+        f.label(
+            world.displayName.uppercase(),
+            w / 2f,
+            tapY + 20f,
+            UiTextStyle.BADGE,
+            DesignTokens.WHITE,
+            Paint.Align.CENTER,
+            outline = true
+        )
+        f.hit(f.rect(w / 2f - 90f, tapY - 36f, 180f, 60f)) { f.nav.go(UiScreen.LAUNCH) }
 
-        drawHotspot(f, w * 0.50f, 208f, propellerTag(f))
-        drawHotspot(f, w * 0.50f - 24f, 236f, wingTag(f))
+        val cardY = h - DesignTokens.SAFE_BOTTOM - 104f
+        val cardWidth = (w - DesignTokens.MARGIN_H * 2f - 16f) / 3f
 
-        val navY = h - DesignTokens.SAFE_BOTTOM - 56f
-        val cta = f.rect(DesignTokens.MARGIN_H, navY - 64f, w - DesignTokens.MARGIN_H * 2f, 56f)
-        f.button(cta, "CHOOSE REALM & LAUNCH", UiButtonStyle.PRIMARY) {
-            f.nav.go(UiScreen.WORLDS)
-        }
-
-        val navWidth = (w - DesignTokens.MARGIN_H * 2f - 16f) / 3f
-        val step = navWidth + 8f
-        navButton(f, f.rect(DesignTokens.MARGIN_H, navY, navWidth, 56f), UiIcon.PLANE, "AIRCRAFT") {
-            f.nav.go(UiScreen.AIRCRAFT)
-        }
-        navButton(
-            f,
-            f.rect(DesignTokens.MARGIN_H + step, navY, navWidth, 56f),
-            UiIcon.SLINGSHOT,
-            "SLINGSHOT"
+        upgradeCard(
+            f = f,
+            r = f.rect(DesignTokens.MARGIN_H, cardY, cardWidth, 104f),
+            header = DesignTokens.ORANGE,
+            icon = UiIcon.SLINGSHOT,
+            title = "SLINGSHOT",
+            level = slingshotLevel(f),
+            progress = (slingshotLevel(f) % 5) / 5f,
+            price = slingshotPrice(f)
         ) { f.nav.go(UiScreen.SLINGSHOT) }
-        navButton(
-            f,
-            f.rect(DesignTokens.MARGIN_H + step * 2f, navY, navWidth, 56f),
-            UiIcon.GLOBE,
-            "REALMS"
-        ) { f.nav.go(UiScreen.WORLDS) }
+
+        upgradeCard(
+            f = f,
+            r = f.rect(DesignTokens.MARGIN_H + cardWidth + 8f, cardY, cardWidth, 104f),
+            header = DesignTokens.CYAN,
+            icon = UiIcon.PLANE,
+            title = "PLANE",
+            level = planeLevel(f),
+            progress = (planeLevel(f) % 5) / 5f,
+            price = planePrice(f)
+        ) { f.nav.go(UiScreen.AIRCRAFT) }
+
+        upgradeCard(
+            f = f,
+            r = f.rect(DesignTokens.MARGIN_H + (cardWidth + 8f) * 2f, cardY, cardWidth, 104f),
+            header = DesignTokens.PURPLE,
+            icon = UiIcon.COIN,
+            title = "INCOME",
+            level = profile.incomeLevel,
+            progress = (profile.incomeLevel % 5) / 5f,
+            price = profile.incomeUpgradePrice()
+        ) { f.app.requestUpgradeIncome() }
     }
 
-    private fun drawProfilePill(f: UiFrame) {
+    private fun drawCurrencies(f: UiFrame) {
         val w = f.width
         val profile = f.app.playerProfile
-        val pill = f.rect(DesignTokens.MARGIN_H, DesignTokens.SAFE_TOP, w - DesignTokens.MARGIN_H * 2f, 56f)
-        f.panel(pill, 14f)
-        f.circle(pill.left + 26f, pill.centerY(), 18f, DesignTokens.COLOR_PRIMARY_AERO)
-        f.labelIn(
-            f.rect(pill.left + 8f, pill.centerY() - 18f, 36f, 36f),
-            "CPT",
-            UiTextStyle.BADGE,
-            DesignTokens.TEXT_PRIMARY
+        f.currencyPill(
+            f.rect(16f, 20f, 130f, 30f),
+            DesignTokens.GOLD,
+            UiIcon.COIN,
+            UiFormat.coins(profile.coins)
         )
-        f.label("Capt. Alexander", pill.left + 52f, pill.top + 22f, UiTextStyle.H2)
-        f.label(
-            "${profile.pilotRankTitle()} \u2022 Lv ${profile.pilotLevel()}",
-            pill.left + 52f,
-            pill.top + 40f,
-            UiTextStyle.BODY,
-            DesignTokens.TEXT_MUTED
+        f.currencyPill(
+            f.rect(154f, 20f, 86f, 30f),
+            DesignTokens.GEM,
+            UiIcon.GEM,
+            profile.gems.toString()
         )
-        f.progressBar(
-            f.rect(pill.left + 52f, pill.bottom - 9f, pill.width() - 64f, 4f),
-            profile.levelProgressFraction()
-        )
+        f.iconButton(f.rect(w - 16f - 32f, 20f, 32f, 32f), UiIcon.GEAR) {
+            f.nav.go(UiScreen.SETTINGS)
+        }
     }
 
-    private fun drawTopRightCluster(f: UiFrame) {
-        val w = f.width
-        val top = DesignTokens.SAFE_TOP + 64f
-        val gear = f.rect(w - DesignTokens.MARGIN_H - 36f, top, 36f, 36f)
-        val trophy = f.rect(gear.left - 8f - 36f, top, 36f, 36f)
-        val user = f.rect(trophy.left - 8f - 36f, top, 36f, 36f)
-        val coins = f.rect(DesignTokens.MARGIN_H, top + 3f, 116f, 30f)
+    private fun drawPromos(f: UiFrame) {
+        promoIcon(f, f.rect(16f, 112f, 40f, 40f), UiIcon.STORE, false) {}
+        promoIcon(f, f.rect(16f, 170f, 40f, 40f), UiIcon.VIDEO, false) {}
+        promoIcon(f, f.rect(16f, 228f, 40f, 40f), UiIcon.GEM, false) {}
 
-        f.iconButton(gear, UiIcon.GEAR) { f.nav.go(UiScreen.SETTINGS) }
-        f.iconButton(trophy, UiIcon.TROPHY) { f.nav.go(UiScreen.ACHIEVEMENTS) }
-        f.iconButton(user, UiIcon.USER) { f.nav.go(UiScreen.PROFILE) }
-
-        f.panel(coins, DesignTokens.RADIUS_PILL)
+        val chest = f.rect(244f, 112f, 100f, 56f)
+        f.panel(chest, 14f)
         UiIcons.draw(
             f.canvas,
             f.painter,
-            UiIcon.COIN,
-            RectF(coins.left + 5f, coins.centerY() - 9f, coins.left + 23f, coins.centerY() + 9f),
-            DesignTokens.COLOR_COIN_GOLD
+            UiIcon.CHEST,
+            RectF(chest.left + 8f, chest.top + 8f, chest.left + 36f, chest.top + 36f),
+            DesignTokens.GOLD
         )
-        f.label(
-            UiFormat.coins(f.app.playerProfile.coins),
-            coins.right - 9f,
-            coins.centerY() + 4f,
-            UiTextStyle.BADGE,
-            DesignTokens.TEXT_PRIMARY,
-            Paint.Align.RIGHT
+        val chestReady = f.app.chestReady()
+        f.button(
+            f.rect(chest.right - 54f, chest.bottom - 24f, 46f, 18f),
+            "OPEN",
+            UiButtonStyle.SUCCESS,
+            chestReady
+        ) { f.app.requestClaimChest() }
+
+        val vip = f.rect(244f, 180f, 100f, 44f)
+        f.panel(vip, 14f)
+        UiIcons.draw(
+            f.canvas,
+            f.painter,
+            UiIcon.TROPHY,
+            RectF(vip.left + 8f, vip.top + 9f, vip.left + 36f, vip.top + 37f),
+            DesignTokens.GOLD
         )
+        f.label("VIP", vip.right - 10f, vip.centerY() + 6f, UiTextStyle.H2, DesignTokens.GOLD, Paint.Align.RIGHT, outline = true)
+
+        val rocket = f.rect(244f, 236f, 100f, 64f)
+        f.panel(rocket, 14f)
+        UiIcons.draw(
+            f.canvas,
+            f.painter,
+            UiIcon.ROCKET,
+            RectF(rocket.left + 8f, rocket.top + 6f, rocket.left + 36f, rocket.top + 34f),
+            DesignTokens.BLUE
+        )
+        f.button(
+            f.rect(rocket.left + 8f, rocket.bottom - 26f, rocket.width() - 16f, 20f),
+            "UNLOCK",
+            UiButtonStyle.PURPLE
+        ) { f.nav.go(UiScreen.WORLDS) }
     }
 
-    private fun navButton(f: UiFrame, r: RectF, icon: UiIcon, caption: String, onClick: () -> Unit) {
-        f.panel(r, 12f)
+    private fun promoIcon(f: UiFrame, r: RectF, icon: UiIcon, enabled: Boolean, onClick: () -> Unit) {
+        f.panel(r, 12f, if (enabled) DesignTokens.CARD else DesignTokens.withAlpha(DesignTokens.CARD, 0.65f))
         UiIcons.draw(
             f.canvas,
             f.painter,
             icon,
-            RectF(r.centerX() - 10f, r.top + 7f, r.centerX() + 10f, r.top + 27f),
-            DesignTokens.TEXT_PRIMARY
+            RectF(r.left + 10f, r.top + 10f, r.right - 10f, r.bottom - 10f),
+            if (enabled) DesignTokens.INK else DesignTokens.withAlpha(DesignTokens.INK, 0.4f)
         )
-        f.label(caption, r.centerX(), r.bottom - 7f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
+        if (enabled) f.hit(r, onClick)
+    }
+
+    private fun upgradeCard(
+        f: UiFrame,
+        r: RectF,
+        header: Int,
+        icon: UiIcon,
+        title: String,
+        level: Int,
+        progress: Float,
+        price: Int,
+        onClick: () -> Unit
+    ) {
+        f.panel(r, 16f, DesignTokens.CARD, DesignTokens.CARD_EDGE)
+
+        f.solid(RectF(r.left + 2f, r.top + 2f, r.right - 2f, r.top + 22f), 14f, header)
+        f.solid(RectF(r.left + 2f, r.top + 12f, r.right - 2f, r.top + 22f), 0f, header)
+        f.label(title, r.left + 8f, r.top + 15f, UiTextStyle.BADGE, DesignTokens.WHITE, outline = true)
+        f.label(
+            level.toString(),
+            r.right - 8f,
+            r.top + 15f,
+            UiTextStyle.BADGE,
+            DesignTokens.WHITE,
+            Paint.Align.RIGHT,
+            outline = true
+        )
+
+        UiIcons.draw(
+            f.canvas,
+            f.painter,
+            icon,
+            RectF(r.centerX() - 17f, r.top + 28f, r.centerX() + 17f, r.top + 62f),
+            header
+        )
+
+        val pipWidth = 10f
+        val pipGap = 3f
+        val totalPips = 5
+        val pipsWidth = totalPips * pipWidth + (totalPips - 1) * pipGap
+        val pipStart = r.centerX() - pipsWidth / 2f
+        val filled = (progress * totalPips).toInt().coerceIn(0, totalPips)
+        for (i in 0 until totalPips) {
+            val pip = RectF(
+                pipStart + i * (pipWidth + pipGap),
+                r.top + 68f,
+                pipStart + i * (pipWidth + pipGap) + pipWidth,
+                r.top + 74f
+            )
+            f.solid(pip, 3f, if (i < filled) DesignTokens.GREEN else DesignTokens.withAlpha(DesignTokens.INK, 0.15f))
+        }
+
+        val priceRect = RectF(r.left + 8f, r.bottom - 22f, r.right - 8f, r.bottom - 6f)
+        f.solid(priceRect, 8f, DesignTokens.LAVENDER)
+        UiIcons.draw(
+            f.canvas,
+            f.painter,
+            UiIcon.COIN,
+            RectF(priceRect.left + 3f, priceRect.centerY() - 6f, priceRect.left + 15f, priceRect.centerY() + 6f),
+            DesignTokens.GOLD
+        )
+        f.label(
+            UiFormat.coins(price),
+            priceRect.right - 5f,
+            priceRect.centerY() + 3.5f,
+            UiTextStyle.BADGE,
+            DesignTokens.PLAQUE_TEXT,
+            Paint.Align.RIGHT
+        )
+
         f.hit(r, onClick)
     }
 
-    private fun drawHotspot(f: UiFrame, x: Float, y: Float, text: String) {
-        val width = f.textWidth(text, UiTextStyle.BADGE) + 16f
-        val r = RectF(x.coerceAtMost(f.width - DesignTokens.MARGIN_H - width), y, 0f, y + 18f)
-        r.right = r.left + width
-        f.solid(r, 9f, DesignTokens.withAlpha(DesignTokens.SURFACE_MODAL_BG, 0.82f))
-        f.ring(r, 9f, DesignTokens.GLASS_BORDER)
-        f.labelIn(r, text, UiTextStyle.BADGE, DesignTokens.COLOR_PRIMARY_GLOW)
-
-        f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.COLOR_PRIMARY_GLOW, 0.5f)
-        f.painter.stroke.strokeWidth = 1f
-        f.canvas.drawLine(r.left, r.bottom, r.left + 16f, r.bottom + 12f, f.painter.stroke)
+    private fun slingshotLevel(f: UiFrame): Int {
+        var sum = 0
+        for (type in SlingUpgrade.values()) sum += f.app.slingshotState.levelOf(type)
+        return sum
     }
 
-    private fun propellerTag(f: UiFrame): String {
-        val build = f.app.aircraftBuild
-        val tier = build.tierOf(PartSlot.PROPELLER)
-        val part = AircraftCatalog.upgrade(PartSlot.PROPELLER, tier)?.displayName ?: "NO PROPELLER"
-        return "[ ${part.uppercase()} ]"
+    private fun slingshotPrice(f: UiFrame): Int {
+        var best = Int.MAX_VALUE
+        for (type in SlingUpgrade.values()) {
+            if (!f.app.slingshotState.isMaxed(type)) {
+                best = minOf(best, f.app.slingshotState.costToUpgrade(type))
+            }
+        }
+        return if (best == Int.MAX_VALUE) 0 else best
     }
 
-    private fun wingTag(f: UiFrame): String {
-        val build = f.app.aircraftBuild
-        val tier = build.tierOf(PartSlot.WING_LEFT)
-        val part = AircraftCatalog.upgrade(PartSlot.WING_LEFT, tier)?.displayName ?: "BARE AIRFRAME"
-        return "[ ${part.uppercase()} ]"
+    private fun planeLevel(f: UiFrame): Int {
+        var sum = 0
+        for (tier in f.app.aircraftBuild.tiers.values) sum += tier
+        return sum
+    }
+
+    private fun planePrice(f: UiFrame): Int {
+        var best = Int.MAX_VALUE
+        for (slot in PartSlot.values()) {
+            val next = AircraftCatalog.nextUpgrade(slot, f.app.aircraftBuild.tierOf(slot))
+            if (next != null) best = minOf(best, next.price)
+        }
+        return if (best == Int.MAX_VALUE) 0 else best
     }
 }

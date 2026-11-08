@@ -13,6 +13,9 @@ import org.json.JSONObject
 class PlayerProfile {
 
     var coins: Int = 320
+    var gems: Int = 0
+    var incomeLevel: Int = 1
+    var nextChestAtMillis: Long = 0L
     var bestDistance: Float = 0f
     var bestAltitude: Float = 0f
     var flights: Int = 0
@@ -73,6 +76,32 @@ class PlayerProfile {
 
     fun bestForWorld(id: WorldId): Float = bestPerWorld[id] ?: 0f
 
+    /** INCOME track: level 18 is the reference's x38.4, so the curve is quadratic. */
+    fun incomeMultiplier(): Float = 1f + 0.118f * incomeLevel * incomeLevel
+
+    fun incomeUpgradePrice(): Int =
+        Math.round(450.0 * Math.pow(1.18, incomeLevel.toDouble())).toInt()
+
+    fun upgradeIncome(): Boolean {
+        val price = incomeUpgradePrice()
+        if (coins < price) return false
+        coins -= price
+        incomeLevel += 1
+        return true
+    }
+
+    fun chestReady(nowMillis: Long): Boolean = nowMillis >= nextChestAtMillis
+
+    fun claimChest(now: Long): Int {
+        if (!claimChestAllowed(now)) return 0
+        val reward = 120 + incomeLevel * 25
+        coins += reward
+        nextChestAtMillis = now + CHEST_COOLDOWN_MS
+        return reward
+    }
+
+    private fun claimChestAllowed(now: Long): Boolean = now >= nextChestAtMillis
+
     // ---- records ----------------------------------------------------------
 
     fun recordFlight(
@@ -106,6 +135,9 @@ class PlayerProfile {
         val root = JSONObject()
         root.put("version", 2)
         root.put("coins", coins)
+        root.put("gems", gems)
+        root.put("incomeLevel", incomeLevel)
+        root.put("nextChestAt", nextChestAtMillis)
         root.put("bestDistance", bestDistance.toDouble())
         root.put("bestAltitude", bestAltitude.toDouble())
         root.put("flights", flights)
@@ -140,12 +172,17 @@ class PlayerProfile {
 
     companion object {
 
+        private const val CHEST_COOLDOWN_MS = 5L * 60L * 1000L
+
         fun fromJson(text: String?): PlayerProfile {
             val profile = PlayerProfile()
             if (text.isNullOrBlank()) return profile
             try {
                 val root = JSONObject(text)
                 profile.coins = root.optInt("coins", profile.coins)
+                profile.gems = root.optInt("gems", 0)
+                profile.incomeLevel = root.optInt("incomeLevel", 1).coerceAtLeast(1)
+                profile.nextChestAtMillis = root.optLong("nextChestAt", 0L)
                 profile.bestDistance = root.optDouble("bestDistance", 0.0).toFloat()
                 profile.bestAltitude = root.optDouble("bestAltitude", 0.0).toFloat()
                 profile.flights = root.optInt("flights", 0)

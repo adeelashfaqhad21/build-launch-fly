@@ -6,7 +6,7 @@ import android.graphics.RectF
 import com.buildlaunchfly.game.gfx.DesignTokens
 
 /** Vector icons from design.md §7.1, drawn as paths so they scale at any density. */
-enum class UiIcon { BACK, GEAR, PLANE, SLINGSHOT, GLOBE, COIN, TROPHY, PLAY, LOCK, CHECK, PAUSE, USER }
+enum class UiIcon { BACK, GEAR, PLANE, SLINGSHOT, GLOBE, COIN, TROPHY, PLAY, LOCK, CHECK, PAUSE, USER, GEM, CHEST, ROCKET, STORE, VIDEO }
 
 object UiIcons {
 
@@ -138,6 +138,73 @@ object UiIcons {
                     RectF(cx - size * 0.85f, cy + size * 0.05f, cx + size * 0.85f, cy + size * 1.5f),
                     180f, 180f, true, painter.fill
                 )
+            }
+
+            UiIcon.GEM -> {
+                val path = Path()
+                path.moveTo(cx, cy - size)
+                path.lineTo(cx + size * 0.85f, cy - size * 0.1f)
+                path.lineTo(cx, cy + size)
+                path.lineTo(cx - size * 0.85f, cy - size * 0.1f)
+                path.close()
+                canvas.drawPath(path, painter.fill)
+                painter.stroke.color = DesignTokens.WHITE
+                painter.stroke.strokeWidth = size * 0.1f
+                canvas.drawLine(cx - size * 0.5f, cy - size * 0.1f, cx + size * 0.5f, cy - size * 0.1f, painter.stroke)
+            }
+
+            UiIcon.CHEST -> {
+                canvas.drawRoundRect(
+                    RectF(cx - size, cy - size * 0.35f, cx + size, cy + size),
+                    3f, 3f, painter.fill
+                )
+                painter.stroke.color = DesignTokens.WHITE
+                painter.stroke.strokeWidth = size * 0.12f
+                canvas.drawLine(cx - size, cy - size * 0.35f, cx + size, cy - size * 0.35f, painter.stroke)
+                canvas.drawRoundRect(
+                    RectF(cx - size * 0.2f, cy + size * 0.05f, cx + size * 0.2f, cy + size * 0.5f),
+                    2f, 2f, painter.stroke
+                )
+            }
+
+            UiIcon.ROCKET -> {
+                val path = Path()
+                path.moveTo(cx, cy - size)
+                path.lineTo(cx + size * 0.45f, cy + size * 0.15f)
+                path.lineTo(cx + size * 0.2f, cy + size * 0.85f)
+                path.lineTo(cx - size * 0.2f, cy + size * 0.85f)
+                path.lineTo(cx - size * 0.45f, cy + size * 0.15f)
+                path.close()
+                canvas.drawPath(path, painter.fill)
+                painter.stroke.color = DesignTokens.WHITE
+                painter.stroke.strokeWidth = size * 0.12f
+                canvas.drawCircle(cx, cy - size * 0.25f, size * 0.22f, painter.stroke)
+            }
+
+            UiIcon.STORE -> {
+                canvas.drawRoundRect(
+                    RectF(cx - size, cy - size * 0.55f, cx + size, cy + size),
+                    3f, 3f, painter.fill
+                )
+                painter.stroke.color = DesignTokens.WHITE
+                painter.stroke.strokeWidth = size * 0.12f
+                canvas.drawLine(cx - size, cy - size * 0.2f, cx + size, cy - size * 0.2f, painter.stroke)
+                canvas.drawLine(cx - size * 0.3f, cy + size, cx - size * 0.3f, cy + size * 0.2f, painter.stroke)
+                canvas.drawLine(cx + size * 0.3f, cy + size, cx + size * 0.3f, cy + size * 0.2f, painter.stroke)
+            }
+
+            UiIcon.VIDEO -> {
+                canvas.drawRoundRect(
+                    RectF(cx - size, cy - size * 0.6f, cx + size, cy + size * 0.6f),
+                    3f, 3f, painter.fill
+                )
+                val path = Path()
+                path.moveTo(cx - size * 0.25f, cy - size * 0.35f)
+                path.lineTo(cx + size * 0.45f, cy)
+                path.lineTo(cx - size * 0.25f, cy + size * 0.35f)
+                path.close()
+                painter.fill.color = DesignTokens.WHITE
+                canvas.drawPath(path, painter.fill)
             }
         }
     }

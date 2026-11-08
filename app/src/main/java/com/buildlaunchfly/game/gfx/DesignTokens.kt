@@ -1,35 +1,60 @@
 package com.buildlaunchfly.game.gfx
 
 /**
- * Design system tokens, transcribed from docs/DESIGN.md §2.
- *
- * Colours are ARGB ints ready for android.graphics.Paint. Sizes, spacing, radii and safe
- * areas are in dp; the UI is drawn in a 640x360dp design space that scales 1:1 to the
- * document's 1920x1080px canvas at density 3.
+ * Design tokens transcribed from the authoritative reference plates (Ref-1 … Ref-6):
+ * a bright hypercasual palette — white cards, saturated headers, gold coins, blue gems,
+ * chunky outlined lettering.
  */
 object DesignTokens {
 
-    // ---- Primary aviation palette ----------------------------------------
-    val COLOR_PRIMARY_AERO: Int = 0xFF0284C7.toInt()
-    val COLOR_PRIMARY_GLOW: Int = 0xFF38BDF8.toInt()
-    val COLOR_PRIMARY_DEEP: Int = 0xFF03254C.toInt()
+    // ---- Reference palette ------------------------------------------------
+    val SKY: Int = 0xFF40B9E8.toInt()
+    val SAND: Int = 0xFFC5A078.toInt()
+    val SAND_LIGHT: Int = 0xFFD4B183.toInt()
 
-    // ---- Currency & status accents ---------------------------------------
-    val COLOR_COIN_GOLD: Int = 0xFFF59E0B.toInt()
-    val COLOR_COIN_GOLD_GLOW: Int = 0x66FBBF24
-    val COLOR_SUCCESS: Int = 0xFF10B981.toInt()
-    val COLOR_HAZARD: Int = 0xFFEF4444.toInt()
+    /** Card / panel surface. */
+    val CARD: Int = 0xFFFFF9EF.toInt()
 
-    // ---- Glassmorphism surfaces ------------------------------------------
-    val SURFACE_HUD_BG: Int = 0xB80A0F1D.toInt()   // 72% #0A0F1D
-    val SURFACE_MODAL_BG: Int = 0xE0050814.toInt() // 88% #050814
-    val GLASS_BORDER: Int = 0x2E38BDF8             // 18% #38BDF8
-    val GLASS_HIGHLIGHT: Int = 0x14FFFFFF          // 8% white
+    /** Soft navy edge and shadow used under cards and buttons. */
+    val CARD_EDGE: Int = 0x33185AB7
+    val CARD_SHADOW: Int = 0x40000000
 
-    // ---- Text ------------------------------------------------------------
-    val TEXT_PRIMARY: Int = 0xFFFFFFFF.toInt()
-    val TEXT_MUTED: Int = 0xB3ABB7C4.toInt()
-    val TEXT_INVERSE: Int = 0xFF06121F.toInt()
+    /** Ink for text on white cards. */
+    val INK: Int = 0xFF1B3A5B.toInt()
+    val INK_MUTED: Int = 0xFF6A7C8E.toInt()
+    val WHITE: Int = 0xFFFFFFFF.toInt()
+
+    val NAVY: Int = 0xFF185AB7.toInt()
+    val BLUE: Int = 0xFF1975D1.toInt()
+    val GREEN: Int = 0xFF35D52D.toInt()
+    val GOLD: Int = 0xFFFFB51F.toInt()
+    val YELLOW: Int = 0xFFFFD52B.toInt()
+    val RED: Int = 0xFFF33135.toInt()
+    val PURPLE: Int = 0xFF9A4BEA.toInt()
+    val LAVENDER: Int = 0xFFE7B5F3.toInt()
+    val CYAN: Int = 0xFF19A9ED.toInt()
+    val ORANGE: Int = 0xFFFF9D12.toInt()
+    val GEM: Int = 0xFF22B7F0.toInt()
+    val PLAQUE: Int = 0xFFA58B70.toInt()
+    val PLAQUE_TEXT: Int = 0xFF583B1E.toInt()
+
+    // ---- Backwards-compatible aliases used across the screens --------------
+    val COLOR_PRIMARY_AERO: Int = BLUE
+    val COLOR_PRIMARY_GLOW: Int = SKY
+    val COLOR_PRIMARY_DEEP: Int = NAVY
+    val COLOR_COIN_GOLD: Int = GOLD
+    val COLOR_COIN_GOLD_GLOW: Int = 0x66FFD52B
+    val COLOR_SUCCESS: Int = GREEN
+    val COLOR_HAZARD: Int = RED
+
+    val SURFACE_HUD_BG: Int = CARD
+    val SURFACE_MODAL_BG: Int = CARD
+    val GLASS_BORDER: Int = CARD_EDGE
+    val GLASS_HIGHLIGHT: Int = WHITE
+
+    val TEXT_PRIMARY: Int = INK
+    val TEXT_MUTED: Int = INK_MUTED
+    val TEXT_INVERSE: Int = WHITE
 
     // ---- Typography (dp) --------------------------------------------------
     const val TYPE_DISPLAY_HERO = 36f
@@ -47,13 +72,12 @@ object DesignTokens {
     const val SPACE_L = 24f
     const val SPACE_XL = 40f
 
-    const val RADIUS_PANEL = 16f
-    const val RADIUS_BUTTON = 12f
-    const val RADIUS_PILL = 26f
+    const val RADIUS_PANEL = 20f
+    const val RADIUS_BUTTON = 22f
+    const val RADIUS_PILL = 15f
 
     // ---- Layout ----------------------------------------------------------
-    // Portrait design space, per the reference plates: 360dp wide, 640dp tall at 16:9
-    // and taller on long phones (the height is taken from the viewport at runtime).
+    // Portrait design space, per the reference plates: 360dp wide, 640dp tall at 16:9.
     const val DESIGN_WIDTH = 360f
     const val DESIGN_HEIGHT = 640f
     const val MARGIN_H = 20f

@@ -58,12 +58,14 @@ object Economy {
         landed: Boolean,
         world: WorldDefinition,
         bestDistance: Float,
-        slingshotPower: Float
+        slingshotPower: Float,
+        incomeMultiplier: Float = 1f
     ): FlightResult {
         val distance = distanceMeters.coerceAtLeast(0f)
-        val distanceCoins = (distance * 0.85f * world.earningsMultiplier).toInt()
+        val multiplier = incomeMultiplier.coerceIn(0.1f, 100f)
+        val distanceCoins = (distance * 0.85f * world.earningsMultiplier * multiplier).toInt()
         val speedBonus = if (maxSpeed > 28f) {
-            ((maxSpeed - 28f) * 4.5f * world.earningsMultiplier).toInt()
+            ((maxSpeed - 28f) * 4.5f * world.earningsMultiplier * multiplier).toInt()
         } else {
             0
         }
@@ -75,7 +77,7 @@ object Economy {
             0
         }
         val landingBonus = if (landed) 25 else 0
-        val powerBonus = (slingshotPower * 20f).toInt()
+        val powerBonus = (slingshotPower * 20f * multiplier).toInt()
 
         val coins = distanceCoins + speedBonus + milestoneBonus + recordBonus + landingBonus + powerBonus
         return FlightResult(

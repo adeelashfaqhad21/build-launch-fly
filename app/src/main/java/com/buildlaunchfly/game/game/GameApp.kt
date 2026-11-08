@@ -76,6 +76,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var slingRecoilTimer = 0f
     private var slingRecoilStretch = 0f
     private var launchPuffTimer = 0f
+    private var perfectFlashTimer = 0f
 
     private var viewportWidth = 1
     private var viewportHeight = 1
@@ -375,6 +376,39 @@ class GameApp(private val context: Context, private val input: InputState) {
         })
     }
 
+    /** Hangar INCOME card: buys the next income level. */
+    fun requestUpgradeIncome() {
+        post(Runnable {
+            if (profile.upgradeIncome()) {
+                store.save(profile)
+                audio.playUi(AudioEngine.Cue.UPGRADE)
+                hud?.onCoinsChanged(profile.coins)
+            }
+        })
+    }
+
+    /** Hangar chest: grants coins on a cooldown. */
+    fun requestClaimChest() {
+        post(Runnable {
+            val reward = profile.claimChest(System.currentTimeMillis())
+            if (reward > 0) {
+                store.save(profile)
+                audio.playUi(AudioEngine.Cue.REWARD)
+                hud?.onCoinsChanged(profile.coins)
+            }
+        })
+    }
+
+    fun chestReady(): Boolean = profile.chestReady(System.currentTimeMillis())
+
+    fun incomeMultiplier(): Float = profile.incomeMultiplier()
+
+    /** Reference HUD shows a percentage toward a target distance; 4 000 m is the realm goal. */
+    fun targetDistanceMeters(): Float = 4000f
+
+    /** 0 when not a perfect launch, positive countdown just after one. */
+    fun perfectFlash(): Float = perfectFlashTimer
+
     // ---- telemetry --------------------------------------------------------
 
     fun telemetry(): FlightTelemetry {
@@ -414,6 +448,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         time += dt
         slingRecoilTimer = (slingRecoilTimer - dt).coerceAtLeast(0f)
         launchPuffTimer = (launchPuffTimer - dt).coerceAtLeast(0f)
+        perfectFlashTimer = (perfectFlashTimer - dt).coerceAtLeast(0f)
         sceneRenderer.env.time = time
 
         input.consumeDrag(dragScratch)
@@ -510,6 +545,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         slingRecoilStretch = stretch.coerceIn(0f, 1f)
         slingRecoilTimer = SLING_RECOIL_DURATION
         launchPuffTimer = PUFF_DURATION
+        perfectFlashTimer = if (stretch >= 0.55f && stretch <= 0.85f) 1.4f else 0f
         cameraDirector.addShake(0.45f + stretch * 0.5f)
 
         audio.playRelease(stretch)
@@ -526,7 +562,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             physics.state == FlightState.LANDED,
             currentScene.definition,
             profile.bestDistance,
-            sling.powerRating()
+            sling.powerRating(),
+            profile.incomeMultiplier()
         )
         profile.recordFlight(
             result.distanceMeters,

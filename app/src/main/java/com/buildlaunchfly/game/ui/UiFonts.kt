@@ -16,6 +16,7 @@ object UiFonts {
     private var initialized = false
     private var displayBold: Typeface? = null
     private var displaySemiBold: Typeface? = null
+    private var displayRounded: Typeface? = null
     private var bodyRegular: Typeface? = null
 
     fun init(context: Context) {
@@ -23,8 +24,12 @@ object UiFonts {
         initialized = true
         displayBold = load(context, R.font.rajdhani_bold)
         displaySemiBold = load(context, R.font.rajdhani_semibold)
+        displayRounded = load(context, R.font.fredoka)
         bodyRegular = load(context, R.font.plus_jakarta_sans)
     }
+
+    /** Chunky rounded face used for headings, buttons and HUD numerals (reference style). */
+    fun displayRounded(): Typeface = displayRounded ?: displayBold ?: Typeface.DEFAULT_BOLD
 
     fun displayBold(): Typeface = displayBold ?: Typeface.DEFAULT_BOLD
 

@@ -66,10 +66,11 @@ catalog and checklists in [`docs/DESIGN.md`](docs/DESIGN.md) §3:
 7. Results with a reward breakdown and count-up
 8. Settings, achievements/career, and the settings/career surfaces
 
-Design tokens live in `gfx/DesignTokens.kt`; the UI is drawn at a 360×640 dp portrait
-design scale (height adapts to long phones). The Rajdhani and Plus Jakarta Sans typefaces
-are bundled (`app/src/main/res/font`, SIL OFL — see `docs/licenses/`); the catalog also
-calls for a rounded display face for headings.
+Design tokens live in `gfx/DesignTokens.kt` and now carry the reference palette (white cards,
+gold/gem/blue/green/purple accents, navy outlines); the UI is drawn at a 360×640 dp portrait
+design scale. Typefaces bundled under SIL OFL (`app/src/main/res/font`, licences in
+`docs/licenses/`): **Fredoka** for headings/buttons/HUD numerals, Plus Jakarta Sans for body,
+Rajdhani retained for instrumentation.
 
 **Orientation:** portrait. The master brief asked for landscape, but the reference plates
 (`Ref-1` … `Ref-7`) are portrait captures and take precedence — see

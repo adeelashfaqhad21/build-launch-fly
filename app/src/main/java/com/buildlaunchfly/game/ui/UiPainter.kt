@@ -40,7 +40,15 @@ class UiPainter {
         style = Paint.Style.FILL
     }
 
-    private val displayTypeface: Typeface = UiFonts.displayBold()
+    /** Outline pass for chunky reference-style lettering on top of 3D or colour. */
+    val textStroke: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        isSubpixelText = true
+        style = Paint.Style.STROKE
+        strokeJoin = Paint.Join.ROUND
+        strokeCap = Paint.Cap.ROUND
+    }
+
+    private val displayTypeface: Typeface = UiFonts.displayRounded()
     private val bodyTypeface: Typeface = UiFonts.body()
 
     fun typeface(font: UiFont): Typeface = when (font) {
