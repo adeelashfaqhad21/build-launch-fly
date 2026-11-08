@@ -164,7 +164,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private fun createResources(width: Int, height: Int) {
         val textureSize = if (settings.highResTextures) TextureFactory.SIZE else 128
-        val textureFactory = TextureFactory(seed = 1337, size = textureSize)
+        val textureFactory = TextureFactory(seed = 1337, size = textureSize, assets = context.assets)
         textures = textureFactory
         loadProgressValue = 0.35f
 
