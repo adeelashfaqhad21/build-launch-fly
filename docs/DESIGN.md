@@ -552,12 +552,12 @@ coin reward pill with count-up, buttons `RETRY` (blue), `HANGAR` (white), and an
 **Data:** distance, best, max speed, duration, coins breakdown, record flag.
 
 **Checklist**
-- [ ] Results state after landing/crash
-- [ ] Reward calculation visible as rows, not a single number
-- [ ] Count-up coin pill using the currency component
-- [ ] RETRY restarts at the launch screen with the same realm and plane
-- [ ] HANGAR returns home and plays the coin cascade
-- [ ] Double-reward slot hidden unless enabled
+- [x] Results state after landing/crash
+- [x] Reward calculation visible as rows, not a single number
+- [x] Count-up coin pill using the currency component
+- [x] RETRY restarts at the launch screen with the same realm and plane
+- [ ] HANGAR returns home and plays the coin cascade (returns home; cascade cue pending)
+- [x] Double-reward slot hidden unless enabled
 
 ---
 
@@ -582,13 +582,13 @@ green propeller, two dark wheels, small tailplane. Flat-shaded, no gloss, soft s
 prop, `#1E1E1E` tyres. No metallic reflections; roughness ~0.9.
 
 **Checklist**
-- [ ] Biplane mesh: two wings, struts, wires, lattice fuselage, tail, wheels
-- [ ] Wing rib line decals
-- [ ] Stage meshes toggle with visible change
-- [ ] Propeller spin + blur disc
-- [ ] Flat-shaded material set matching the palette
-- [ ] Scale and framing: plane reads at 1/3 screen height in flight
-- [ ] Planes per tier change silhouette, not just colour
+- [x] Biplane mesh: two wings, struts, wires, lattice fuselage, tail, wheels
+- [x] Wing rib line decals
+- [x] Stage meshes toggle with visible change
+- [x] Propeller spin + blur disc
+- [x] Flat-shaded material set matching the palette
+- [ ] Scale and framing: plane reads at 1/3 screen height in flight (not yet verified on device)
+- [x] Planes per tier change silhouette, not just colour
 
 ---
 

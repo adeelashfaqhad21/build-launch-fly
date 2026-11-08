@@ -34,6 +34,19 @@ object FlightHudScreen {
         val pull = f.app.pullAmount()
         drawPullGauge(f, w / 2f, h * 0.62f, minOf(w - 80f, 260f), pull)
 
+        // First flight only: the plates show no permanent copy on this screen.
+        if (pull < 0.05f && f.app.playerProfile.flights == 0) {
+            f.label(
+                "HOLD TO PULL",
+                w / 2f,
+                h * 0.62f + 56f,
+                UiTextStyle.HUD_LABEL,
+                DesignTokens.WHITE,
+                Paint.Align.CENTER,
+                outline = true
+            )
+        }
+
         val back = f.rect(w / 2f - 60f, h - DesignTokens.SAFE_BOTTOM - 44f, 120f, 36f)
         f.button(back, "BACK", UiButtonStyle.DANGER) {
             f.nav.go(UiScreen.MENU)

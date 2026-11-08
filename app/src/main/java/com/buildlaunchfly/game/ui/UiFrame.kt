@@ -13,7 +13,7 @@ class UiHit(
     val onDrag: ((Float) -> Unit)? = null
 )
 
-enum class UiButtonStyle { PRIMARY, SECONDARY, GHOST, DANGER, SUCCESS, PURPLE }
+enum class UiButtonStyle { PRIMARY, BLUE, SECONDARY, GHOST, DANGER, SUCCESS, PURPLE }
 
 /**
  * Immediate-mode drawing surface for one frame. The canvas is already scaled so all

@@ -40,11 +40,13 @@ atmosphere, water level, vegetation, wildlife and weather: forest, desert, snow/
 ocean/coast, mountain/countryside. Non-uniform terrain grid (dense corridor, cheap
 horizon).
 
-**Aircraft (`aircraft`)** — six-stage construction exactly as specified: bare fuselage with
-tinted canopy → left wing → right wing → tail → propeller → stage-6 winglets, tail
-fairings and engine cowling. Each purchase rebuilds the visible mesh. Fuselage uses the
-specified composite values (roughness 0.35, metallic 0.15); the canopy is its own
-low-roughness glass material.
+**Aircraft (`aircraft`)** — procedural vintage biplane per
+[`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with
+orange-brown rib decals, a narrow timber lattice fuselage, cabane and interplane struts,
+X-braced wires, a dark cockpit opening, two wheels and a green two-blade propeller with a
+spin-blur disc. Geometry is split by material (canvas, rib, wood, metal, glazing,
+propeller), so every stage changes visible structure rather than colour: wing halves,
+longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
 
 **Slingshot (`slingshot`)** — five upgrade categories, launch-speed model, visible bands
 stretched from both prongs to the cradle, tinted amber → neon cyan with draw tension,

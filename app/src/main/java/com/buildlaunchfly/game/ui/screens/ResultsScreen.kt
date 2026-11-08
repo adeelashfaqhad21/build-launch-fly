@@ -7,10 +7,19 @@ import com.buildlaunchfly.game.gfx.DesignTokens
 import com.buildlaunchfly.game.ui.UiButtonStyle
 import com.buildlaunchfly.game.ui.UiFormat
 import com.buildlaunchfly.game.ui.UiFrame
+import com.buildlaunchfly.game.ui.UiIcon
+import com.buildlaunchfly.game.ui.UiIcons
 import com.buildlaunchfly.game.ui.UiScreen
 import com.buildlaunchfly.game.ui.UiTextStyle
 
-/** Screen 6 — Flight Results & debrief, portrait modal. */
+/**
+ * Screen 6 — flight debrief (docs/DESIGN.md §3.13), drawn in the reference card language:
+ * a saturated header band, the distance as the hero number, an itemised reward ledger and
+ * a coin pill that counts up as the panel settles.
+ *
+ * The optional rewarded DOUBLE slot stays hidden: there is no rewarded-ad integration in
+ * the build yet, so the button would be a dead end.
+ */
 object ResultsScreen {
 
     fun draw(f: UiFrame, result: FlightResult) {
@@ -19,77 +28,129 @@ object ResultsScreen {
 
         f.solid(RectF(0f, 0f, w, h), 0f, DesignTokens.withAlpha(0x000000, 0.55f))
 
-        val panelHeight = 320f
-        val r = RectF(
+        val panelHeight = 372f
+        val top = (h - panelHeight) / 2f
+        val panel = RectF(
             DesignTokens.MARGIN_H,
-            (h - panelHeight) / 2f,
+            top,
             w - DesignTokens.MARGIN_H,
-            (h + panelHeight) / 2f
+            top + panelHeight
         )
-        f.panel(
-            r,
-            DesignTokens.RADIUS_PANEL,
-            DesignTokens.SURFACE_MODAL_BG,
-            DesignTokens.withAlpha(DesignTokens.COLOR_PRIMARY_GLOW, 0.35f)
-        )
+        f.panel(panel, DesignTokens.RADIUS_PANEL, DesignTokens.CARD, DesignTokens.CARD_EDGE)
 
-        f.label(
-            if (result.isRecord) "NEW PERSONAL RECORD!" else "FLIGHT COMPLETED",
-            r.centerX(),
-            r.top + 30f,
+        val headerColor = if (result.isRecord) DesignTokens.GOLD else DesignTokens.NAVY
+        val band = RectF(panel.left + 2f, panel.top + 2f, panel.right - 2f, panel.top + 50f)
+        f.solid(band, 18f, headerColor)
+        f.labelIn(
+            band,
+            if (result.isRecord) "NEW RECORD!" else "FLIGHT COMPLETE",
             UiTextStyle.H1,
-            if (result.isRecord) DesignTokens.COLOR_COIN_GOLD else DesignTokens.TEXT_PRIMARY,
-            Paint.Align.CENTER
+            DesignTokens.WHITE,
+            outline = true
         )
 
         f.label(
-            result.distanceMeters.toInt().toString(),
-            r.centerX(),
-            r.top + 84f,
+            "${result.distanceMeters.toInt()}M",
+            panel.centerX(),
+            panel.top + 108f,
             UiTextStyle.DISPLAY_HERO,
-            DesignTokens.TEXT_PRIMARY,
+            DesignTokens.INK,
             Paint.Align.CENTER
         )
-        f.label("METERS", r.centerX(), r.top + 102f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
 
-        var y = r.top + 126f
-        y = ledgerRow(f, r, "AIRTIME", UiFormat.time(result.durationSeconds), y)
-        y = ledgerRow(f, r, "MAX SPEED", UiFormat.kmh(result.maxSpeed * 3.6f), y)
-        y = ledgerRow(f, r, "DISTANCE COINS", UiFormat.coins(result.distanceCoins), y)
-        ledgerRow(f, r, "TOTAL EARNINGS", "${UiFormat.coins(result.coins)} AC", y, DesignTokens.COLOR_COIN_GOLD)
+        val best = maxOf(f.app.playerProfile.bestDistance, result.distanceMeters)
+        f.label(
+            "BEST ${best.toInt()}M",
+            panel.centerX(),
+            panel.top + 130f,
+            UiTextStyle.BADGE,
+            DesignTokens.TEXT_MUTED,
+            Paint.Align.CENTER
+        )
 
-        val gap = 6f
-        val buttonWidth = (r.width() - 24f - gap * 2f) / 3f
-        val buttonY = r.bottom - 46f
-        val retry = RectF(r.left + 12f, buttonY, r.left + 12f + buttonWidth, buttonY + 36f)
-        val workshop = RectF(retry.right + gap, buttonY, retry.right + gap + buttonWidth, buttonY + 36f)
-        val claim = RectF(workshop.right + gap, buttonY, workshop.right + gap + buttonWidth, buttonY + 36f)
+        drawRewardPill(f, panel, result)
 
-        f.button(retry, "RETRY", UiButtonStyle.SECONDARY) {
-            f.app.requestLaunch(f.app.lastLaunchStretch)
+        var y = panel.top + 200f
+        y = row(f, panel, "DISTANCE", UiFormat.coins(result.distanceCoins), y)
+        y = row(f, panel, "SPEED BONUS", UiFormat.coins(result.speedBonus), y)
+        y = row(f, panel, "MILESTONES", UiFormat.coins(result.milestoneBonus), y)
+        if (result.recordBonus > 0) {
+            y = row(f, panel, "RECORD BONUS", UiFormat.coins(result.recordBonus), y, DesignTokens.GOLD)
+        }
+
+        // Everything the economy folds in beyond the visible rows (launch power, landing).
+        val launchAndLanding = result.coins - result.distanceCoins -
+            result.speedBonus - result.milestoneBonus - result.recordBonus
+        if (launchAndLanding > 0) {
+            y = row(f, panel, "LAUNCH & LANDING", UiFormat.coins(launchAndLanding), y)
+        }
+        row(f, panel, "TOTAL", UiFormat.coins(result.coins), y + 2f, DesignTokens.INK)
+
+        val gap = 10f
+        val buttonHeight = 40f
+        val buttonY = panel.bottom - 56f
+        val buttonWidth = (panel.width() - 32f - gap) / 2f
+
+        val retry = RectF(panel.left + 16f, buttonY, panel.left + 16f + buttonWidth, buttonY + buttonHeight)
+        val hangar = RectF(retry.right + gap, buttonY, retry.right + gap + buttonWidth, buttonY + buttonHeight)
+
+        f.button(retry, "RETRY", UiButtonStyle.BLUE) {
+            f.app.requestReturnToMenu()
             f.nav.go(UiScreen.LAUNCH)
         }
-        f.button(workshop, "WORKSHOP", UiButtonStyle.SECONDARY) {
-            f.app.requestReturnToMenu()
-            f.nav.go(UiScreen.AIRCRAFT)
-        }
-        f.button(claim, "CLAIM", UiButtonStyle.PRIMARY) {
+        f.button(hangar, "HANGAR", UiButtonStyle.SECONDARY) {
             f.app.requestReturnToMenu()
             f.nav.go(UiScreen.MENU)
         }
     }
 
-    private fun ledgerRow(
+    private fun drawRewardPill(f: UiFrame, panel: RectF, result: FlightResult) {
+        val pill = RectF(panel.left + 24f, panel.top + 146f, panel.right - 24f, panel.top + 184f)
+        f.pill(pill, DesignTokens.GOLD)
+        UiIcons.draw(
+            f.canvas,
+            f.painter,
+            UiIcon.COIN,
+            RectF(pill.left + 14f, pill.centerY() - 11f, pill.left + 36f, pill.centerY() + 11f),
+            DesignTokens.WHITE
+        )
+        f.label(
+            "+${UiFormat.coins(countedCoins(f, result))}",
+            pill.left + 46f,
+            pill.centerY() + 8f,
+            UiTextStyle.H1,
+            DesignTokens.WHITE,
+            outline = true
+        )
+        f.label(
+            "COINS",
+            pill.right - 14f,
+            pill.centerY() + 4f,
+            UiTextStyle.BADGE,
+            DesignTokens.WHITE,
+            Paint.Align.RIGHT,
+            outline = true
+        )
+    }
+
+    private fun row(
         f: UiFrame,
         panel: RectF,
         label: String,
         value: String,
         y: Float,
-        valueColor: Int = DesignTokens.TEXT_PRIMARY
+        valueColor: Int = DesignTokens.INK
     ): Float {
-        f.label(label, panel.left + 16f, y, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
-        f.label(value, panel.right - 16f, y, UiTextStyle.BODY_LARGE, valueColor, Paint.Align.RIGHT)
-        f.divider(panel.left + 16f, panel.right - 16f, y + 5f)
-        return y + 19f
+        f.label(label, panel.left + 20f, y, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
+        f.label(value, panel.right - 20f, y, UiTextStyle.BODY_LARGE, valueColor, Paint.Align.RIGHT)
+        f.divider(panel.left + 20f, panel.right - 20f, y + 6f)
+        return y + 21f
+    }
+
+    /** Coins tick up over the first 0.9 s so the reward lands with a beat. */
+    private fun countedCoins(f: UiFrame, result: FlightResult): Int {
+        val t = (f.app.resultsElapsed() / 0.9f).coerceIn(0f, 1f)
+        val eased = 1f - (1f - t) * (1f - t)
+        return (result.coins * eased).toInt()
     }
 }

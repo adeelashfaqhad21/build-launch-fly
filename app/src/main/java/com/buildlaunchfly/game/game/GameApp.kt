@@ -409,6 +409,9 @@ class GameApp(private val context: Context, private val input: InputState) {
     /** 0 when not a perfect launch, positive countdown just after one. */
     fun perfectFlash(): Float = perfectFlashTimer
 
+    /** Seconds since the results debrief appeared, used for the reward count-up. */
+    fun resultsElapsed(): Float = resultTimer
+
     // ---- telemetry --------------------------------------------------------
 
     fun telemetry(): FlightTelemetry {
@@ -639,7 +642,9 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val shadowFocus = if (state == GameState.SEATED) seatPosition else physics.position
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
-        aircraftMesh.bodyMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
+        aircraftMesh.canvasMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
+        aircraftMesh.woodMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
+        aircraftMesh.metalMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         if (showSling) sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
@@ -690,8 +695,17 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
         }
 
-        aircraftMesh.bodyMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.bodyMaterial, aircraftModel)
+        aircraftMesh.canvasMesh?.let {
+            sceneRenderer.drawMesh(it, aircraftMesh.canvasMaterial, aircraftModel)
+        }
+        aircraftMesh.ribMesh?.let {
+            sceneRenderer.drawMesh(it, aircraftMesh.ribMaterial, aircraftModel)
+        }
+        aircraftMesh.woodMesh?.let {
+            sceneRenderer.drawMesh(it, aircraftMesh.woodMaterial, aircraftModel)
+        }
+        aircraftMesh.metalMesh?.let {
+            sceneRenderer.drawMesh(it, aircraftMesh.metalMaterial, aircraftModel)
         }
         aircraftMesh.canopyMesh?.let {
             sceneRenderer.drawMesh(it, aircraftMesh.canopyMaterial, aircraftModel)

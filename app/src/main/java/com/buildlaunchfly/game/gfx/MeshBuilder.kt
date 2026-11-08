@@ -335,6 +335,68 @@ class MeshBuilder {
         return this
     }
 
+    /**
+     * Adds a thin rod (a cylinder without end caps) between two arbitrary points in the
+     * current transform space. Bracing wires, struts and landing-gear legs need a direction
+     * the axis-aligned primitives cannot give, so the rod builds its own orthonormal basis
+     * with +Y mapped onto the segment.
+     */
+    fun addRod(
+        ax: Float, ay: Float, az: Float,
+        bx: Float, by: Float, bz: Float,
+        radius: Float, segments: Int = 6
+    ): MeshBuilder {
+        val dx = bx - ax
+        val dy = by - ay
+        val dz = bz - az
+        val length = sqrt(dx * dx + dy * dy + dz * dz)
+        if (length < 1e-4f) return this
+
+        val ux = dx / length
+        val uy = dy / length
+        val uz = dz / length
+
+        // Right = world-up x direction, unless the rod is vertical.
+        var rx = uz
+        var rz = -ux
+        val rightLength = sqrt(rx * rx + rz * rz)
+        if (rightLength < 1e-4f) {
+            rx = 1f
+            rz = 0f
+        } else {
+            rx /= rightLength
+            rz /= rightLength
+        }
+
+        // Back = right x direction completes a right-handed basis (right's Y is always 0).
+        val backX = -rz * uy
+        val backY = rz * ux - rx * uz
+        val backZ = rx * uy
+
+        val m = Mat4()
+        m.m[0] = rx
+        m.m[1] = 0f
+        m.m[2] = rz
+        m.m[3] = 0f
+        m.m[4] = ux
+        m.m[5] = uy
+        m.m[6] = uz
+        m.m[7] = 0f
+        m.m[8] = backX
+        m.m[9] = backY
+        m.m[10] = backZ
+        m.m[11] = 0f
+        m.m[12] = (ax + bx) * 0.5f
+        m.m[13] = (ay + by) * 0.5f
+        m.m[14] = (az + bz) * 0.5f
+        m.m[15] = 1f
+
+        push(m)
+        addCylinder(0f, 0f, 0f, radius, radius, length, segments, false, false)
+        pop()
+        return this
+    }
+
     fun build(): MeshData {
         val vertexArray = FloatArray(vertices.size)
         for (i in vertices.indices) vertexArray[i] = vertices[i]
