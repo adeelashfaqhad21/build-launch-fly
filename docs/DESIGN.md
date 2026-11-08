@@ -295,7 +295,7 @@ meter matches the same ramp; release triggers a camera impulse shake.
 - **Layout:** Side-elevation 3D view of the kinetic slingshot apparatus with dynamic tension grid.
 - **Interactive Mechanical Controls:**
   - **Band Tension Capacity:** Upgrades elastic thickness (Increases initial launch velocity $V_0$).
-  - **Launch Elevation Arc:** Mechanical angle adjustment (`20° to 55°` optimal ballistic arc).
+  - **Player-Controlled Launch Angle:** The rigid slingshot frame remains fixed; only the cradle, aircraft seating attitude and elastic geometry adjust through a full `0° to 90°` aiming range. Around `40°–45°` is a useful distance-oriented starting strategy, while steep `70°–90°` launches intentionally trade forward airspeed for height and can stall and fall naturally.
   - **Hydraulic Recoil Damper:** Minimizes launch vibrational turbulence.
 - **Stat Telemetry Display:** Base Velocity: `142 km/h` → `168 km/h` (with upgrade); Impulse Force: `8,400 N`.
 

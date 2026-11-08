@@ -11,7 +11,7 @@ import com.buildlaunchfly.game.math.Vec3
 class SceneRenderer(var width: Int, var height: Int, private val white: Texture2D) {
 
     val env = EnvUniforms()
-    val shadowMap = ShadowMap(1536)
+    val shadowMap = ShadowMap(512)
 
     private val pbrProgram = ShaderProgram.create(
         "pbr", ShaderSources.PBR_VERT, ShaderSources.PBR_FRAG

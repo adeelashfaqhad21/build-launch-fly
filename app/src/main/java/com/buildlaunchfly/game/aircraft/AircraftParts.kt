@@ -74,33 +74,33 @@ object AircraftCatalog {
         ),
         PartUpgrade(
             PartSlot.WING_LEFT, 2, "wing_left_2", "Left Wing Mk II",
-            "Longer spar with improved aerofoil and finish.",
-            price = 1500, lift = 0.55f, dragArea = -0.02f, thrust = 0f,
-            mass = 1.2f, stability = 0.12f, maxRpm = 0f
+            "Longer, more efficient spar and refined aerofoil. Improves lift and glide efficiency over the Mk I wing.",
+            price = 1500, lift = 0.82f, dragArea = -0.045f, thrust = 0f,
+            mass = 1.5f, stability = 0.18f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.WING_RIGHT, 2, "wing_right_2", "Right Wing Mk II",
-            "Matched Mk II wing for clean, symmetric lift.",
-            price = 1500, lift = 0.55f, dragArea = -0.02f, thrust = 0f,
-            mass = 1.2f, stability = 0.12f, maxRpm = 0f
+            "Matched, longer Mk II wing with a refined aerofoil for stronger balanced lift and longer glides.",
+            price = 1500, lift = 0.82f, dragArea = -0.045f, thrust = 0f,
+            mass = 1.5f, stability = 0.18f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.TAIL, 2, "tail_2", "Tail Assembly Mk II",
-            "Enlarged surfaces tuned for high-speed flight.",
-            price = 2100, lift = 0.12f, dragArea = -0.01f, thrust = 0f,
-            mass = 0.8f, stability = 0.45f, maxRpm = 0f
+            "Larger, cleaner tail surfaces improve directional stability and controlled high-speed glide.",
+            price = 2100, lift = 0.16f, dragArea = -0.025f, thrust = 0f,
+            mass = 1.0f, stability = 0.72f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.PROPELLER, 2, "propeller_2", "Variable-Pitch Propeller Mk II",
-            "Larger reinforced blades and a refined pitch-control hub for smoother thrust delivery.",
-            price = 2400, lift = 0f, dragArea = -0.01f, thrust = 40f,
-            mass = 0.6f, stability = 0.02f, maxRpm = 400f
+            "Larger, more efficient reinforced blades and a refined variable-pitch hub reduce airflow losses and improve windmilling.",
+            price = 2400, lift = 0f, dragArea = -0.025f, thrust = 0f,
+            mass = 1.1f, stability = 0.04f, maxRpm = 1200f
         ),
         PartUpgrade(
             PartSlot.ENGINE, 2, "engine_2", "Tuned Engine",
-            "Higher compression, more thrust, same weight class.",
-            price = 3900, lift = 0f, dragArea = 0f, thrust = 210f,
-            mass = 1.4f, stability = 0.03f, maxRpm = 500f
+            "Higher-compression tuned engine delivers a clear thrust increase with improved power-to-weight efficiency.",
+            price = 3900, lift = 0f, dragArea = 0.04f, thrust = 430f,
+            mass = 10.5f, stability = 0.06f, maxRpm = 2900f
         )
     )
 

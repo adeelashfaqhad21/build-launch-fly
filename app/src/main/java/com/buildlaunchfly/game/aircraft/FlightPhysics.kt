@@ -47,6 +47,10 @@ class FlightPhysics {
     var propellerBladePitch = 0.12f
         private set
 
+    /** 0..1 aerodynamic stall severity, driven by excessive angle of attack and low speed. */
+    var stallIntensity = 0f
+        private set
+
     var throttle = 1f
 
     val orientation = Mat4()
@@ -59,7 +63,6 @@ class FlightPhysics {
     private val accel = Vec3()
     private val tmp = Vec3()
     private val propLocal = Mat4()
-
     fun reset(origin: Vec3) {
         position.set(origin)
         velocity.set(0f, 0f, 0f)
@@ -73,6 +76,7 @@ class FlightPhysics {
         maxSpeed = 0f
         propellerRpm = 0f
         propellerBladePitch = 0.12f
+        stallIntensity = 0f
         state = FlightState.READY
         start.set(origin)
         updateOrientation()
@@ -96,7 +100,9 @@ class FlightPhysics {
         yawRate = 0.08f * recoil
         updateOrientation()
         velocity.set(forward).scale(speed)
-        velocity.y += speed * 0.18f
+        // The selected cradle angle alone sets the initial flight vector.
+        // Do not inject a hidden vertical bonus: steep launches must trade
+        // forward airspeed for altitude and can stall under gravity naturally.
         state = FlightState.FLYING
         distance = 0f
     }
@@ -119,20 +125,31 @@ class FlightPhysics {
         }
         val flightPathAngle = kotlin.math.asin(M.clamp(tmp.y, -1f, 1f))
 
-        // Angle of attack drives lift; a stalled alpha is clamped.
+        // Angle of attack drives lift. Beyond the critical angle the wing separates:
+        // lift collapses, drag rises and the nose naturally drops. This makes a sustained
+        // nose-high attitude a real stall rather than a HUD-only warning.
         val alpha = M.wrapAngle(pitch - flightPathAngle)
-        val liftCoefficient = M.clamp(2f * M.PI.toFloat() * alpha * 0.55f, -1.1f, 1.1f)
+        val criticalAlpha = 0.245f // ~14 degrees
+        val excessAlpha = ((kotlin.math.abs(alpha) - criticalAlpha) / 0.30f).coerceIn(0f, 1f)
+        val lowSpeedFactor = (1f - speed / 23f).coerceIn(0f, 1f)
+        val stallTarget = maxOf(excessAlpha, lowSpeedFactor * (kotlin.math.abs(alpha) / criticalAlpha).coerceIn(0f, 1f))
+        stallIntensity = M.lerp(stallIntensity, stallTarget, M.clamp(2.8f * dt, 0f, 1f))
 
+        val linearLift = M.clamp(2f * M.PI.toFloat() * alpha * 0.55f, -1.1f, 1.1f)
+        val liftCoefficient = linearLift * (1f - stallIntensity * 0.78f)
         val rho = 1.14f
         val v2 = speed * speed
 
         val liftAccel = 0.5f * rho * v2 * stats.wingArea * liftCoefficient * stats.lift / stats.mass
-        val dragAccel = 0.5f * rho * v2 * stats.dragArea / stats.mass
+        val baseDragAccel = 0.5f * rho * v2 * stats.dragArea / stats.mass
+        val dragAccel = baseDragAccel * (1f + stallIntensity * 1.65f)
         val thrustAccel = stats.thrust / stats.mass * throttle
 
-        // Stability: the airframe drifts toward the flight path angle.
+        // Stability: the airframe drifts toward the flight path. A stalled wing also
+        // develops a gentle nose-down pitching moment so recovery requires active input.
         val stabilityGain = 0.8f + stats.stability
-        val targetPitchRate = input.pitch * 1.15f + (flightPathAngle - pitch) * stabilityGain * 0.9f
+        val stallNoseDrop = stallIntensity * 1.35f
+        val targetPitchRate = input.pitch * 2.6f + (flightPathAngle - pitch) * stabilityGain * 0.30f - stallNoseDrop
         pitchRate = M.lerp(pitchRate, targetPitchRate, M.clamp(6f * dt, 0f, 1f))
         pitch = M.clamp(pitch + pitchRate * dt, -1.1f, 1.1f)
 
@@ -141,11 +158,14 @@ class FlightPhysics {
         roll = M.clamp(roll + rollRate * dt, -1.0f, 1.0f)
 
         val speedFactor = M.clamp(speed / 35f, 0.15f, 1.6f)
-        val targetYawRate = -kotlin.math.sin(roll) * 0.55f * speedFactor + input.yaw * 1.25f
+        val targetYawRate = -kotlin.math.sin(roll) * 0.42f * speedFactor + input.yaw * 2.35f
         yawRate = M.lerp(yawRate, targetYawRate, M.clamp(3f * dt, 0f, 1f))
         yaw = M.wrapAngle(yaw + yawRate * dt)
 
         updateOrientation()
+
+        // No altitude-holding autopilot or artificial ceiling: gravity, lift,
+        // drag and the player's pitch input determine the entire flight path.
 
         // Integrate accelerations.
         accel.set(0f, -9.81f, 0f)
@@ -199,12 +219,13 @@ class FlightPhysics {
         }
 
 
-        // Soft ceiling keeps the aircraft inside the rendered world.
-        val ceiling = terrainHeight + 300f
-        if (position.y > ceiling) {
-            position.y = terrainHeight + 260f
-            if (velocity.y > 0f) velocity.y = 0f
-        }
+    }
+
+    /** Ends an active flight after contact with a natural world obstacle. */
+    fun crash() {
+        if (state != FlightState.FLYING) return
+        state = FlightState.CRASHED
+        velocity.scale(0.18f)
     }
 
     private fun updateOrientation() {

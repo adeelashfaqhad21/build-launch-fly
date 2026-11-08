@@ -12,6 +12,7 @@ class FlightTelemetry(
     val rollDegrees: Float = 0f,
     val yawDegrees: Float = 0f,
     val stallWarning: Boolean = false,
+    val stallIntensity: Float = 0f,
     val verticalSpeed: Float = 0f,
     val flightTimeSeconds: Float = 0f
 ) {

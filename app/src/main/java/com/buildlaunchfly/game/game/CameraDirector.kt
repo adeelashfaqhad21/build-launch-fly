@@ -39,14 +39,14 @@ class CameraDirector(private val camera: Camera) {
         desiredPosition.set(
             padPosition.x,
             padPosition.y + 3.35f,
-            padPosition.z + 8.0f + pull * 0.65f
+            padPosition.z + 4.9f + pull * 0.30f
         )
         desiredTarget.set(
             aircraftPosition.x,
-            aircraftPosition.y + 0.35f,
-            aircraftPosition.z - 7.0f
+            aircraftPosition.y + 0.05f,
+            aircraftPosition.z - 4.2f
         )
-        follow(dt, 9.5f)
+        follow(dt, 12.0f)
     }
 
     fun updateFlight(aircraftPosition: Vec3, velocity: Vec3, speed: Float, dt: Float) {
@@ -58,19 +58,20 @@ class CameraDirector(private val camera: Camera) {
             dirY = velocity.y / speed
             dirZ = velocity.z / speed
         }
-        // Tight chase framing keeps the aircraft large and the terrain immediately
-        // ahead/below legible instead of shrinking the world into a distant panorama.
+        // Close, low rear chase: keep the aircraft dominant while showing the terrain
+        // directly ahead. A short follow distance avoids the distant spectator-camera feel.
+        val chaseDistance = 3.35f
         desiredPosition.set(
-            aircraftPosition.x - dirX * 7.2f,
-            aircraftPosition.y - dirY * 7.2f + 2.35f,
-            aircraftPosition.z - dirZ * 7.2f
+            aircraftPosition.x - dirX * chaseDistance,
+            aircraftPosition.y - dirY * chaseDistance + 0.88f,
+            aircraftPosition.z - dirZ * chaseDistance
         )
         desiredTarget.set(
-            aircraftPosition.x + dirX * 8.5f,
-            aircraftPosition.y - 0.65f,
-            aircraftPosition.z + dirZ * 8.5f
+            aircraftPosition.x + dirX * 4.25f,
+            aircraftPosition.y - 0.34f,
+            aircraftPosition.z + dirZ * 4.25f
         )
-        follow(dt, 9.0f)
+        follow(dt, 12.5f)
     }
 
     fun updateResults(focus: Vec3, time: Float, dt: Float) {

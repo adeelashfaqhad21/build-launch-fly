@@ -7,6 +7,7 @@ import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.ParticleRenderer
+import com.buildlaunchfly.game.gfx.SurfaceKind
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.Vec3
 
@@ -23,9 +24,13 @@ class WorldScene(
     val terrain = Terrain(definition)
     val terrainMesh: Mesh
     val waterMesh: Mesh?
+    val settlementWallsMesh: Mesh
+    val settlementRoofsMesh: Mesh
+    val settlementDetailsMesh: Mesh
 
     val treeTrunkMesh: Mesh
     val treeCanopyMesh: Mesh
+    val treeCanopyVariantMesh: Mesh
     val rockMesh: Mesh
     val grassMesh: Mesh?
 
@@ -36,9 +41,13 @@ class WorldScene(
     val bushMaterial: Material
     val birdMaterial: Material
     val animalMaterial: Material
+    val settlementWallMaterial: Material
+    val settlementRoofMaterial: Material
+    val settlementDetailMaterial: Material
 
     val treeTrunks: InstancedMesh
     val treeCanopies: InstancedMesh
+    val treeCanopyVariants: InstancedMesh
     val rocks: InstancedMesh
     val grass: InstancedMesh?
     val bushes: InstancedMesh
@@ -46,6 +55,14 @@ class WorldScene(
     val bushesVariantC: InstancedMesh
     val birdsMesh: InstancedMesh
     val animalsMesh: InstancedMesh
+
+    // Compact collision proxies for authored natural obstacles (trees and rocks).
+    // Each record stores centre XYZ, horizontal radius and vertical half-extent.
+    private var naturalObstacleProxies: FloatArray = FloatArray(0)
+    // Spatial broadphase: test only nearby 64m cells instead of scanning every
+    // tree, rock and house proxy on every rendered frame.
+    private val obstacleBuckets: Array<MutableList<Int>?> =
+        arrayOfNulls(OBSTACLE_GRID_WIDTH * OBSTACLE_GRID_DEPTH)
 
     val birds: Wildlife.Birds
     val animals: Wildlife.GroundAnimals
@@ -64,11 +81,62 @@ class WorldScene(
             else -> 0.92f
         }
 
-        terrainMesh = Mesh("terrain", TerrainMesh.build(terrain))
+        terrainMesh = Mesh("terrain", TerrainMesh.build(terrain, detailLevel))
         waterMesh = if (definition.hasWater) Mesh("water", buildWaterData()) else null
 
+        // Small, ecosystem-specific settlements are authored as three static meshes.
+        // They add inhabited landmarks without introducing per-building draw calls.
+        val settlementGeometry = SettlementMeshes.build(terrain, definition, detailLevel)
+        settlementWallsMesh = Mesh("settlementWalls", settlementGeometry.walls)
+        settlementRoofsMesh = Mesh("settlementRoofs", settlementGeometry.roofs)
+        settlementDetailsMesh = Mesh("settlementDetails", settlementGeometry.details)
+        settlementWallMaterial = Material(
+            albedo = when (definition.id) {
+                WorldId.FOREST, WorldId.MOUNTAIN -> textures.bark
+                WorldId.DESERT, WorldId.OCEAN -> textures.surface(SurfaceKind.SAND)
+                WorldId.SNOW -> textures.surface(SurfaceKind.SNOW)
+            },
+            tint = when (definition.id) {
+                WorldId.FOREST -> Vec3(0.76f, 0.62f, 0.44f)
+                WorldId.DESERT -> Vec3(0.91f, 0.70f, 0.48f)
+                WorldId.SNOW -> Vec3(0.66f, 0.72f, 0.78f)
+                WorldId.OCEAN -> Vec3(0.84f, 0.78f, 0.63f)
+                WorldId.MOUNTAIN -> Vec3(0.67f, 0.62f, 0.54f)
+            },
+            roughness = 0.92f
+        )
+        settlementRoofMaterial = Material(
+            albedo = when (definition.id) {
+                WorldId.DESERT, WorldId.OCEAN -> textures.surface(SurfaceKind.ROCK)
+                WorldId.SNOW -> textures.surface(SurfaceKind.SNOW)
+                else -> textures.bark
+            },
+            tint = when (definition.id) {
+                WorldId.FOREST -> Vec3(0.38f, 0.25f, 0.18f)
+                WorldId.DESERT -> Vec3(0.66f, 0.40f, 0.25f)
+                WorldId.SNOW -> Vec3(0.88f, 0.94f, 1.00f)
+                WorldId.OCEAN -> Vec3(0.38f, 0.48f, 0.56f)
+                WorldId.MOUNTAIN -> Vec3(0.34f, 0.28f, 0.22f)
+            },
+            roughness = 0.86f
+        )
+        settlementDetailMaterial = Material(
+            // Doors, shutters and porch timbers should read as aged natural wood,
+            // not industrial metal fittings on otherwise rural buildings.
+            albedo = textures.bark,
+            tint = when (definition.id) {
+                WorldId.DESERT -> Vec3(0.30f, 0.19f, 0.11f)
+                WorldId.SNOW -> Vec3(0.34f, 0.28f, 0.22f)
+                WorldId.OCEAN -> Vec3(0.38f, 0.30f, 0.20f)
+                else -> Vec3(0.28f, 0.18f, 0.12f)
+            },
+            roughness = 0.94f,
+            metallic = 0f
+        )
+
         val trunkData = buildTrunkData()
-        val canopyData = buildCanopyData()
+        val canopyData = buildCanopyData(0)
+        val canopyVariantData = buildCanopyData(1)
         val rockData = buildRockData()
         val bushData = buildBushData(0)
         val bushDataB = buildBushData(1)
@@ -76,6 +144,7 @@ class WorldScene(
 
         treeTrunkMesh = Mesh("treeTrunk", trunkData)
         treeCanopyMesh = Mesh("treeCanopy", canopyData)
+        treeCanopyVariantMesh = Mesh("treeCanopyVariant", canopyVariantData)
         rockMesh = Mesh("rock", rockData)
 
         treeMaterial = Material(
@@ -154,12 +223,40 @@ class WorldScene(
         val treeCount = (definition.treeCount * scale).toInt()
         val treeSet = Vegetation.scatterTrees(terrain, definition, treeCount, definition.seed)
         val treeCapacity = treeSet.count.coerceAtLeast(1)
-        treeTrunks = InstancedMesh("treeTrunks", trunkData, treeCapacity)
-        treeCanopies = InstancedMesh("treeCanopies", canopyData, treeCapacity)
-        if (treeSet.count > 0) {
-            treeTrunks.setInstances(treeSet.matrices, treeSet.count)
-            treeCanopies.setInstances(treeSet.matrices, treeSet.count)
+        // Keep species in natural stands rather than alternating tree types one-by-one.
+        // A low-frequency field creates broad groves and transition edges across each habitat.
+        val primaryTreeMatrices = FloatArray(treeSet.count * 16)
+        val variantTreeMatrices = FloatArray(treeSet.count * 16)
+        var primaryTreeCount = 0
+        var variantTreeCount = 0
+        for (index in 0 until treeSet.count) {
+            val source = index * 16
+            val x = treeSet.matrices[source + 12]
+            val z = treeSet.matrices[source + 14]
+            val speciesField = com.buildlaunchfly.game.gfx.Noise.fbm01(
+                x * 0.0018f, z * 0.0018f, 2, definition.seed + 401
+            )
+            val variantShare = when (definition.id) {
+                WorldId.FOREST -> 0.49f // birch groves break up broadleaf woodland
+                WorldId.DESERT -> 0.38f // scattered multi-arm cactus stands
+                WorldId.SNOW -> 0.43f // compact spruce pockets below the tree line
+                WorldId.OCEAN -> 0.48f // wind-shaped coastal tree clusters
+                WorldId.MOUNTAIN -> 0.52f // fir stands among open alpine meadows
+            }
+            if (speciesField > 0.50f - (variantShare - 0.5f)) {
+                System.arraycopy(treeSet.matrices, source, variantTreeMatrices, variantTreeCount * 16, 16)
+                variantTreeCount++
+            } else {
+                System.arraycopy(treeSet.matrices, source, primaryTreeMatrices, primaryTreeCount * 16, 16)
+                primaryTreeCount++
+            }
         }
+        treeTrunks = InstancedMesh("treeTrunks", trunkData, treeCapacity)
+        treeCanopies = InstancedMesh("treeCanopies", canopyData, primaryTreeCount.coerceAtLeast(1))
+        treeCanopyVariants = InstancedMesh("treeCanopyVariants", canopyVariantData, variantTreeCount.coerceAtLeast(1))
+        if (treeSet.count > 0) treeTrunks.setInstances(treeSet.matrices, treeSet.count)
+        if (primaryTreeCount > 0) treeCanopies.setInstances(primaryTreeMatrices, primaryTreeCount)
+        if (variantTreeCount > 0) treeCanopyVariants.setInstances(variantTreeMatrices, variantTreeCount)
 
         val rockCount = (definition.rockCount * scale).toInt()
         val bushBaseCount = when (definition.id) {
@@ -170,20 +267,27 @@ class WorldScene(
             WorldId.MOUNTAIN -> 440
         }
         val bushSet = Vegetation.scatterBushes(terrain, definition, (bushBaseCount * scale).toInt(), definition.seed)
-        val bushMatricesA = FloatArray(bushSet.count * 16 / 3 + 16)
-        val bushMatricesB = FloatArray(bushSet.count * 16 / 3 + 16)
-        val bushMatricesC = FloatArray(bushSet.count * 16 / 3 + 16)
+        // Species are assigned by a low-frequency habitat field, not instance order.
+        // Full-size buffers allow uneven natural stands without risking an array overflow.
+        val bushMatricesA = FloatArray(bushSet.count * 16)
+        val bushMatricesB = FloatArray(bushSet.count * 16)
+        val bushMatricesC = FloatArray(bushSet.count * 16)
         var bushCountA = 0
         var bushCountB = 0
         var bushCountC = 0
         for (index in 0 until bushSet.count) {
             val source = index * 16
-            when (index % 3) {
-                0 -> {
+            val x = bushSet.matrices[source + 12]
+            val z = bushSet.matrices[source + 14]
+            val speciesField = com.buildlaunchfly.game.gfx.Noise.fbm01(
+                x * 0.0038f, z * 0.0038f, 2, definition.seed + 613
+            )
+            when {
+                speciesField < 0.34f -> {
                     System.arraycopy(bushSet.matrices, source, bushMatricesA, bushCountA * 16, 16)
                     bushCountA++
                 }
-                1 -> {
+                speciesField < 0.68f -> {
                     System.arraycopy(bushSet.matrices, source, bushMatricesB, bushCountB * 16, 16)
                     bushCountB++
                 }
@@ -202,6 +306,11 @@ class WorldScene(
         val rockSet = Vegetation.scatterRocks(terrain, definition, rockCount, definition.seed)
         rocks = InstancedMesh("rocks", rockData, rockSet.count.coerceAtLeast(1))
         if (rockSet.count > 0) rocks.setInstances(rockSet.matrices, rockSet.count)
+        naturalObstacleProxies = buildNaturalObstacleProxies(
+            treeSet.matrices, treeSet.count, rockSet.matrices, rockSet.count,
+            settlementGeometry.obstacles
+        )
+        buildObstacleBuckets()
 
         val grassCount = (definition.grassCount * scale).toInt()
         if (grassCount > 0) {
@@ -238,6 +347,93 @@ class WorldScene(
         waterShallow = definition.waterShallow
     }
 
+    /**
+     * Tests the aircraft against the same deterministic tree and rock instances used
+     * by the renderer. This makes the natural landscape itself the obstacle course.
+     */
+    fun collidesWithNaturalObstacle(x: Float, y: Float, z: Float, aircraftRadius: Float = 1.25f): Boolean {
+        val cellX = ((x - OBSTACLE_GRID_MIN_X) / OBSTACLE_CELL_SIZE).toInt()
+        val cellZ = ((z - OBSTACLE_GRID_MIN_Z) / OBSTACLE_CELL_SIZE).toInt()
+        for (dz in -1..1) {
+            val gz = cellZ + dz
+            if (gz !in 0 until OBSTACLE_GRID_DEPTH) continue
+            for (dx in -1..1) {
+                val gx = cellX + dx
+                if (gx !in 0 until OBSTACLE_GRID_WIDTH) continue
+                val bucket = obstacleBuckets[gz * OBSTACLE_GRID_WIDTH + gx] ?: continue
+                for (entry in bucket) {
+                    val dxWorld = x - naturalObstacleProxies[entry]
+                    val dyWorld = y - naturalObstacleProxies[entry + 1]
+                    val dzWorld = z - naturalObstacleProxies[entry + 2]
+                    val horizontal = naturalObstacleProxies[entry + 3] + aircraftRadius
+                    val vertical = naturalObstacleProxies[entry + 4] + 0.9f
+                    if (kotlin.math.abs(dyWorld) < vertical &&
+                        dxWorld * dxWorld + dzWorld * dzWorld < horizontal * horizontal
+                    ) return true
+                }
+            }
+        }
+        return false
+    }
+
+    private fun buildObstacleBuckets() {
+        var offset = 0
+        while (offset < naturalObstacleProxies.size) {
+            val x = naturalObstacleProxies[offset]
+            val z = naturalObstacleProxies[offset + 2]
+            val gx = ((x - OBSTACLE_GRID_MIN_X) / OBSTACLE_CELL_SIZE).toInt()
+            val gz = ((z - OBSTACLE_GRID_MIN_Z) / OBSTACLE_CELL_SIZE).toInt()
+            if (gx in 0 until OBSTACLE_GRID_WIDTH && gz in 0 until OBSTACLE_GRID_DEPTH) {
+                val index = gz * OBSTACLE_GRID_WIDTH + gx
+                var bucket = obstacleBuckets[index]
+                if (bucket == null) {
+                    bucket = ArrayList()
+                    obstacleBuckets[index] = bucket
+                }
+                bucket.add(offset)
+            }
+            offset += 5
+        }
+    }
+
+    private fun buildNaturalObstacleProxies(
+        trees: FloatArray,
+        treeCount: Int,
+        rocks: FloatArray,
+        rockCount: Int,
+        settlements: FloatArray
+    ): FloatArray {
+        val result = FloatArray((treeCount + rockCount) * 5 + settlements.size)
+        var out = 0
+        for (index in 0 until treeCount) {
+            val i = index * 16
+            val sx = kotlin.math.sqrt(trees[i] * trees[i] + trees[i + 1] * trees[i + 1] + trees[i + 2] * trees[i + 2])
+            val sy = kotlin.math.sqrt(trees[i + 4] * trees[i + 4] + trees[i + 5] * trees[i + 5] + trees[i + 6] * trees[i + 6])
+            val sz = kotlin.math.sqrt(trees[i + 8] * trees[i + 8] + trees[i + 9] * trees[i + 9] + trees[i + 10] * trees[i + 10])
+            result[out++] = trees[i + 12]
+            result[out++] = trees[i + 13] + sy * 0.55f
+            result[out++] = trees[i + 14]
+            result[out++] = maxOf(sx, sz) * 0.72f + 0.75f
+            result[out++] = sy * 0.60f
+        }
+        for (index in 0 until rockCount) {
+            val i = index * 16
+            val sx = kotlin.math.sqrt(rocks[i] * rocks[i] + rocks[i + 1] * rocks[i + 1] + rocks[i + 2] * rocks[i + 2])
+            val sy = kotlin.math.sqrt(rocks[i + 4] * rocks[i + 4] + rocks[i + 5] * rocks[i + 5] + rocks[i + 6] * rocks[i + 6])
+            val sz = kotlin.math.sqrt(rocks[i + 8] * rocks[i + 8] + rocks[i + 9] * rocks[i + 9] + rocks[i + 10] * rocks[i + 10])
+            result[out++] = rocks[i + 12]
+            result[out++] = rocks[i + 13]
+            result[out++] = rocks[i + 14]
+            result[out++] = maxOf(sx, sz) * 0.78f + 0.35f
+            result[out++] = sy * 0.82f + 0.35f
+        }
+        if (settlements.isNotEmpty()) {
+            System.arraycopy(settlements, 0, result, out, settlements.size)
+            out += settlements.size
+        }
+        return if (out == result.size) result else result.copyOf(out)
+    }
+
     fun update(dt: Float, time: Float, camera: Camera, particles: ParticleRenderer) {
         if (birds.instanceCount > 0) {
             birds.update(dt, time)
@@ -250,15 +446,28 @@ class WorldScene(
         weather.updateAndEmit(camera, dt, time, particles)
     }
 
+    private companion object {
+        const val OBSTACLE_CELL_SIZE = 64f
+        const val OBSTACLE_GRID_MIN_X = -1280f
+        const val OBSTACLE_GRID_MIN_Z = -3200f
+        const val OBSTACLE_GRID_WIDTH = 44
+        const val OBSTACLE_GRID_DEPTH = 64
+    }
+
     fun dispose() {
         terrainMesh.dispose()
         waterMesh?.dispose()
+        settlementWallsMesh.dispose()
+        settlementRoofsMesh.dispose()
+        settlementDetailsMesh.dispose()
         treeTrunkMesh.dispose()
         treeCanopyMesh.dispose()
+        treeCanopyVariantMesh.dispose()
         rockMesh.dispose()
         grassMesh?.dispose()
         treeTrunks.dispose()
         treeCanopies.dispose()
+        treeCanopyVariants.dispose()
         rocks.dispose()
         bushes.dispose()
         bushesVariantB.dispose()
@@ -309,9 +518,44 @@ class WorldScene(
         return builder.build()
     }
 
-    private fun buildCanopyData(): MeshData {
+    private fun buildCanopyData(variant: Int): MeshData {
         val builder = MeshBuilder()
         when {
+            definition.id == WorldId.FOREST && variant == 1 -> {
+                // Slender birch-like crown: upright, separated foliage clusters rather
+                // than another copy of the broad, rounded woodland crown.
+                builder.addEllipsoid(0f, 1.05f, 0f, 0.30f, 0.62f, 0.29f, 6, 9)
+                builder.addEllipsoid(0.12f, 0.72f, 0.08f, 0.25f, 0.36f, 0.24f, 6, 8)
+                builder.addEllipsoid(-0.10f, 1.43f, -0.06f, 0.25f, 0.35f, 0.23f, 6, 8)
+            }
+            definition.id == WorldId.MOUNTAIN && variant == 1 -> {
+                // Alpine fir: broad lower boughs and a narrow pointed crown.
+                builder.addCone(0f, 0.34f, 0f, 0.58f, 0.88f, 9, 1.25f)
+                builder.addCone(0f, 0.90f, 0f, 0.43f, 0.82f, 9, 1.25f)
+                builder.addCone(0f, 1.40f, 0f, 0.27f, 0.70f, 8, 1.2f)
+            }
+            definition.id == WorldId.SNOW && variant == 1 -> {
+                // Compact subarctic spruce, distinctly shorter and fuller than the primary pine.
+                builder.addCone(0f, 0.28f, 0f, 0.62f, 0.72f, 8, 1.3f)
+                builder.addCone(0f, 0.76f, 0f, 0.46f, 0.70f, 8, 1.3f)
+                builder.addCone(0f, 1.18f, 0f, 0.28f, 0.62f, 7, 1.2f)
+            }
+            definition.id == WorldId.OCEAN && variant == 1 -> {
+                // Salt-wind sculpted coastal crown, biased to one side.
+                builder.addEllipsoid(0.18f, 0.96f, 0f, 0.58f, 0.42f, 0.36f, 7, 9)
+                builder.addEllipsoid(-0.18f, 0.72f, 0.08f, 0.34f, 0.30f, 0.29f, 6, 8)
+                builder.addEllipsoid(0.48f, 1.20f, -0.08f, 0.30f, 0.27f, 0.28f, 6, 8)
+            }
+            definition.id == WorldId.DESERT && variant == 1 -> {
+                // Multi-arm desert cactus rather than a second straight saguaro stamp.
+                builder.addCylinder(0f, 0.78f, 0f, 0.13f, 0.12f, 1.55f, 8, false, false, 1f)
+                builder.pushTrs(-0.16f, 0.54f, 0f, 0f, 0f, 1.5707963f, 1f)
+                builder.addCylinder(0f, 0f, 0f, 0.10f, 0.10f, 0.48f, 7, false, false, 1f)
+                builder.pop()
+                builder.pushTrs(0.18f, 0.88f, 0f, 0f, 0f, 1.5707963f, 1f)
+                builder.addCylinder(0f, 0f, 0f, 0.09f, 0.09f, 0.42f, 7, false, false, 1f)
+                builder.pop()
+            }
             definition.id == WorldId.DESERT -> {
                 // Saguaro silhouette: two raised arms with elbows, not a generic tree crown.
                 builder.addCylinder(0f, 0.72f, 0f, 0.14f, 0.12f, 1.45f, 10, false, false, 1f)
@@ -330,9 +574,17 @@ class WorldScene(
                 builder.addCone(0f, 1.08f, 0f, 0.26f, 0.60f, 8, 1.5f)
             }
             else -> {
-                builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
-                builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
-                builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+                // Temperate broadleaf canopy: offset foliage masses form a broken,
+                // asymmetric crown instead of the familiar three-ball lollipop.
+                builder.addEllipsoid(0f, 1.02f, 0f, 0.43f, 0.62f, 0.42f, 7, 10)
+                builder.addEllipsoid(0.30f, 0.78f, 0.10f, 0.34f, 0.40f, 0.33f, 6, 9)
+                builder.addEllipsoid(-0.31f, 0.83f, -0.16f, 0.32f, 0.46f, 0.30f, 6, 9)
+                builder.addEllipsoid(0.06f, 1.38f, -0.20f, 0.29f, 0.36f, 0.31f, 6, 8)
+                builder.addEllipsoid(-0.12f, 0.60f, 0.22f, 0.31f, 0.28f, 0.34f, 6, 8)
+                // Small outer lobes break the silhouette at mid-distance while keeping
+                // the canopy connected enough to read as one mature tree.
+                builder.addEllipsoid(0.52f, 0.92f, -0.18f, 0.19f, 0.28f, 0.21f, 5, 7)
+                builder.addEllipsoid(-0.50f, 0.70f, 0.18f, 0.20f, 0.27f, 0.22f, 5, 7)
             }
         }
         return builder.build()

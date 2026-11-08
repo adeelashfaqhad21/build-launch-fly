@@ -83,6 +83,17 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
     var instanceCount: Int = 0
         private set
 
+    private var sourceMatrices: FloatArray = FloatArray(0)
+    private var sourceCount: Int = 0
+    private val visibleIndices = IntArray(capacity.coerceAtLeast(1))
+    private var lastVisibleCount = -1
+    private var lastLodX = Float.NaN
+    private var lastLodY = Float.NaN
+    private var lastLodZ = Float.NaN
+    private var lastLodMaxDistance = Float.NaN
+    private var lastLodFullDistance = Float.NaN
+    private var lastLodThinDistant = true
+
     init {
         val vaoIds = IntArray(1)
         GLES30.glGenVertexArrays(1, vaoIds, 0)
@@ -124,11 +135,72 @@ class InstancedMesh(val label: String, data: MeshData, val capacity: Int) {
 
     /** Uploads [count] matrices (16 floats each) from [matrices]. */
     fun setInstances(matrices: FloatArray, count: Int) {
-        val safeCount = count.coerceIn(0, capacity)
-        instanceCount = safeCount
-        if (safeCount == 0) return
-        val floats = safeCount * 16
-        System.arraycopy(matrices, 0, uploadBuffer, 0, floats)
+        sourceMatrices = matrices
+        sourceCount = count.coerceIn(0, capacity)
+        lastVisibleCount = -1
+        System.arraycopy(matrices, 0, uploadBuffer, 0, sourceCount * 16)
+        uploadVisible(sourceCount)
+    }
+
+    /**
+     * Camera-distance LOD for mobile: keep full instance detail nearby, progressively
+     * thin distant foliage/ground clutter, and discard instances outside the useful horizon.
+     * The original transforms remain cached; no per-frame arrays are allocated.
+     */
+    fun applyDistanceLod(camera: com.buildlaunchfly.game.math.Vec3, maxDistance: Float, fullDetailDistance: Float, thinDistant: Boolean = true) {
+        if (sourceCount == 0) return
+        val dxCamera = camera.x - lastLodX
+        val dyCamera = camera.y - lastLodY
+        val dzCamera = camera.z - lastLodZ
+        if (dxCamera * dxCamera + dyCamera * dyCamera + dzCamera * dzCamera < 16f &&
+            maxDistance == lastLodMaxDistance &&
+            fullDetailDistance == lastLodFullDistance &&
+            thinDistant == lastLodThinDistant
+        ) return
+        lastLodX = camera.x
+        lastLodY = camera.y
+        lastLodZ = camera.z
+        lastLodMaxDistance = maxDistance
+        lastLodFullDistance = fullDetailDistance
+        lastLodThinDistant = thinDistant
+        val max2 = maxDistance * maxDistance
+        val full2 = fullDetailDistance * fullDetailDistance
+        var visible = 0
+        var selectionChanged = false
+        for (index in 0 until sourceCount) {
+            val offset = index * 16
+            val dx = sourceMatrices[offset + 12] - camera.x
+            val dy = sourceMatrices[offset + 13] - camera.y
+            val dz = sourceMatrices[offset + 14] - camera.z
+            val distance2 = dx * dx + dy * dy + dz * dz
+            if (distance2 > max2) continue
+            // Keep every near instance. Mid-distance clutter keeps two of every
+            // three instances; the far band keeps one of every three. The stable
+            // index pattern avoids flicker as the camera crosses LOD thresholds.
+            if (thinDistant && distance2 > full2) {
+                val keepEvery = if (distance2 > full2 + (max2 - full2) * 0.58f) 3 else 2
+                if (index % keepEvery != 0) continue
+            }
+            if (visible >= capacity) break
+            if (visible >= lastVisibleCount || visibleIndices[visible] != index) {
+                selectionChanged = true
+            }
+            visibleIndices[visible] = index
+            System.arraycopy(sourceMatrices, offset, uploadBuffer, visible * 16, 16)
+            visible++
+        }
+        if (visible != lastVisibleCount) selectionChanged = true
+        // Camera movement often leaves the visible set unchanged. Avoid a redundant
+        // GPU buffer upload until an instance enters/leaves the LOD selection.
+        if (!selectionChanged) return
+        lastVisibleCount = visible
+        uploadVisible(visible)
+    }
+
+    private fun uploadVisible(count: Int) {
+        instanceCount = count.coerceIn(0, capacity)
+        if (instanceCount == 0) return
+        val floats = instanceCount * 16
         uploadFloatBuffer.clear()
         uploadFloatBuffer.put(uploadBuffer, 0, floats)
         uploadFloatBuffer.flip()

@@ -128,41 +128,52 @@ class AircraftMesh(textures: TextureFactory) {
             }
         }
 
-        // Wings (left = -X, right = +X) with a little dihedral.
+        // Wide, high-aspect-ratio wings (left = -X, right = +X) with dihedral.
         if (build.isInstalled(PartSlot.WING_LEFT)) {
             b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.07f, 1f)
-            b.addBox(-1.06f, 0.02f, 0.06f, 1.02f, 0.052f, 0.46f, 1.5f)
-            b.addBox(-2.02f, 0.08f, 0.06f, 0.06f, 0.20f, 0.30f, 1.2f)
+            b.addBox(-1.52f, 0.02f, 0.06f, 1.48f, 0.075f, 0.54f, 1.5f)
+            b.addBox(-3.00f, 0.10f, 0.06f, 0.075f, 0.24f, 0.34f, 1.2f)
             if (build.tierOf(PartSlot.WING_LEFT) >= 2) {
                 // Stage 6: canted winglet at the port tip.
-                b.pushTrs(-2.02f, 0.28f, 0.06f, 0f, 0f, -0.35f, 1f)
+                b.pushTrs(-3.00f, 0.30f, 0.06f, 0f, 0f, -0.35f, 1f)
                 b.addBox(0f, 0f, 0f, 0.035f, 0.20f, 0.24f, 1f)
                 b.pop()
             }
             b.pop()
-            b.addBox(-0.42f, -0.04f, 0.06f, 0.05f, 0.12f, 0.16f, 1f)
+            b.addBox(-0.55f, -0.055f, 0.06f, 0.06f, 0.14f, 0.19f, 1f)
         }
         if (build.isInstalled(PartSlot.WING_RIGHT)) {
             b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.07f, 1f)
-            b.addBox(1.06f, 0.02f, 0.06f, 1.02f, 0.052f, 0.46f, 1.5f)
-            b.addBox(2.02f, 0.08f, 0.06f, 0.06f, 0.20f, 0.30f, 1.2f)
+            b.addBox(1.52f, 0.02f, 0.06f, 1.48f, 0.075f, 0.54f, 1.5f)
+            b.addBox(3.00f, 0.10f, 0.06f, 0.075f, 0.24f, 0.34f, 1.2f)
             if (build.tierOf(PartSlot.WING_RIGHT) >= 2) {
-                b.pushTrs(2.02f, 0.28f, 0.06f, 0f, 0f, 0.35f, 1f)
+                b.pushTrs(3.00f, 0.30f, 0.06f, 0f, 0f, 0.35f, 1f)
                 b.addBox(0f, 0f, 0f, 0.035f, 0.20f, 0.24f, 1f)
                 b.pop()
             }
             b.pop()
-            b.addBox(0.42f, -0.04f, 0.06f, 0.05f, 0.12f, 0.16f, 1f)
+            b.addBox(0.55f, -0.055f, 0.06f, 0.06f, 0.14f, 0.19f, 1f)
         }
 
-        // Tail assembly.
+        // Tail assembly: distinct port/starboard stabilisers and elevator surfaces.
         if (build.isInstalled(PartSlot.TAIL)) {
-            b.addBox(0f, 0.36f, 1.24f, 0.045f, 0.34f, 0.30f, 1.2f)
-            b.addBox(0f, 0.10f, 1.42f, 0.62f, 0.035f, 0.20f, 1.2f)
+            // Vertical fin and its root fairing.
+            b.addBox(0f, 0.36f, 1.24f, 0.055f, 0.36f, 0.32f, 1.2f)
+            b.addEllipsoid(0f, 0.18f, 1.20f, 0.16f, 0.13f, 0.32f, 5, 8)
+
+            // Split horizontal stabiliser: two independent halves, each with a visible elevator.
+            for (side in floatArrayOf(-1f, 1f)) {
+                b.addBox(side * 0.34f, 0.10f, 1.42f, 0.34f, 0.045f, 0.24f, 1.2f)
+                b.addBox(side * 0.34f, 0.105f, 1.60f, 0.32f, 0.025f, 0.105f, 1f)
+                // Hinge line and trim tab make the movable trailing surface readable at game scale.
+                b.addBox(side * 0.34f, 0.133f, 1.505f, 0.29f, 0.008f, 0.012f, 1f)
+                b.addBox(side * 0.48f, 0.137f, 1.665f, 0.055f, 0.009f, 0.035f, 1f)
+            }
             if (build.tierOf(PartSlot.TAIL) >= 2) {
-                // Stage 6: end-plate fairings.
-                b.addBox(-0.60f, 0.12f, 1.42f, 0.025f, 0.11f, 0.18f, 1f)
-                b.addBox(0.60f, 0.12f, 1.42f, 0.025f, 0.11f, 0.18f, 1f)
+                // Stage 6: end-plate fairings and a reinforced fin cap.
+                b.addBox(-0.70f, 0.12f, 1.42f, 0.025f, 0.12f, 0.20f, 1f)
+                b.addBox(0.70f, 0.12f, 1.42f, 0.025f, 0.12f, 0.20f, 1f)
+                b.addEllipsoid(0f, 0.69f, 1.22f, 0.07f, 0.09f, 0.12f, 5, 7)
             }
         }
 

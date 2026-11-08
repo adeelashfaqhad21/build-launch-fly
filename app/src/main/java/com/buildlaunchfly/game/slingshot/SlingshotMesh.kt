@@ -12,8 +12,9 @@ import kotlin.math.sqrt
 /** Fixed local geometry of the launching rig. All values are relative to the pad origin. */
 object SlingshotLayout {
     const val SEAT_HEIGHT = 3.05f
-    val LEFT_PRONG = Vec3(-2.05f, 3.62f, 0f)
-    val RIGHT_PRONG = Vec3(2.05f, 3.62f, 0f)
+    // Wide, elevated anchor points create the unmistakable V-shaped sling silhouette.
+    val LEFT_PRONG = Vec3(-3.05f, 4.18f, 0.92f)
+    val RIGHT_PRONG = Vec3(3.05f, 4.18f, 0.92f)
     val HOLD_POINT = Vec3(0f, 3.05f, 0f)
     val BASE = Vec3(0f, 0f, 0f)
 }
@@ -78,39 +79,44 @@ class SlingshotMesh(textures: TextureFactory) {
     private fun buildFrameData(): MeshData {
         val b = MeshBuilder()
 
-        // Ground plate.
-        b.addBox(0f, 0.14f, 0f, 2.7f, 0.14f, 1.0f, 2f)
-        b.addBox(0f, 0.34f, 0f, 1.1f, 0.22f, 0.7f, 2f)
+        // Reference-matched launcher: a compact rear deck, one slim central
+        // lattice tower and two widely spaced elastic support pylons. Keep the
+        // aircraft's forward exit (negative Z) clear of any cross-member.
+        b.addBox(0f, 0.12f, 0.18f, 2.55f, 0.14f, 1.28f, 2f)
+        b.addBox(0f, 0.34f, 0.52f, 0.92f, 0.10f, 0.72f, 2f)
 
-        // Two uprights leaning slightly outward.
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, 0.10f, 1f)
-        b.addCylinder(-1.82f, 1.75f, 0f, 0.19f, 0.15f, 3.4f, 9, true, true, 2f)
-        b.pop()
-        b.pushTrs(0f, 0f, 0f, 0f, 0f, -0.10f, 1f)
-        b.addCylinder(1.82f, 1.75f, 0f, 0.19f, 0.15f, 3.4f, 9, true, true, 2f)
-        b.pop()
+        // Narrow central mast with visible open X-bracing, rather than a broad
+        // industrial wall behind the aircraft.
+        for (x in floatArrayOf(-0.16f, 0.16f)) {
+            b.addBox(x, 2.05f, 1.48f, 0.045f, 1.82f, 0.045f, 2f)
+        }
+        for (y in floatArrayOf(0.55f, 1.55f, 2.55f, 3.55f)) {
+            b.addBox(0f, y, 1.48f, 0.22f, 0.045f, 0.06f, 2f)
+        }
+        for (y in floatArrayOf(1.05f, 2.05f, 3.05f)) {
+            b.pushTrs(0f, y, 1.48f, 0f, 0f, 0.55f, 1f)
+            b.addBox(0f, 0f, 0f, 0.035f, 0.66f, 0.035f, 2f)
+            b.pop()
+            b.pushTrs(0f, y, 1.48f, 0f, 0f, -0.55f, 1f)
+            b.addBox(0f, 0f, 0f, 0.035f, 0.66f, 0.035f, 2f)
+            b.pop()
+        }
 
-        // Cross braces.
-        b.addBox(0f, 1.55f, 0f, 1.72f, 0.075f, 0.075f, 2f)
-        b.addBox(0f, 2.75f, 0f, 1.58f, 0.065f, 0.065f, 2f)
+        // Outboard elastic pylons reproduce the broad V-shaped sling geometry.
+        for (side in floatArrayOf(-1f, 1f)) {
+            b.addBox(side * 3.05f, 2.15f, 0.92f, 0.085f, 2.02f, 0.085f, 2f)
+            b.addBox(side * 2.70f, 0.48f, 0.90f, 0.52f, 0.10f, 0.18f, 2f)
+            b.addBox(side * 2.82f, 3.95f, 0.92f, 0.30f, 0.12f, 0.16f, 2f)
+            b.addSphere(side * 3.05f, 4.18f, 0.92f, 0.19f, 6, 9)
+            b.pushTrs(side * 2.10f, 1.38f, 0.92f, 0f, 0f, -side * 0.42f, 1f)
+            b.addBox(0f, 0f, 0f, 0.07f, 1.48f, 0.07f, 2f)
+            b.pop()
+        }
 
-        // Prong tips.
-        b.addSphere(-2.02f, 3.60f, 0f, 0.20f, 5, 8)
-        b.addSphere(2.02f, 3.60f, 0f, 0.20f, 5, 8)
-
-        // Hydraulic recoil damper housings and reinforced lower cross-member.
-        b.addBox(0f, 0.62f, 0.08f, 2.18f, 0.12f, 0.16f, 2f)
-        b.addCylinder(-1.48f, 0.92f, 0.62f, 0.105f, 0.105f, 1.28f, 10, true, true, 1f)
-        b.addCylinder(1.48f, 0.92f, 0.62f, 0.105f, 0.105f, 1.28f, 10, true, true, 1f)
-
-        // Back stays.
-        b.pushTrs(0f, 0f, 0f, 0.42f, 0f, 0.10f, 1f)
-        b.addCylinder(-1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
-        b.pop()
-        b.pushTrs(0f, 0f, 0f, 0.42f, 0f, -0.10f, 1f)
-        b.addCylinder(1.9f, 1.6f, 0.9f, 0.10f, 0.09f, 2.6f, 7, false, false, 2f)
-        b.pop()
-
+        // Low recoil housings and deck braces stay behind the aircraft seat.
+        b.addBox(0f, 0.62f, 0.86f, 1.72f, 0.12f, 0.16f, 2f)
+        b.addCylinder(-1.48f, 0.92f, 0.84f, 0.10f, 0.10f, 1.18f, 10, true, true, 1f)
+        b.addCylinder(1.48f, 0.92f, 0.84f, 0.10f, 0.10f, 1.18f, 10, true, true, 1f)
         return b.build()
     }
 
@@ -120,8 +126,9 @@ class SlingshotMesh(textures: TextureFactory) {
         b.addBox(0f, 0.10f, 0f, 0.78f, 0.10f, 1.02f, 2f)
         b.addBox(-0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
         b.addBox(0.66f, 0.25f, 0.05f, 0.10f, 0.20f, 0.76f, 2f)
-        b.addBox(0f, 0.28f, -0.88f, 0.48f, 0.18f, 0.12f, 2f)
-        b.addBox(0f, 0.24f, 0.86f, 0.54f, 0.12f, 0.10f, 2f)
+        // Keep the forward launch corridor completely unobstructed. The padded
+        // bed and side cheeks retain the fuselage during draw without a crossbar
+        // intersecting the nose, propeller or wing-root clearance envelope.
         return b.build()
     }
 
@@ -176,24 +183,37 @@ class SlingshotMesh(textures: TextureFactory) {
     }
 
     /** Left band transform for the current draw offset. */
-    fun leftBandMatrix(pull: Float, out: Mat4): Mat4 {
+    fun leftBandMatrix(pull: Float, out: Mat4, elevationDegrees: Float = 0f): Mat4 {
         val thickness = 1f + thicknessBoost
-        return bandMatrix(SlingshotLayout.LEFT_PRONG, holdPoint(pull), thickness, out)
+        return bandMatrix(SlingshotLayout.LEFT_PRONG, holdPoint(pull, elevationDegrees), thickness, out)
     }
 
-    fun rightBandMatrix(pull: Float, out: Mat4): Mat4 {
+    fun rightBandMatrix(pull: Float, out: Mat4, elevationDegrees: Float = 0f): Mat4 {
         val thickness = 1f + thicknessBoost
-        return bandMatrix(SlingshotLayout.RIGHT_PRONG, holdPoint(pull), thickness, out)
+        return bandMatrix(SlingshotLayout.RIGHT_PRONG, holdPoint(pull, elevationDegrees), thickness, out)
     }
 
     var thicknessBoost: Float = 0f
 
-    fun holdPoint(pull: Float): Vec3 {
+    /**
+     * Returns the carriage position after draw-back and elevation aiming.
+     * Positive elevation rotates the carriage nose upward around its rear pivot.
+     */
+    fun holdPoint(pull: Float, elevationDegrees: Float = 0f): Vec3 {
         val d = pull.coerceIn(0f, 1f) * DRAW_LENGTH
+        val baseY = SlingshotLayout.HOLD_POINT.y - d * 0.12f
+        val baseZ = SlingshotLayout.HOLD_POINT.z + d
+        val angle = Math.toRadians(elevationDegrees.toDouble()).toFloat()
+        val sin = kotlin.math.sin(angle)
+        val cos = kotlin.math.cos(angle)
+        val pivotY = SlingshotLayout.BASE.y + 1.10f
+        val pivotZ = SlingshotLayout.BASE.z + 0.30f
+        val localY = baseY - pivotY
+        val localZ = baseZ - pivotZ
         return tempEye.set(
             SlingshotLayout.HOLD_POINT.x,
-            SlingshotLayout.HOLD_POINT.y - d * 0.12f,
-            SlingshotLayout.HOLD_POINT.z + d
+            pivotY + localY * cos - localZ * sin,
+            pivotZ + localY * sin + localZ * cos
         )
     }
 

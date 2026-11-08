@@ -34,15 +34,16 @@ float sampleShadow(vec3 worldPos, vec3 n) {
     if (proj.z > 1.0 || proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0) {
         return 1.0;
     }
-    float bias = 0.0016;
+    float bias = 0.0018;
+    // Four-tap rotated cross PCF: substantially less texture bandwidth than the
+    // old 3x3 kernel while retaining soft, stable contact shadows on mobile GPUs.
+    vec2 texel = vec2(uShadowTexel * 0.75);
     float sum = 0.0;
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
-            float depth = texture(uShadowMap, proj.xy + vec2(float(x), float(y)) * uShadowTexel).r;
-            sum += ((proj.z - bias) <= depth) ? 1.0 : 0.0;
-        }
-    }
-    return sum / 9.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2(-texel.x, -texel.y)).r) ? 1.0 : 0.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2( texel.x, -texel.y)).r) ? 1.0 : 0.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2(-texel.x,  texel.y)).r) ? 1.0 : 0.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2( texel.x,  texel.y)).r) ? 1.0 : 0.0;
+    return sum * 0.25;
 }
 
 vec3 shadeSurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos, float roughness, float metallic, float emissive) {
@@ -80,9 +81,19 @@ vec3 shadeSurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos, float roughness, f
 }
 
 vec3 applyFog(vec3 color, vec3 worldPos) {
-    float dist = length(uCameraPos - worldPos);
-    float fog = 1.0 - exp(-max(uFogDensity, 0.0) * dist);
-    return mix(color, uFogColor, clamp(fog, 0.0, 1.0));
+    vec3 toCamera = uCameraPos - worldPos;
+    float dist = length(toCamera);
+    float horizontalDist = length(toCamera.xz);
+
+    // Atmospheric perspective is deliberately restrained: keep the aircraft,
+    // settlements and nearby terrain fully readable, and veil only far distance.
+    float viewHeight = max(min(worldPos.y, uCameraPos.y), 0.0);
+    float lowAltitudeDensity = mix(0.92, 0.78, smoothstep(24.0, 210.0, viewHeight));
+    float horizonWeight = 1.0 + 0.10 * smoothstep(260.0, 900.0, horizontalDist);
+    float opticalDepth = max(uFogDensity, 0.0) * dist *
+                         lowAltitudeDensity * horizonWeight * 0.16;
+    float fog = 1.0 - exp(-opticalDepth);
+    return mix(color, uFogColor, clamp(fog, 0.0, 0.42));
 }
 
 vec3 applyTonemap(vec3 c) {
@@ -208,6 +219,31 @@ uniform float uSoilStrength;
 
 out vec4 fragColor;
 
+// Smooth, non-periodic-looking world-space value noise for material boundaries.
+// Interpolated lattice values avoid the obvious repeating sine bands on long flights.
+float terrainHash(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return fract(sin(p.x + p.y) * 43758.5453);
+}
+
+float terrainNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = terrainHash(i);
+    float b = terrainHash(i + vec2(1.0, 0.0));
+    float c = terrainHash(i + vec2(0.0, 1.0));
+    float d = terrainHash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 2.0 - 1.0;
+}
+
+float terrainFbm(vec2 p) {
+    // Two broad octaves retain natural, non-periodic material breakup at a
+    // fraction of the hash/sine work of the previous three-octave field.
+    float broad = terrainNoise(p) * 0.66;
+    return broad + terrainNoise(p * 2.03) * 0.30;
+}
+
 void main() {
     vec3 n = normalize(vNormal);
     float upness = clamp(n.y, 0.0, 1.0);
@@ -218,10 +254,9 @@ void main() {
 
     // Break up material boundaries with broad world-space variation so slope and
     // elevation transitions read as geology rather than clean shader bands.
-    float broadNoise = sin(vWorldPos.x * 0.0041 + sin(vWorldPos.z * 0.0033) * 1.7) *
-                      cos(vWorldPos.z * 0.0047 - vWorldPos.x * 0.0019);
-    float fineNoise = sin(vWorldPos.x * 0.021 + vWorldPos.z * 0.013) *
-                     cos(vWorldPos.z * 0.018 - vWorldPos.x * 0.009);
+    vec2 terrainUv = vWorldPos.xz;
+    float broadNoise = terrainFbm(terrainUv * 0.0028);
+    float fineNoise = terrainNoise(terrainUv * 0.018);
     float slope = 1.0 - upness;
     float rockBoundary = uRockThreshold + broadNoise * 0.075 + fineNoise * 0.018;
     float rockMask = 1.0 - smoothstep(rockBoundary - 0.27, rockBoundary + 0.025, upness);
@@ -231,13 +266,17 @@ void main() {
 
     // Irregular exposed-earth patches break up uninterrupted green ground cover.
     // The broad field creates connected soil islands; a finer field roughens their edges.
-    float soilField = sin(vWorldPos.x * 0.0057 + sin(vWorldPos.z * 0.0042) * 1.8) *
-                      cos(vWorldPos.z * 0.0051 - vWorldPos.x * 0.0023);
-    float soilDetail = sin(vWorldPos.x * 0.019 + vWorldPos.z * 0.014) *
-                       cos(vWorldPos.z * 0.016 - vWorldPos.x * 0.011);
-    float soilMask = (1.0 - smoothstep(-0.20, 0.52, soilField + soilDetail * 0.12)) *
+    // Overlapping medium and fine fields create broken, natural soil islands instead
+    // of broad smooth bands. Their edges remain irregular at both near and flight scale.
+    float soilField = terrainFbm(terrainUv * 0.0068 + vec2(17.3, -9.1));
+    float soilDetail = terrainNoise(terrainUv * 0.032);
+    float soilMask = (1.0 - smoothstep(-0.06, 0.46, soilField + soilDetail * 0.30)) *
                      clamp(uSoilStrength, 0.0, 0.65);
-    vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.62, 0.48, 0.34);
+    // Reuse the broad geological field for a second scale of broken erosion
+    // patches instead of evaluating a third independent multi-octave field.
+    float erosionPatch = smoothstep(-0.22, 0.34, soilField + broadNoise * 0.30);
+    soilMask = max(soilMask, erosionPatch * clamp(uSoilStrength * 0.34, 0.0, 0.24));
+    vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.58, 0.43, 0.30);
     albedo = mix(albedo, exposedEarth, soilMask);
 
     float snowBoundary = uSnowLine + broadNoise * 13.0 + fineNoise * 3.5;
@@ -338,6 +377,33 @@ uniform float uTime;
 
 out vec4 fragColor;
 
+float skyHash(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return fract(sin(p.x + p.y) * 43758.5453);
+}
+
+float skyNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = skyHash(i);
+    float b = skyHash(i + vec2(1.0, 0.0));
+    float c = skyHash(i + vec2(0.0, 1.0));
+    float d = skyHash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+float skyFbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.57;
+    for (int octave = 0; octave < 4; ++octave) {
+        value += skyNoise(p) * amplitude;
+        p *= 2.02;
+        amplitude *= 0.5;
+    }
+    return value / 0.92;
+}
+
 void main() {
     vec3 d = normalize(vDir - uCameraPos);
     float h = clamp(d.y, -1.0, 1.0);
@@ -355,13 +421,15 @@ void main() {
     // then combine broad masses with finer breakup so clouds do not read as a single sine band.
     vec2 cloudUv = d.xz / max(h + 0.16, 0.16) * 0.42;
     cloudUv += vec2(uTime * 0.0018, -uTime * 0.0011);
-    float cloudLarge = sin(cloudUv.x * 1.7 + sin(cloudUv.y * 1.2)) *
-                       sin(cloudUv.y * 1.5 - cos(cloudUv.x * 0.8));
-    float cloudFine = sin(cloudUv.x * 5.2 + cloudUv.y * 2.7) *
-                      cos(cloudUv.y * 4.6 - cloudUv.x * 1.9);
-    float cloudDetail = sin(cloudUv.x * 10.4 - cloudUv.y * 6.3) *
-                        cos(cloudUv.y * 8.1 + cloudUv.x * 3.7);
-    float cloudShape = cloudLarge * 0.68 + cloudFine * 0.22 + cloudDetail * 0.07;
+    vec2 cloudWarp = vec2(
+        skyFbm(cloudUv * 0.72 + vec2(4.7, 1.3)),
+        skyFbm(cloudUv * 0.72 + vec2(9.2, 6.1))
+    ) - 0.5;
+    vec2 cloudDomain = cloudUv + cloudWarp * 0.34;
+    float cloudLarge = skyFbm(cloudDomain * 1.35);
+    float cloudFine = skyNoise(cloudDomain * 5.1) * 0.24;
+    float cloudDetail = skyNoise(cloudDomain * 11.8) * 0.09;
+    float cloudShape = cloudLarge * 0.67 + cloudFine + cloudDetail;
     float horizonFade = smoothstep(-0.035, 0.20, h);
     float cloudMask = smoothstep(0.08, 0.48, cloudShape) *
                       smoothstep(0.012, 0.20, h) *

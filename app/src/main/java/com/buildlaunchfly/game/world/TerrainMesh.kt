@@ -9,9 +9,18 @@ import kotlin.math.sqrt
  */
 object TerrainMesh {
 
-    fun build(terrain: Terrain): MeshData {
-        val xs = axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f)
-        val zs = axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f)
+    fun build(terrain: Terrain, detailLevel: Int = 2): MeshData {
+        // Keep the playable near field at full 8m sampling on every preset. Only the
+        // far-field grid spacing changes: power-saver devices get fewer distant vertices,
+        // while high-end devices retain more horizon relief.
+        val farGrowth = when {
+            detailLevel <= 0 -> 1.68f
+            detailLevel == 1 -> 1.54f
+            detailLevel == 2 -> 1.42f
+            else -> 1.34f
+        }
+        val xs = axis(-400f, 640f, 8f, -3600f, 5200f, farGrowth)
+        val zs = axis(-1900f, 320f, 8f, -5200f, 1600f, farGrowth)
 
         val nx = xs.size
         val nz = zs.size

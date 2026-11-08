@@ -79,6 +79,14 @@ object FlightHudScreen {
 
         drawGimbal(f, 86f, 200f, 44f, t.pitchDegrees, t.rollDegrees)
         f.label("YAW ${if (t.yawDegrees >= 0f) "+" else ""}${t.yawDegrees.toInt()}°", 86f, 264f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
+        f.label(
+            "DRAG UP: NOSE DOWN  •  DRAG DOWN: NOSE UP  •  LEFT / RIGHT: STEER",
+            w / 2f,
+            292f,
+            UiTextStyle.BADGE,
+            DesignTokens.TEXT_MUTED,
+            Paint.Align.CENTER
+        )
 
         val banner = f.rect(w / 2f - 150f, 78f, 300f, 22f)
         if (t.stallWarning) {

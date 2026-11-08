@@ -90,10 +90,12 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val hydraulicRightModel = Mat4()
     private val leftBand = Mat4()
     private val rightBand = Mat4()
+    private val worldIdentity = Mat4()
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
     private val focusPoint = Vec3()
     private val dragScratch = FloatArray(2)
+    private val gestureScratch = FloatArray(2)
     private val flightInput = FlightInput()
     private val particleColorSnow = Vec3(1f, 1f, 1f)
     private val particleColorDust = Vec3(0.95f, 0.84f, 0.66f)
@@ -166,7 +168,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val padY = scene?.terrain?.padHeight ?: 6f
         padPosition.set(0f, padY, 0f)
-        val restingPoint = slingMesh?.holdPoint(0f) ?: SlingshotLayout.HOLD_POINT
+        val restingPoint = slingMesh?.holdPoint(0f, profile.launchAngleDegrees) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
             padPosition.x + restingPoint.x,
             padPosition.y + restingPoint.y,
@@ -207,7 +209,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         applyEnvironment(definition, sceneRenderer)
         padPosition.set(0f, newScene.terrain.padHeight, 0f)
-        val restingPoint = slingMesh?.holdPoint(0f) ?: SlingshotLayout.HOLD_POINT
+        val restingPoint = slingMesh?.holdPoint(0f, profile.launchAngleDegrees) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
             padPosition.x + restingPoint.x,
             padPosition.y + restingPoint.y,
@@ -391,7 +393,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             pitchDegrees = physics.pitch * 57.29578f,
             rollDegrees = physics.roll * 57.29578f,
             yawDegrees = physics.yaw * 57.29578f,
-            stallWarning = physics.pitch > 0.38f && speed < 17f && state == GameState.FLIGHT,
+            stallWarning = physics.stallIntensity > 0.28f && state == GameState.FLIGHT,
+            stallIntensity = physics.stallIntensity,
             verticalSpeed = physics.velocity.y,
             flightTimeSeconds = flightTime
         )
@@ -422,16 +425,24 @@ class GameApp(private val context: Context, private val input: InputState) {
         val released = input.consumeRelease()
         val cancelled = input.consumeCancel()
         if (state == GameState.FLIGHT) {
-            // Horizontal drag commands yaw; vertical drag commands pitch.
-            steerYaw = (steerYaw + dragScratch[0] * 3.8f).coerceIn(-1f, 1f)
-            // Screen Y grows downward: a downward swipe commands a positive pitch
-            // (nose up), while an upward swipe commands nose down.
-            steerPitch = (steerPitch + dragScratch[1] * 3.8f).coerceIn(-1f, 1f)
+            // Flight steering is a held touch-drag vector, not a brief swipe impulse.
+            // The player can keep a finger displaced from the initial touch point to
+            // sustain pitch/yaw, then lift to return smoothly to neutral.
+            val steeringHeld = input.consumePointerOffset(
+                gestureScratch, viewportWidth, viewportHeight
+            )
+            if (steeringHeld) {
+                steerYaw = (gestureScratch[0] * 1.1f).coerceIn(-1f, 1f)
+                // Screen Y grows downward: downward displacement commands nose-up.
+                steerPitch = (gestureScratch[1] * 1.1f).coerceIn(-1f, 1f)
+            }
         }
-        val decay = (1f - 0.85f * dt).coerceAtLeast(0f)
+        val decay = (1f - 1.8f * dt).coerceAtLeast(0f)
         steerRoll *= decay
-        steerPitch *= decay
-        steerYaw *= decay
+        if (state != GameState.FLIGHT || !input.pointerDown) {
+            steerPitch *= decay
+            steerYaw *= decay
+        }
 
         when (state) {
             GameState.SEATED -> updateSeated(dt, released, cancelled)
@@ -492,6 +503,13 @@ class GameApp(private val context: Context, private val input: InputState) {
         flightInput.yaw = steerYaw
         flightInput.roll = steerRoll
         physics.update(dt, stats, ground, flightInput)
+        if (physics.state == FlightState.FLYING &&
+            currentScene.collidesWithNaturalObstacle(
+                physics.position.x, physics.position.y, physics.position.z
+            )
+        ) {
+            physics.crash()
+        }
         flightTime += dt
 
         val altitude = (physics.position.y - ground).coerceAtLeast(0f)
@@ -518,7 +536,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val speed = sling.launchSpeed(stretch, stats.mass)
         // Spawn the aircraft at the carriage's real drawn-back position so release
         // begins from the elastic's stored position rather than snapping forward.
-        val releasePoint = slingMesh?.holdPoint(stretch) ?: SlingshotLayout.HOLD_POINT
+        val releasePoint = slingMesh?.holdPoint(stretch, profile.launchAngleDegrees) ?: SlingshotLayout.HOLD_POINT
         seatPosition.set(
             padPosition.x + releasePoint.x,
             padPosition.y + releasePoint.y,
@@ -530,7 +548,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val recoilTurbulence = 0.28f * (1f - damperFraction * 0.92f)
         physics.launch(
             speed,
-            profile.launchAngleDegrees.coerceIn(20f, 55f),
+            profile.launchAngleDegrees.coerceIn(0f, 90f),
             0f,
             recoilTurbulence
         )
@@ -623,25 +641,38 @@ class GameApp(private val context: Context, private val input: InputState) {
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (state == GameState.SEATED) {
-            val hold = rig.holdPoint(pull)
+            val hold = rig.holdPoint(pull, profile.launchAngleDegrees)
             aircraftModel.setTrs(
                 padPosition.x + hold.x,
                 padPosition.y + hold.y,
                 padPosition.z + hold.z,
-                0.10f * pull, 0f, 0f,
-                1.22f
+                Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat() + 0.10f * pull, 0f, 0f,
+                AIRCRAFT_HERO_SCALE
             )
             propellerModel.set(aircraftModel)
             propellerModel.translate(0f, 0f, -1.62f)
         } else {
-            aircraftModel.set(physics.orientation).scale(1.22f)
+            aircraftModel.set(physics.orientation).scale(AIRCRAFT_HERO_SCALE)
             physics.propellerMatrix(propellerModel)
-            propellerModel.scale(1.22f)
+            propellerModel.scale(AIRCRAFT_HERO_SCALE)
         }
         updatePropellerBladeModels(physics.propellerBladePitch)
 
         camera.update()
         sceneRenderer.beginFrame(camera)
+
+        // Camera-relative mobile LOD: preserve full nearby silhouettes and reduce
+        // distant clutter before both shadow and colour passes.
+        currentScene.treeTrunks.applyDistanceLod(camera.position, 275f, 105f, true)
+        currentScene.treeCanopies.applyDistanceLod(camera.position, 290f, 110f, true)
+        currentScene.treeCanopyVariants.applyDistanceLod(camera.position, 290f, 110f, true)
+        currentScene.rocks.applyDistanceLod(camera.position, 205f, 82f, true)
+        currentScene.bushes.applyDistanceLod(camera.position, 125f, 48f)
+        currentScene.bushesVariantB.applyDistanceLod(camera.position, 145f, 54f)
+        currentScene.bushesVariantC.applyDistanceLod(camera.position, 145f, 54f)
+        currentScene.grass?.applyDistanceLod(camera.position, 68f, 26f)
+        currentScene.birdsMesh.applyDistanceLod(camera.position, 210f, 78f)
+        currentScene.animalsMesh.applyDistanceLod(camera.position, 160f, 60f)
 
         val shadowFocus = if (state == GameState.SEATED) seatPosition else physics.position
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
@@ -655,15 +686,18 @@ class GameApp(private val context: Context, private val input: InputState) {
             setHydraulicModels(rig, slingDraw)
             sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicLeftModel)
             sceneRenderer.shadowMesh(rig.hydraulicRodMesh, hydraulicRightModel)
-            val cradle = rig.holdPoint(slingDraw)
-            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
+            val cradle = rig.holdPoint(slingDraw, profile.launchAngleDegrees)
+            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.shadowMesh(rig.cradleMesh, cradleModel)
         }
-        sceneRenderer.shadowInstanced(currentScene.treeTrunks)
-        sceneRenderer.shadowInstanced(currentScene.bushes)
-        sceneRenderer.shadowInstanced(currentScene.bushesVariantB)
-        sceneRenderer.shadowInstanced(currentScene.bushesVariantC)
-        sceneRenderer.shadowInstanced(currentScene.rocks)
+        // Small settlements cast grounded silhouettes so houses and igloos sit
+        // naturally on the terrain instead of appearing to float above it.
+        sceneRenderer.shadowMesh(currentScene.settlementWallsMesh, worldIdentity)
+        sceneRenderer.shadowMesh(currentScene.settlementRoofsMesh, worldIdentity)
+
+        // Vegetation remains fully visible in the colour pass, but does not cast
+        // per-instance shadows on mobile. Thousands of tree/rock/grass shadow instances
+        // were a major GPU cost; retain shadows for terrain, aircraft and launcher only.
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
@@ -678,16 +712,24 @@ class GameApp(private val context: Context, private val input: InputState) {
             definition.rockThreshold,
             definition.snowLine,
             when (definition.id) {
-                WorldId.FOREST -> 0.46f
+                // Forest meadows and mountain pastures need visible bare-earth islands.
+                WorldId.FOREST -> 0.65f
                 WorldId.DESERT -> 0.04f
                 WorldId.SNOW -> 0f
-                WorldId.OCEAN -> 0.12f
-                WorldId.MOUNTAIN -> 0.34f
+                WorldId.OCEAN -> 0.18f
+                WorldId.MOUNTAIN -> 0.62f
             }
         )
 
+        // One batched pass per settlement material keeps the inhabited world legible
+        // without a draw call for every hut, cabin, igloo or coastal house.
+        sceneRenderer.drawMesh(currentScene.settlementWallsMesh, currentScene.settlementWallMaterial, worldIdentity)
+        sceneRenderer.drawMesh(currentScene.settlementRoofsMesh, currentScene.settlementRoofMaterial, worldIdentity)
+        sceneRenderer.drawMesh(currentScene.settlementDetailsMesh, currentScene.settlementDetailMaterial, worldIdentity)
+
         sceneRenderer.drawInstanced(currentScene.treeTrunks, currentScene.treeMaterial)
         sceneRenderer.drawInstanced(currentScene.treeCanopies, currentScene.canopyMaterial)
+        sceneRenderer.drawInstanced(currentScene.treeCanopyVariants, currentScene.canopyMaterial)
         sceneRenderer.drawInstanced(currentScene.rocks, currentScene.rockMaterial)
         sceneRenderer.drawInstanced(currentScene.bushes, currentScene.bushMaterial)
         sceneRenderer.drawInstanced(currentScene.bushesVariantB, currentScene.bushMaterial)
@@ -711,17 +753,17 @@ class GameApp(private val context: Context, private val input: InputState) {
             setHydraulicModels(rig, slingDraw)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicLeftModel)
             sceneRenderer.drawMesh(rig.hydraulicRodMesh, rig.hydraulicMaterial, hydraulicRightModel)
-            val cradle = rig.holdPoint(slingDraw)
-            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z)
+            val cradle = rig.holdPoint(slingDraw, profile.launchAngleDegrees)
+            cradleModel.identity().translate(padPosition.x + cradle.x, padPosition.y + cradle.y - 0.20f, padPosition.z + cradle.z).rotateX(Math.toRadians(profile.launchAngleDegrees.toDouble()).toFloat())
             sceneRenderer.drawMesh(rig.cradleMesh, rig.cradleMaterial, cradleModel)
 
             rig.thicknessBoost = slingStateBandBoost()
             applyBandTint(rig, slingDraw)
-            rig.leftBandMatrix(slingDraw, bandLocal)
+            rig.leftBandMatrix(slingDraw, bandLocal, profile.launchAngleDegrees)
             leftBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
 
-            rig.rightBandMatrix(slingDraw, bandLocal)
+            rig.rightBandMatrix(slingDraw, bandLocal, profile.launchAngleDegrees)
             rightBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
         }
@@ -815,5 +857,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         private const val TAG = "BLF-GAME"
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
         private const val SLING_RECOIL_DURATION = 0.42f
+        // Larger hero framing: the aircraft must read as the primary subject in launch and chase views.
+        private const val AIRCRAFT_HERO_SCALE = 1.62f
     }
 }

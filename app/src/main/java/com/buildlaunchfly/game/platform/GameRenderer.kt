@@ -10,6 +10,11 @@ class GameRenderer(private val app: GameApp) : GLSurfaceView.Renderer {
 
     private var lastNanos = 0L
     private var reportedVersion = false
+    private var profileWindowStartNanos = 0L
+    private var profileFrameCount = 0
+    private var profileSlowFrames = 0
+    private var profileTotalFrameNanos = 0L
+    private var profileMaxFrameNanos = 0L
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         app.onContextCreated()
@@ -30,10 +35,40 @@ class GameRenderer(private val app: GameApp) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        val now = System.nanoTime()
-        val dt = if (lastNanos == 0L) 0f else (now - lastNanos) / 1_000_000_000f
-        lastNanos = now
+        val frameStart = System.nanoTime()
+        val dt = if (lastNanos == 0L) 0f else
+            ((frameStart - lastNanos) / 1_000_000_000f).coerceAtMost(0.1f)
+        lastNanos = frameStart
+
         app.update(dt)
         app.render()
+
+        val frameNanos = System.nanoTime() - frameStart
+        if (profileWindowStartNanos == 0L) profileWindowStartNanos = frameStart
+        profileFrameCount++
+        profileTotalFrameNanos += frameNanos
+        if (frameNanos > 20_000_000L) profileSlowFrames++
+        if (frameNanos > profileMaxFrameNanos) profileMaxFrameNanos = frameNanos
+
+        val windowNanos = frameStart - profileWindowStartNanos
+        if (windowNanos >= 5_000_000_000L) {
+            val averageMs = profileTotalFrameNanos / profileFrameCount / 1_000_000f
+            val fps = profileFrameCount * 1_000_000_000f / windowNanos
+            android.util.Log.i(
+                "BLF-PERF",
+                "fps=%.1f avgFrameMs=%.2f maxFrameMs=%.2f slowFrames(>20ms)=%d/%d".format(
+                    fps,
+                    averageMs,
+                    profileMaxFrameNanos / 1_000_000f,
+                    profileSlowFrames,
+                    profileFrameCount
+                )
+            )
+            profileWindowStartNanos = frameStart
+            profileFrameCount = 0
+            profileSlowFrames = 0
+            profileTotalFrameNanos = 0L
+            profileMaxFrameNanos = 0L
+        }
     }
 }

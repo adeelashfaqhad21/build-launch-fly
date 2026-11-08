@@ -162,6 +162,10 @@ The propeller must rotate at an appropriate speed, with suitable sound effects.
 
 The player should feel that aircraft improvements have a genuine impact on flight distance and performance.
 
+**Player-aimed launch and flight challenge:** The player freely adjusts the rigid slingshot's launch cradle angle from 0° through 90°; the slingshot frame itself never bends to aim. A launch around 40°–45° should be a useful distance-oriented starting strategy, not a forced setting or hard-coded optimum. Steeper launches (70°–90°) trade forward airspeed for altitude; as the aircraft climbs, airspeed decays, lift becomes insufficient, the aircraft stalls and falls unless its actual aerodynamic performance can sustain it. Shallow launches trade altitude for forward speed and can strike terrain if poorly managed. The player chooses the angle and actively controls pitch and left/right steering in flight. There are no artificial rings or floating checkpoint obstacles: natural terrain, trees, buildings, ridges, cliffs, ravines and coastal rocks create the challenge. Do not use an altitude-holding autopilot.
+
+**Distance progression:** Slingshot upgrades must measurably improve stored launch energy and release speed. Aircraft upgrades must measurably improve lift, glide efficiency, stability and/or powered thrust according to the installed component. Their combined effect should let a more developed aircraft launched by a better slingshot travel progressively farther. These are real physics effects, not text-only upgrade claims.
+
 The flight camera should maintain a clear view of the aircraft and surrounding landscape.
 
 Camera movement must be smooth and cinematic without making the aircraft difficult to see.

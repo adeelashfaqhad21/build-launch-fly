@@ -23,6 +23,9 @@ object Vegetation {
             attempts++
             val x = -760f + rng.nextFloat() * 1660f
             val z = -2600f + rng.nextFloat() * 3000f
+            // Keep the reference-camera flight sightline open. Tree stands remain
+            // visible on both sides, but should not form a wall around the aircraft.
+            if (z in -1900f..-60f && kotlin.math.abs(x) < 38f) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
@@ -59,17 +62,32 @@ object Vegetation {
             }
             if (!habitat) continue
 
+            // Thin distant stands deterministically so the skyline reads as separated
+            // tree groups rather than a continuous dark hedge. Close trees retain detail.
+            val treeDepth = ((-z) / 3000f).coerceIn(0f, 1f)
+            val standBreakup = Noise.fbm01(x * 0.0042f, z * 0.0038f, 2, seed + 43)
+            val thinningThreshold = 0.16f + treeDepth * 0.28f
+            if (standBreakup < thinningThreshold) continue
+
+            // Mature foreground trees must read as full-scale landscape forms from
+            // the low chase camera, not as miniature repeated shrubs.
             val height = when (def.id) {
-                WorldId.DESERT -> 2.2f + rng.nextFloat() * 3.2f
-                WorldId.SNOW -> 3.2f + rng.nextFloat() * 4.8f
-                WorldId.OCEAN -> 3.0f + rng.nextFloat() * 5.2f
-                else -> 3.4f + rng.nextFloat() * 5.8f
+                WorldId.DESERT -> 2.8f + rng.nextFloat() * 4.0f
+                WorldId.SNOW -> 4.0f + rng.nextFloat() * 6.0f
+                WorldId.OCEAN -> 4.5f + rng.nextFloat() * 6.5f
+                WorldId.MOUNTAIN -> 5.0f + rng.nextFloat() * 9.0f
+                WorldId.FOREST -> 8.0f + rng.nextFloat() * 14.0f
             }
-            val width = height * (0.27f + rng.nextFloat() * 0.22f)
+            // Independent crown footprint prevents a repeated row of identical tree stamps.
+            // Broadleaf stands vary from narrow birches to wide Scots-pine-like crowns;
+            // coastal trees receive a little more directional lean from persistent sea wind.
+            val widthX = height * (0.22f + rng.nextFloat() * 0.30f)
+            val widthZ = height * (0.20f + rng.nextFloat() * 0.32f)
             val rotY = rng.nextFloat() * 6.2831855f
-            val leanX = (rng.nextFloat() - 0.5f) * 0.045f
-            val leanZ = (rng.nextFloat() - 0.5f) * 0.045f
-            matrix.setTrs(x, h, z, leanX, rotY, leanZ, width, height, width)
+            val windLean = if (def.id == WorldId.OCEAN) 0.095f else 0.055f
+            val leanX = (rng.nextFloat() - 0.5f) * windLean
+            val leanZ = (rng.nextFloat() - 0.5f) * windLean
+            matrix.setTrs(x, h, z, leanX, rotY, leanZ, widthX, height, widthZ)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
@@ -92,14 +110,24 @@ object Vegetation {
             attempts++
             val x = -1100f + rng.nextFloat() * 2400f
             val z = -3000f + rng.nextFloat() * 3600f
+            // Keep a narrow central flight lane visually clear through the near/midground.
+            // Rocks remain distributed on both sides so the terrain still reads as natural.
+            if (z in -2200f..-120f && kotlin.math.abs(x) < 24f) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
             // Rocks prefer slopes and ridges.
             val slopeBias = 1.0f - normal.y
             if (rng.nextFloat() > 0.25f + slopeBias * 2.4f) continue
+            // Keep close rock silhouettes substantial while reducing far-field clutter.
+            val rockDepth = ((-z) / 3000f).coerceIn(0f, 1f)
+            if (Noise.fbm01(x * 0.0039f, z * 0.0036f, 2, seed + 991) <
+                0.06f + rockDepth * 0.26f) continue
 
-            val size = 0.9f + rng.nextFloat() * 3.4f
+            // Foreground rocks carry readable shape detail; distant rocks shrink toward
+            // the horizon to create scale separation without adding extra draw calls.
+            val depth = ((-z) / 3000f).coerceIn(0f, 1f)
+            val size = (1.2f + rng.nextFloat() * 4.0f) * (1.62f - depth * 0.82f)
             val rotX = (rng.nextFloat() - 0.5f) * 0.4f
             val rotY = rng.nextFloat() * 6.2831855f
             val rotZ = (rng.nextFloat() - 0.5f) * 0.4f
@@ -135,6 +163,9 @@ object Vegetation {
             attempts++
             val x = -920f + rng.nextFloat() * 1900f
             val z = -2750f + rng.nextFloat() * 3150f
+            // Preserve a readable central corridor in the rear chase composition;
+            // understory still frames the route from the peripheral terrain.
+            if (z in -1850f..-45f && kotlin.math.abs(x) < 25f) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
@@ -173,6 +204,12 @@ object Vegetation {
             }
             if (!habitat) continue
 
+            // Distant understory becomes progressively less dense, allowing ground
+            // forms and the far ecosystem silhouette to remain legible through haze.
+            val shrubDepth = ((-z) / 2850f).coerceIn(0f, 1f)
+            val shrubBreakup = Noise.fbm01(x * 0.0051f, z * 0.0047f, 2, seed + 79)
+            if (shrubBreakup < 0.14f + shrubDepth * 0.30f) continue
+
             val scale = when (def.id) {
                 WorldId.DESERT -> 0.55f + rng.nextFloat() * 0.72f
                 WorldId.SNOW -> 0.48f + rng.nextFloat() * 0.58f
@@ -180,12 +217,18 @@ object Vegetation {
                 WorldId.MOUNTAIN -> 0.72f + rng.nextFloat() * 1.05f
                 WorldId.FOREST -> 0.78f + rng.nextFloat() * 1.18f
             }
-            // Avoid a field of identical upright copies: vary footprint and lean slightly.
-            val sx = scale * (0.72f + rng.nextFloat() * 0.62f)
-            val sz = scale * (0.76f + rng.nextFloat() * 0.58f)
-            val leanX = (rng.nextFloat() - 0.5f) * 0.12f
-            val leanZ = (rng.nextFloat() - 0.5f) * 0.12f
-            matrix.setTrs(x, h, z, leanX, rng.nextFloat() * 6.2831855f, leanZ, sx, scale, sz)
+            // Stronger independent axis variation changes each shrub's height, spread and silhouette.
+            // The low-frequency habitat mask still controls clustering; transforms avoid repeated copies.
+            // Establish a readable near-to-far understory scale gradient. Nearby
+            // plants keep their silhouette; distant clumps recede without extra geometry.
+            val depth = ((-z) / 2750f).coerceIn(0f, 1f)
+            val depthScale = 1.18f - depth * 0.48f
+            val sx = scale * depthScale * (0.58f + rng.nextFloat() * 0.92f)
+            val sy = scale * depthScale * (0.72f + rng.nextFloat() * 0.78f)
+            val sz = scale * depthScale * (0.60f + rng.nextFloat() * 0.90f)
+            val leanX = (rng.nextFloat() - 0.5f) * 0.18f
+            val leanZ = (rng.nextFloat() - 0.5f) * 0.18f
+            matrix.setTrs(x, h, z, leanX, rng.nextFloat() * 6.2831855f, leanZ, sx, sy, sz)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
@@ -213,6 +256,9 @@ object Vegetation {
             // clearing. The coastline keeps its own narrow landward marram band.
             val z = -2700f + rng.nextFloat() * 3050f
             val randomX = -760f + rng.nextFloat() * 1660f
+            // Keep dense grass clumps out of the immediate aircraft sightline;
+            // the reference chase view relies on readable open ground ahead.
+            if (z in -1550f..-35f && kotlin.math.abs(randomX) < 11f) continue
             val shoreline = -285f + 78f * kotlin.math.sin(z * 0.00145f) +
                 24f * kotlin.math.sin(z * 0.0031f + 0.8f)
             val x = if (def.id == WorldId.OCEAN) shoreline + 18f + rng.nextFloat() * 150f else randomX
@@ -244,14 +290,37 @@ object Vegetation {
             }
             if (!habitat) continue
 
+            // Vegetation LOD: preserve dense, detailed ground cover near the aircraft,
+            // then progressively thin distant grass clumps into a lighter silhouette.
+            // Terrain already uses coarser far-field sampling; this reduces far-field
+            // instance vertex work without changing the near-camera ecosystem.
+            val grassDepth = ((-z) / 2700f).coerceIn(0f, 1f)
+            val farGrassMask = Noise.fbm01(
+                x * 0.0048f, z * 0.0042f, 2, seed + 307
+            )
+            if (farGrassMask < 0.12f + grassDepth * 0.43f) continue
+
             val size = when (def.id) {
-                WorldId.DESERT -> 0.35f + rng.nextFloat() * 0.55f
-                WorldId.OCEAN -> 0.65f + rng.nextFloat() * 0.85f
-                else -> 0.5f + rng.nextFloat() * 0.9f
+                WorldId.DESERT -> 0.30f + rng.nextFloat() * 0.62f
+                WorldId.OCEAN -> 0.58f + rng.nextFloat() * 0.94f
+                WorldId.MOUNTAIN -> 0.42f + rng.nextFloat() * 1.02f
+                WorldId.FOREST -> 0.46f + rng.nextFloat() * 1.12f
+                WorldId.SNOW -> 0.35f + rng.nextFloat() * 0.60f
             }
-            val lean = (rng.nextFloat() - 0.5f) * 0.22f
+            // Give exposed grass a shared prevailing-wind direction, then layer per-clump
+            // variation over it. This avoids the uniformly random, upright lawn appearance.
+            val prevailingLean = when (def.id) {
+                WorldId.DESERT -> -0.19f
+                WorldId.OCEAN -> -0.27f
+                WorldId.MOUNTAIN -> -0.11f
+                WorldId.FOREST -> -0.035f
+                WorldId.SNOW -> 0f
+            }
+            val lean = prevailingLean + (rng.nextFloat() - 0.5f) * 0.18f
+            val depthScale = size * (0.68f + rng.nextFloat() * 0.64f)
+            val heightScale = size * (1.08f + rng.nextFloat() * 0.52f)
             matrix.setTrs(x, h, z, lean, rng.nextFloat() * 6.2831855f, -lean * 0.55f,
-                size, size * 1.3f, size * (0.8f + rng.nextFloat() * 0.4f))
+                size, heightScale, depthScale)
             System.arraycopy(matrix.m, 0, out, placed * 16, 16)
             placed++
         }
