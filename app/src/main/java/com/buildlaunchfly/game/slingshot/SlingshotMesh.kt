@@ -36,9 +36,12 @@ object SlingshotLayout {
     val LEFT_PRONG = Vec3(-TIP_X, TIP_Y, 0f)
     val RIGHT_PRONG = Vec3(TIP_X, TIP_Y, 0f)
 
-    /** Sling meets the aircraft at the wing root, not the tail. */
-    const val ANCHOR_Y = -0.08f
-    const val ANCHOR_Z = -0.08f
+    /**
+     * The sling meets the aircraft just behind the wing root, so from the rear camera the two
+     * arms overlay the wings and meet visibly on the fuselage centre line, like the plate.
+     */
+    const val ANCHOR_Y = -0.10f
+    const val ANCHOR_Z = 0.25f
 
     val HOLD_POINT = Vec3(0f, SEAT_HEIGHT, 0f)
 }
