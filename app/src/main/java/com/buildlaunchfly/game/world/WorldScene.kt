@@ -21,7 +21,7 @@ import com.buildlaunchfly.game.math.Vec3
 import kotlin.random.Random
 
 /** Which plant family a realm grows; the same scatter rules, different silhouettes. */
-private enum class PlantStyle { FOREST, DESERT, ALPINE, COAST }
+private enum class PlantStyle { FOREST, DESERT, SNOW, MOUNTAIN, COAST }
 
 /** One instanced mesh with the material it is drawn with. */
 class InstancedPart(
@@ -55,7 +55,8 @@ class WorldScene(
     /** Realm-specific plant family: cacti and dead trees in the desert, palms on the coast. */
     private val plantStyle: PlantStyle = when (definition.id) {
         WorldId.DESERT -> PlantStyle.DESERT
-        WorldId.SNOW, WorldId.MOUNTAIN -> PlantStyle.ALPINE
+        WorldId.SNOW -> PlantStyle.SNOW
+        WorldId.MOUNTAIN -> PlantStyle.MOUNTAIN
         WorldId.OCEAN -> PlantStyle.COAST
         WorldId.FOREST -> PlantStyle.FOREST
     }
@@ -449,11 +450,16 @@ class WorldScene(
             HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25, "NormalTree_Bark.jpg"),
             HeroSpec("NormalTree_5", "NormalTree_Leaves.png", 5, 9.0f, 58, "NormalTree_Bark.jpg")
         )
-        PlantStyle.ALPINE -> listOf(
-            HeroSpec("PineTree_1", "PineTree_Leaves.png", 10, 7.5f, 3, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_2", "PineTree_Leaves.png", 8, 6.8f, 23, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_5", "PineTree_Leaves.png", 6, 9.4f, 59, "PineTree_Bark.jpg")
+        PlantStyle.SNOW -> listOf(
+            HeroSpec("PineTree_1", "PineTree_Leaves.png", 8, 8.2f, 3, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_3", "PineTree_Leaves.png", 6, 9.0f, 26, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_5", "PineTree_Leaves.png", 5, 10.0f, 59, "PineTree_Bark.jpg")
+        )
+        PlantStyle.MOUNTAIN -> listOf(
+            HeroSpec("PineTree_2", "PineTree_Leaves.png", 7, 7.2f, 23, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_5", "PineTree_Leaves.png", 5, 9.4f, 59, "PineTree_Bark.jpg"),
+            HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 5, 7.5f, 25, "NormalTree_Bark.jpg"),
+            HeroSpec("NormalTree_5", "NormalTree_Leaves.png", 4, 8.2f, 58, "NormalTree_Bark.jpg")
         )
         PlantStyle.COAST -> listOf(
             HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 6, 8.5f, 4, "PalmTree_Trunk.jpg"),
@@ -479,11 +485,15 @@ class WorldScene(
                 plants.add(HeroSpec("Grass_Small", "Grass.png", 40, 0.6f, 43))
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 26, 0.9f, 44))
             }
-            PlantStyle.ALPINE -> {
-                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 28, 1.2f, 14))
-                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 24, 0.8f, 45))
-                plants.add(HeroSpec("Grass_Small", "Grass.png", 30, 0.6f, 46))
-                plants.add(HeroSpec("Plant_1", "Flowers.png", 18, 0.7f, 47))
+            PlantStyle.SNOW -> {
+                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 12, 0.65f, 45))
+                plants.add(HeroSpec("Rock_1", "Rocks.jpg", 8, 2.0f, 18))
+            }
+            PlantStyle.MOUNTAIN -> {
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 24, 1.2f, 14))
+                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 18, 0.8f, 45))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 22, 0.6f, 46))
+                plants.add(HeroSpec("Plant_1", "Flowers.png", 10, 0.7f, 47))
             }
             PlantStyle.COAST -> {
                 plants.add(HeroSpec("Bush_Large", "Bush_Leaves.png", 24, 2.0f, 16))
@@ -493,7 +503,7 @@ class WorldScene(
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 20, 0.8f, 50))
             }
             PlantStyle.DESERT -> {
-                plants.add(HeroSpec("Grass_Small", "Grass.png", 22, 0.5f, 51))
+                // No temperate green grass in the arid biome; keep the imported ground exposed.
             }
         }
         plants.add(HeroSpec("Rock_1", "Rocks.jpg", 18, 2.0f, 18))
@@ -1075,7 +1085,7 @@ class WorldScene(
                     builder.addEllipsoid(0.09f, 1.52f, 0.05f, 0.20f, 0.42f, 0.20f, 5, 8, 1.4f)
                 }
             }
-            PlantStyle.ALPINE -> when (species) {
+            PlantStyle.SNOW, PlantStyle.MOUNTAIN -> when (species) {
                 0 -> {
                     builder.addCone(0f, 0.30f, 0f, 0.46f, 1.05f, 8, 1.5f)
                     builder.addCone(0f, 0.86f, 0f, 0.34f, 0.90f, 8, 1.5f)
@@ -1151,7 +1161,7 @@ class WorldScene(
                     builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8, 1.2f)
                 }
             }
-            PlantStyle.ALPINE -> when (species) {
+            PlantStyle.SNOW, PlantStyle.MOUNTAIN -> when (species) {
                 0 -> {
                     builder.addCone(0f, 0f, 0f, 0.42f, 0.55f, 8, 1.2f)
                     builder.addCone(0f, 0.30f, 0f, 0.26f, 0.40f, 7, 1.2f)
