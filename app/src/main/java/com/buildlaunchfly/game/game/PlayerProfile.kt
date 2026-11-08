@@ -19,8 +19,8 @@ class PlayerProfile {
     var totalDistance: Float = 0f
     var glacierCrevasseCrossed: Boolean = false
 
-    /** Shallow launch elevation tuned for low-altitude, pilot-controlled flight. */
-    var launchAngleDegrees: Float = 4.5f
+    /** Player-controlled launcher elevation; steep launches naturally trade forward speed for height. */
+    var launchAngleDegrees: Float = 45f
 
     var selectedWorld: WorldId = WorldId.FOREST
         private set
@@ -156,7 +156,11 @@ class PlayerProfile {
                 profile.totalDistance = root.optDouble("totalDistance", 0.0).toFloat()
                 profile.glacierCrevasseCrossed = root.optBoolean("glacierCrevasseCrossed", false)
                 profile.launchAngleDegrees =
-                    root.optDouble("launchAngle", 4.5).toFloat().coerceIn(2f, 8f)
+                    root.optDouble("launchAngle", 45.0).toFloat().let { saved ->
+                        // Earlier test builds incorrectly restricted aiming to 2°–8°.
+                        // Move those forced shallow defaults to the intended 45° starting aim.
+                        (if (saved in 2f..8f) 45f else saved).coerceIn(0f, 90f)
+                    }
 
                 val selected = root.optString("selectedWorld", WorldId.FOREST.name)
                 for (id in WorldId.values()) {
