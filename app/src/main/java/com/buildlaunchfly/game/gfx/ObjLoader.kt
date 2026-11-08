@@ -65,7 +65,7 @@ object ObjLoader {
                         }
                     }
                     line.startsWith("usemtl ") -> {
-                        inFoliage = isFoliage(line.substring(7).trim())
+                        inFoliage = isFoliage(line.substring(7).trim(), path)
                     }
                     line.startsWith("f ") -> {
                         addFace(
@@ -88,12 +88,23 @@ object ObjLoader {
         )
     }
 
-    /** Leaves, flowers, grass and bushes go to the foliage group; bark and rock do not. */
-    private fun isFoliage(material: String): Boolean {
+    /**
+     * Leaves, flowers, grass and bushes go to the foliage group; bark and rock do not.
+     * Some Quaternius grass OBJ files export their only material as "None", so use the
+     * asset filename as a fallback only when the material itself carries no useful category.
+     */
+    private fun isFoliage(material: String, path: String): Boolean {
         val name = material.lowercase()
         if (name.contains("bark") || name.contains("trunk") || name.contains("rock")) return false
-        return name.contains("leave") || name.contains("flower") ||
-            name.contains("grass") || name.contains("bush") || name.contains("plant")
+        if (name.contains("leave") || name.contains("flower") ||
+            name.contains("grass") || name.contains("bush") || name.contains("plant")) return true
+
+        val materialIsUnspecified = name.isBlank() || name == "none" || name == "default"
+        if (!materialIsUnspecified) return false
+
+        val assetName = path.substringAfterLast('/').substringBeforeLast('.').lowercase()
+        return assetName.contains("grass") || assetName.contains("flower") ||
+            assetName.contains("bush") || assetName.contains("plant")
     }
 
     private fun addFace(
