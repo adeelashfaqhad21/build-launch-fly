@@ -352,9 +352,9 @@ the sling clears them. Bands are yellow/white striped. In Ref-3 the plane sits b
 the camera is closer and the sling forms a steeper V.
 
 **Layout in world space:** posts at x ±2.15 m, height 3.15 m (about the nose-to-tail length),
-squared 0.13 m section with 0.05 rad outward splay; sling radius 0.075 m; tow point 0.08 m
-below and 0.08 m forward of the aircraft origin; aircraft seat at 3.05 m; camera directly
-behind at ~3.3 m height.
+squared 0.13 m section with 0.05 rad outward splay; sling radius 0.075 m; tow point 0.10 m
+below the origin and 0.25 m behind it, so the arms pass behind the wings and the V meets on
+the fuselage centre line; aircraft seat at 3.05 m; camera directly behind at ~3.3 m height.
 
 **Colours:** timber `#8A6A4A` posts, sling `yellow #FFD52B` + `cream #F5F2E8` stripes, dark
 leather pad.
