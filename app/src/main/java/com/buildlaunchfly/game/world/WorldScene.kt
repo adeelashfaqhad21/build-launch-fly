@@ -9,7 +9,11 @@ import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.ParticleRenderer
 import com.buildlaunchfly.game.gfx.TextureFactory
+import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
+
+/** Which plant family a realm grows; the same scatter rules, different silhouettes. */
+private enum class PlantStyle { FOREST, DESERT, ALPINE, COAST }
 
 /** One instanced mesh with the material it is drawn with. */
 class InstancedPart(
@@ -38,6 +42,15 @@ class WorldScene(
 ) {
 
     val terrain = Terrain(definition)
+
+    /** Realm-specific plant family: cacti and dead trees in the desert, palms on the coast. */
+    private val plantStyle: PlantStyle = when (definition.id) {
+        WorldId.DESERT -> PlantStyle.DESERT
+        WorldId.SNOW, WorldId.MOUNTAIN -> PlantStyle.ALPINE
+        WorldId.OCEAN -> PlantStyle.COAST
+        WorldId.FOREST -> PlantStyle.FOREST
+    }
+
     val terrainMesh: Mesh
     val waterMesh: Mesh?
 
@@ -174,7 +187,7 @@ class WorldScene(
         for (species in treeSets.indices) {
             val set = treeSets[species]
             if (set.count == 0) continue
-            val canopyData = buildCanopyData(species)
+            val canopyData = buildCanopyData(plantStyle, species)
             val trunkMesh = Mesh("treeTrunk$species", trunkData)
             val canopyMesh = Mesh("treeCanopy$species", canopyData)
             val trunks = InstancedMesh("treeTrunks$species", trunkData, set.count)
@@ -201,7 +214,9 @@ class WorldScene(
             (definition.treeCount * 0.55f * scale).toInt().coerceAtLeast(0),
             definition.seed
         )
-        shrubs = buildParts(shrubSets, "shrub", listOf(shrubMaterial)) { buildShrubData(it) }
+        shrubs = buildParts(shrubSets, "shrub", listOf(shrubMaterial)) {
+            buildShrubData(plantStyle, it)
+        }
 
         // ---- rocks ----
         val rockSets = Vegetation.scatterRocks(
@@ -219,7 +234,9 @@ class WorldScene(
             -90f,
             320f
         )
-        grassParts = buildParts(grassSets, "grass", grassMaterials) { buildGrassData(it) }
+        grassParts = buildParts(grassSets, "grass", grassMaterials) {
+            buildGrassData(plantStyle, it)
+        }
 
         birdMaterial = Material(
             albedo = textures.rubber,
@@ -344,44 +361,163 @@ class WorldScene(
         return builder.build()
     }
 
-    /** 0 broadleaf, 1 conifer, 2 poplar. */
-    private fun buildCanopyData(species: Int): MeshData {
+    /**
+     * One canopy per species, and the silhouette set changes with the realm: broadleaf,
+     * conifer and poplar in temperate worlds; saguaro and dead trees in the desert; palms on
+     * the coast; and three conifer forms in the alpine worlds.
+     */
+    private fun buildCanopyData(style: PlantStyle, species: Int): MeshData {
         val builder = MeshBuilder()
-        when (species) {
-            1 -> {
-                builder.addCone(0f, 0.26f, 0f, 0.54f, 0.95f, 9, 1.5f)
-                builder.addCone(0f, 0.70f, 0f, 0.41f, 0.80f, 9, 1.5f)
-                builder.addCone(0f, 1.06f, 0f, 0.26f, 0.64f, 8, 1.5f)
+        when (style) {
+            PlantStyle.DESERT -> when (species) {
+                1 -> {
+                    // Bare, wind-worn desert tree.
+                    builder.addCylinder(0f, 0.55f, 0f, 0.11f, 0.07f, 1.10f, 7, false, true, 1.2f)
+                    builder.addRod(0f, 0.72f, 0f, -0.42f, 1.02f, 0.18f, 0.045f, 6)
+                    builder.addRod(0f, 0.86f, 0f, 0.38f, 1.14f, -0.12f, 0.04f, 6)
+                    builder.addRod(0f, 0.60f, 0f, 0.30f, 0.82f, 0.24f, 0.035f, 6)
+                }
+                2 -> {
+                    // Low desert scrub.
+                    builder.addSphere(0f, 0.30f, 0f, 0.40f, 5, 8, 1.2f)
+                    builder.addSphere(0.24f, 0.24f, 0.10f, 0.26f, 4, 7, 1.2f)
+                }
+                else -> {
+                    // Saguaro: ribbed column with two arms.
+                    builder.addCylinder(0f, 0.55f, 0f, 0.155f, 0.135f, 1.10f, 9, true, true, 1.2f)
+                    builder.addRod(0f, 0.52f, 0f, -0.22f, 0.52f, 0f, 0.09f, 7)
+                    builder.addRod(-0.22f, 0.52f, 0f, -0.22f, 0.90f, 0f, 0.09f, 7)
+                    builder.addRod(0f, 0.70f, 0f, 0.20f, 0.70f, 0f, 0.085f, 7)
+                    builder.addRod(0.20f, 0.70f, 0f, 0.20f, 1.02f, 0f, 0.085f, 7)
+                    builder.addSphere(0f, 1.09f, 0f, 0.15f, 4, 8)
+                }
             }
-            2 -> {
-                builder.addEllipsoid(0f, 1.02f, 0f, 0.34f, 0.92f, 0.34f, 7, 10, 1.4f)
-                builder.addEllipsoid(0.09f, 1.52f, 0.05f, 0.20f, 0.42f, 0.20f, 5, 8, 1.4f)
+            PlantStyle.COAST -> when (species) {
+                0 -> {
+                    // Palm: leaning trunk with a crown of fronds.
+                    builder.pushTrs(0f, 0f, 0f, 0f, 0f, -0.14f, 1f)
+                    builder.addCylinder(0f, 0.62f, 0f, 0.10f, 0.07f, 1.24f, 8, true, true, 1.2f)
+                    builder.pop()
+                    for (i in 0 until 6) {
+                        builder.pushTrs(0.02f, 1.18f, 0f, 0f, i * M.TWO_PI / 6f, 0.45f, 1f)
+                        builder.addEllipsoid(0.42f, 0f, 0f, 0.44f, 0.045f, 0.13f, 4, 6, 1.2f)
+                        builder.pop()
+                    }
+                }
+                1 -> {
+                    builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
+                    builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
+                    builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+                }
+                else -> {
+                    builder.addEllipsoid(0f, 1.02f, 0f, 0.34f, 0.92f, 0.34f, 7, 10, 1.4f)
+                    builder.addEllipsoid(0.09f, 1.52f, 0.05f, 0.20f, 0.42f, 0.20f, 5, 8, 1.4f)
+                }
             }
-            else -> {
-                builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
-                builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
-                builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+            PlantStyle.ALPINE -> when (species) {
+                0 -> {
+                    builder.addCone(0f, 0.30f, 0f, 0.46f, 1.05f, 8, 1.5f)
+                    builder.addCone(0f, 0.86f, 0f, 0.34f, 0.90f, 8, 1.5f)
+                    builder.addCone(0f, 1.36f, 0f, 0.20f, 0.66f, 7, 1.5f)
+                }
+                1 -> {
+                    builder.addCone(0f, 0.26f, 0f, 0.54f, 0.95f, 9, 1.5f)
+                    builder.addCone(0f, 0.70f, 0f, 0.41f, 0.80f, 9, 1.5f)
+                    builder.addCone(0f, 1.06f, 0f, 0.26f, 0.64f, 8, 1.5f)
+                }
+                else -> {
+                    // Low, wide pine with a rounded crown.
+                    builder.addCone(0f, 0f, 0f, 0.62f, 0.85f, 9, 1.5f)
+                    builder.addSphere(0f, 0.88f, 0f, 0.30f, 5, 8, 1.3f)
+                }
+            }
+            PlantStyle.FOREST -> when (species) {
+                1 -> {
+                    builder.addCone(0f, 0.26f, 0f, 0.54f, 0.95f, 9, 1.5f)
+                    builder.addCone(0f, 0.70f, 0f, 0.41f, 0.80f, 9, 1.5f)
+                    builder.addCone(0f, 1.06f, 0f, 0.26f, 0.64f, 8, 1.5f)
+                }
+                2 -> {
+                    builder.addEllipsoid(0f, 1.02f, 0f, 0.34f, 0.92f, 0.34f, 7, 10, 1.4f)
+                    builder.addEllipsoid(0.09f, 1.52f, 0.05f, 0.20f, 0.42f, 0.20f, 5, 8, 1.4f)
+                }
+                else -> {
+                    builder.addSphere(0f, 1.02f, 0f, 0.50f, 6, 9, 1.4f)
+                    builder.addSphere(0.22f, 0.86f, 0.12f, 0.34f, 5, 8, 1.4f)
+                    builder.addSphere(-0.20f, 0.92f, -0.14f, 0.31f, 5, 8, 1.4f)
+                }
             }
         }
         return builder.build()
     }
 
     /** 0 low round bush, 1 wide creeping scrub, 2 spiky. */
-    private fun buildShrubData(species: Int): MeshData {
+    private fun buildShrubData(style: PlantStyle, species: Int): MeshData {
         val builder = MeshBuilder()
-        when (species) {
-            1 -> {
-                builder.addEllipsoid(0f, 0.20f, 0f, 0.58f, 0.24f, 0.46f, 5, 9, 1.2f)
-                builder.addEllipsoid(0.34f, 0.16f, 0.16f, 0.34f, 0.18f, 0.30f, 4, 8, 1.2f)
+        when (style) {
+            PlantStyle.DESERT -> when (species) {
+                1 -> {
+                    builder.addSphere(0f, 0.26f, 0f, 0.34f, 5, 8, 1.2f)
+                    builder.addSphere(0.20f, 0.20f, 0.08f, 0.22f, 4, 7, 1.2f)
+                }
+                2 -> {
+                    builder.addCone(0f, 0f, 0f, 0.32f, 0.58f, 8, 1.2f)
+                    builder.addCone(0.18f, 0f, 0.10f, 0.22f, 0.42f, 7, 1.2f)
+                }
+                else -> {
+                    // Small barrel cactus.
+                    builder.addCylinder(0f, 0.24f, 0f, 0.24f, 0.20f, 0.48f, 9, true, true, 1.2f)
+                    builder.addSphere(0f, 0.48f, 0f, 0.20f, 4, 8)
+                    builder.addRod(0f, 0.30f, 0f, -0.26f, 0.44f, 0f, 0.06f, 6)
+                }
             }
-            2 -> {
-                builder.addCone(0f, 0f, 0f, 0.38f, 0.62f, 8, 1.2f)
-                builder.addCone(0.22f, 0f, 0.12f, 0.26f, 0.48f, 7, 1.2f)
-                builder.addCone(-0.20f, 0f, -0.10f, 0.24f, 0.42f, 7, 1.2f)
+            PlantStyle.COAST -> when (species) {
+                0 -> {
+                    // Reeds: a tight cluster of narrow blades.
+                    for (i in 0 until 5) {
+                        val a = i * M.TWO_PI / 5f
+                        val cx = kotlin.math.cos(a) * 0.10f
+                        val cz = kotlin.math.sin(a) * 0.10f
+                        builder.addCone(cx, 0f, cz, 0.05f, 0.95f, 5, 1f)
+                    }
+                }
+                1 -> {
+                    builder.addEllipsoid(0f, 0.20f, 0f, 0.58f, 0.24f, 0.46f, 5, 9, 1.2f)
+                    builder.addEllipsoid(0.34f, 0.16f, 0.16f, 0.34f, 0.18f, 0.30f, 4, 8, 1.2f)
+                }
+                else -> {
+                    builder.addSphere(0f, 0.30f, 0f, 0.38f, 5, 9, 1.2f)
+                    builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8, 1.2f)
+                }
             }
-            else -> {
-                builder.addSphere(0f, 0.30f, 0f, 0.38f, 5, 9, 1.2f)
-                builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8, 1.2f)
+            PlantStyle.ALPINE -> when (species) {
+                0 -> {
+                    builder.addCone(0f, 0f, 0f, 0.42f, 0.55f, 8, 1.2f)
+                    builder.addCone(0f, 0.30f, 0f, 0.26f, 0.40f, 7, 1.2f)
+                }
+                1 -> {
+                    builder.addEllipsoid(0f, 0.20f, 0f, 0.58f, 0.24f, 0.46f, 5, 9, 1.2f)
+                    builder.addEllipsoid(0.34f, 0.16f, 0.16f, 0.34f, 0.18f, 0.30f, 4, 8, 1.2f)
+                }
+                else -> {
+                    builder.addCone(0f, 0f, 0f, 0.38f, 0.62f, 8, 1.2f)
+                    builder.addCone(0.22f, 0f, 0.12f, 0.26f, 0.48f, 7, 1.2f)
+                }
+            }
+            PlantStyle.FOREST -> when (species) {
+                1 -> {
+                    builder.addEllipsoid(0f, 0.20f, 0f, 0.58f, 0.24f, 0.46f, 5, 9, 1.2f)
+                    builder.addEllipsoid(0.34f, 0.16f, 0.16f, 0.34f, 0.18f, 0.30f, 4, 8, 1.2f)
+                }
+                2 -> {
+                    builder.addCone(0f, 0f, 0f, 0.38f, 0.62f, 8, 1.2f)
+                    builder.addCone(0.22f, 0f, 0.12f, 0.26f, 0.48f, 7, 1.2f)
+                    builder.addCone(-0.20f, 0f, -0.10f, 0.24f, 0.42f, 7, 1.2f)
+                }
+                else -> {
+                    builder.addSphere(0f, 0.30f, 0f, 0.38f, 5, 9, 1.2f)
+                    builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8, 1.2f)
+                }
             }
         }
         return builder.build()
@@ -411,9 +547,26 @@ class WorldScene(
         return builder.build()
     }
 
-    /** 0 crossed tall blades, 1 narrow tuft, 2 low clump. */
-    private fun buildGrassData(species: Int): MeshData {
+    /** 0 crossed tall blades, 1 narrow tuft, 2 low clump; desert is shorter, coast grows reeds. */
+    private fun buildGrassData(style: PlantStyle, species: Int): MeshData {
         val builder = MeshBuilder()
+        val heightScale = if (style == PlantStyle.DESERT) 0.50f else 1f
+
+        if (style == PlantStyle.COAST && species == 0) {
+            // Reeds: tall narrow blades at a coastal waterline.
+            for (i in 0 until 4) {
+                val offset = (i - 1.5f) * 0.12f
+                val tall = 1.35f + (i % 2) * 0.15f
+                builder.addQuad(
+                    Vec3(-0.07f + offset, 0f, offset),
+                    Vec3(0.07f + offset, 0f, offset),
+                    Vec3(0.07f + offset, tall, offset),
+                    Vec3(-0.07f + offset, tall, offset)
+                )
+            }
+            return builder.build()
+        }
+
         when (species) {
             1 -> {
                 for (i in 0 until 3) {
@@ -421,29 +574,30 @@ class WorldScene(
                     builder.addQuad(
                         Vec3(-0.10f + offset, 0f, offset),
                         Vec3(0.10f + offset, 0f, offset),
-                        Vec3(0.10f + offset, 1f, offset),
-                        Vec3(-0.10f + offset, 1f, offset)
+                        Vec3(0.10f + offset, heightScale, offset),
+                        Vec3(-0.10f + offset, heightScale, offset)
                     )
                 }
             }
             2 -> {
+                val h = 0.55f * heightScale
                 builder.addQuad(
                     Vec3(-0.24f, 0f, 0f), Vec3(0.24f, 0f, 0f),
-                    Vec3(0.20f, 0.55f, 0f), Vec3(-0.20f, 0.55f, 0f)
+                    Vec3(0.20f, h, 0f), Vec3(-0.20f, h, 0f)
                 )
                 builder.addQuad(
                     Vec3(0f, 0f, -0.24f), Vec3(0f, 0f, 0.24f),
-                    Vec3(0f, 0.50f, 0.20f), Vec3(0f, 0.50f, -0.20f)
+                    Vec3(0f, h * 0.92f, 0.20f), Vec3(0f, h * 0.92f, -0.20f)
                 )
             }
             else -> {
                 builder.addQuad(
                     Vec3(-0.26f, 0f, 0f), Vec3(0.26f, 0f, 0f),
-                    Vec3(0.26f, 1f, 0f), Vec3(-0.26f, 1f, 0f)
+                    Vec3(0.26f, heightScale, 0f), Vec3(-0.26f, heightScale, 0f)
                 )
                 builder.addQuad(
                     Vec3(0f, 0f, -0.26f), Vec3(0f, 0f, 0.26f),
-                    Vec3(0f, 1f, 0.26f), Vec3(0f, 1f, -0.26f)
+                    Vec3(0f, heightScale, 0.26f), Vec3(0f, heightScale, -0.26f)
                 )
             }
         }

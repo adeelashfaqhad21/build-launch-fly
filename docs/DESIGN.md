@@ -626,6 +626,10 @@ view, one saturated accent colour, matching haze and shadow softness. No realism
 - [x] Realm target-distance and palette live in one definition
 - [x] Ground is not uniformly grass — noise-driven meadows of 0.9–1.25 m grass with bare soil
   patches and exposed rock between them
+- [x] Per-realm species sets — saguaro and dead trees in the desert, three conifer forms in
+  the alpine worlds, palms and reeds on the coast, forest set elsewhere
+- [ ] Authored external models — reviewed in `docs/ASSETS.md`; Kenney Nature Kit is the
+  preferred source once its archive can be obtained
 
 ---
 

@@ -40,12 +40,20 @@ atmosphere, water level, vegetation, wildlife and weather: forest, desert, snow/
 ocean/coast, mountain/countryside. Non-uniform terrain grid (dense corridor, cheap
 horizon).
 
-Vegetation is scattered per species instead of as one cloned population: three tree shapes
-(broadleaf, conifer, poplar), three shrubs, three rock forms and three tall grass clumps, each
-with its own mesh and tint, chosen from noise fields so stands cluster the way real plants do.
+Vegetation is scattered per species instead of as one cloned population: three tree shapes,
+three shrubs, three rock forms and three tall grass clumps, each with its own mesh and tint,
+chosen from noise fields so stands cluster the way real plants do. The species set itself
+changes with the realm — broadleaf/conifer/poplar in the forest, saguaro cacti and bare
+wind-worn trees in the desert, three conifer forms in the snow and mountains, leaning palms
+and reeds on the coast — so each ecosystem reads differently rather than repeating one set.
 Grass grows only in noise-driven meadows at roughly three to four feet tall; between them the
 terrain shader exposes bare soil patches, so the ground reads as a mix of grass, earth and
 rock rather than a uniform green carpet.
+
+The external nature packs that were investigated for this (Quaternius, Kenney, OpenGameArt,
+Poly Haven) are reviewed in [`docs/ASSETS.md`](docs/ASSETS.md) with licences, formats, style
+fit, animation requirements and the decision: the Kenney Nature Kit is the preferred future
+source, but no pack is shipped today.
 
 **Aircraft (`aircraft`)** — procedural vintage biplane per
 [`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with
