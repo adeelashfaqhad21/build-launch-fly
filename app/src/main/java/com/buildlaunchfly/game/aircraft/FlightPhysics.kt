@@ -63,8 +63,6 @@ class FlightPhysics {
     private val accel = Vec3()
     private val tmp = Vec3()
     private val propLocal = Mat4()
-    private var altitudeCeilingBrake = 0f
-
     fun reset(origin: Vec3) {
         position.set(origin)
         velocity.set(0f, 0f, 0f)
@@ -102,10 +100,9 @@ class FlightPhysics {
         yawRate = 0.08f * recoil
         updateOrientation()
         velocity.set(forward).scale(speed)
-        // Slingshot launch should carry the aircraft forward, not throw it skyward.
-        // The launcher angle supplies only a modest initial climb; the pilot must
-        // manage pitch to trade altitude for airspeed during the low-level run.
-        velocity.y += speed * 0.012f
+        // The selected cradle angle alone sets the initial flight vector.
+        // Do not inject a hidden vertical bonus: steep launches must trade
+        // forward airspeed for altitude and can stall under gravity naturally.
         state = FlightState.FLYING
         distance = 0f
     }
@@ -167,18 +164,8 @@ class FlightPhysics {
 
         updateOrientation()
 
-        // Low-level slingshot flight: there is no autopilot holding the aircraft
-        // aloft. The pilot manages a shallow nose attitude to preserve airspeed and
-        // uses lift to stay a few metres above the local terrain. A very gentle
-        // aerodynamic safety bias only resists runaway climbs; it must not fly for
-        // the player or flatten the terrain-following challenge.
-        val altitudeBeforeStep = position.y - terrainHeight
-        altitudeCeilingBrake = if (altitudeBeforeStep > 10f && velocity.y > 0f) {
-            ((altitudeBeforeStep - 10f) * 0.24f + velocity.y * 0.28f)
-                .coerceAtMost(5.5f)
-        } else {
-            0f
-        }
+        // No altitude-holding autopilot or artificial ceiling: gravity, lift,
+        // drag and the player's pitch input determine the entire flight path.
 
         // Integrate accelerations.
         accel.set(0f, -9.81f, 0f)
@@ -233,12 +220,6 @@ class FlightPhysics {
         }
 
 
-        // Emergency out-of-world guard only; normal flight should remain far below it.
-        val ceiling = terrainHeight + 22f
-        if (position.y > ceiling) {
-            position.y = ceiling
-            if (velocity.y > 0f) velocity.y = 0f
-        }
     }
 
     /** Ends an active flight after contact with a natural world obstacle. */
