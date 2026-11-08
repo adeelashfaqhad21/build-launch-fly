@@ -456,7 +456,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             rollDegrees = physics.roll * 57.29578f,
             stallWarning = state == GameState.FLIGHT && physics.stalled,
             verticalSpeed = physics.velocity.y,
-            flightTimeSeconds = flightTime
+            flightTimeSeconds = flightTime,
+            stallAirspeedKmh = physics.stallSpeed(build.stats()) * 3.6f
         )
     }
 

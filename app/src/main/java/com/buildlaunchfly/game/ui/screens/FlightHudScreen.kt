@@ -52,7 +52,7 @@ object FlightHudScreen {
         // One feedback at a time, priority stall > low speed > perfect.
         val warning = when {
             telemetry.stallWarning -> "STALL"
-            speedKmh < 45f -> "LOW SPEED"
+            telemetry.lowSpeed -> "LOW SPEED"
             else -> null
         }
 
