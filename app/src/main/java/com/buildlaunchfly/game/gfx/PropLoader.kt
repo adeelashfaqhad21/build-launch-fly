@@ -122,13 +122,7 @@ object PropLoader {
         vertices.add(positions[vertexIndex * 3])
         vertices.add(positions[vertexIndex * 3 + 1])
         vertices.add(positions[vertexIndex * 3 + 2])
-        if (uvIndex >= 0 && uvIndex * 2 + 1 < texCoords.size) {
-            vertices.add(texCoords[uvIndex * 2])
-            vertices.add(1f - texCoords[uvIndex * 2 + 1])
-        } else {
-            vertices.add(0f)
-            vertices.add(0f)
-        }
+        // Shared GPU layout is Position (3), Normal (3), UV (2).
         if (normalIndex >= 0 && normalIndex * 3 + 2 < normals.size) {
             vertices.add(normals[normalIndex * 3])
             vertices.add(normals[normalIndex * 3 + 1])
@@ -136,6 +130,14 @@ object PropLoader {
         } else {
             vertices.add(0f)
             vertices.add(1f)
+            vertices.add(0f)
+        }
+        if (uvIndex >= 0 && uvIndex * 2 + 1 < texCoords.size) {
+            // OBJ V is bottom-up; decoded Android bitmaps are uploaded top-down.
+            vertices.add(texCoords[uvIndex * 2])
+            vertices.add(1f - texCoords[uvIndex * 2 + 1])
+        } else {
+            vertices.add(0f)
             vertices.add(0f)
         }
         indices.add(index)

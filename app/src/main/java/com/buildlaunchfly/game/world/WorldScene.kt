@@ -553,7 +553,8 @@ class WorldScene(
                 tint = Vec3(1f, 1f, 1f),
                 roughness = 0.86f,
                 metallic = 0f,
-                uvScale = 1f
+                uvScale = 1f,
+                alphaCutoff = 0.38f
             )
             outTrees.add(
                 TreePart(
@@ -579,7 +580,8 @@ class WorldScene(
                 tint = Vec3(1f, 1f, 1f),
                 roughness = 0.88f,
                 metallic = 0f,
-                uvScale = 1f
+                uvScale = 1f,
+                alphaCutoff = 0.38f
             )
             outPlants.add(InstancedPart(mesh, instanced, material))
         }

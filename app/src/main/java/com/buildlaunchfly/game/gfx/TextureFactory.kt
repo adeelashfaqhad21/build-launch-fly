@@ -282,7 +282,9 @@ class Material(
     var metallic: Float = 0f,
     var uvScale: Float = 1f,
     var emissive: Float = 0f,
-    var alpha: Float = 1f
+    var alpha: Float = 1f,
+    /** Alpha-test threshold for cutout foliage textures; zero disables cutout. */
+    var alphaCutoff: Float = 0f
 ) {
     fun bind(program: ShaderProgram, textureUnit: Int = 0, fallback: Texture2D? = null) {
         val texture = albedo ?: fallback
@@ -296,5 +298,6 @@ class Material(
         program.set("uUvScale", uvScale)
         program.set("uEmissive", emissive)
         program.set("uAlpha", alpha)
+        program.set("uAlphaCutoff", alphaCutoff)
     }
 }

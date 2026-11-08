@@ -152,16 +152,21 @@ uniform float uRoughness;
 uniform float uMetallic;
 uniform float uEmissive;
 uniform float uAlpha;
+uniform float uAlphaCutoff;
 
 out vec4 fragColor;
 
 void main() {
-    vec3 albedo = texture(uAlbedo, vUv).rgb * uTint;
+    vec4 texel = texture(uAlbedo, vUv);
+    if (uAlphaCutoff > 0.0 && texel.a < uAlphaCutoff) {
+        discard;
+    }
+    vec3 albedo = texel.rgb * uTint;
     vec3 n = normalize(vNormal);
     vec3 v = normalize(uCameraPos - vWorldPos);
     vec3 color = shadeSurface(albedo, n, v, vWorldPos, uRoughness, uMetallic, uEmissive);
     color = applyFog(color, vWorldPos);
-    fragColor = vec4(applyTonemap(color), clamp(uAlpha, 0.0, 1.0));
+    fragColor = vec4(applyTonemap(color), clamp(uAlpha * texel.a, 0.0, 1.0));
 }
 """
 

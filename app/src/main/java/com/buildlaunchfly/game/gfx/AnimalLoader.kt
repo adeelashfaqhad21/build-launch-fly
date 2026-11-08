@@ -162,13 +162,7 @@ object AnimalLoader {
         out.add(positions[vertexIndex * 3])
         out.add(positions[vertexIndex * 3 + 1])
         out.add(positions[vertexIndex * 3 + 2])
-        if (uvIndex >= 0 && uvIndex * 2 + 1 < texCoords.size) {
-            out.add(texCoords[uvIndex * 2])
-            out.add(texCoords[uvIndex * 2 + 1])
-        } else {
-            out.add(0f)
-            out.add(0f)
-        }
+        // Match MeshData's Position (3), Normal (3), UV (2) layout.
         if (normalIndex >= 0 && normalIndex * 3 + 2 < normals.size) {
             out.add(normals[normalIndex * 3])
             out.add(normals[normalIndex * 3 + 1])
@@ -176,6 +170,14 @@ object AnimalLoader {
         } else {
             out.add(0f)
             out.add(1f)
+            out.add(0f)
+        }
+        if (uvIndex >= 0 && uvIndex * 2 + 1 < texCoords.size) {
+            // Keep texture orientation consistent with ObjLoader and PropLoader.
+            out.add(texCoords[uvIndex * 2])
+            out.add(1f - texCoords[uvIndex * 2 + 1])
+        } else {
+            out.add(0f)
             out.add(0f)
         }
         group.indices.add(index)
