@@ -107,6 +107,35 @@ that currently cost two draw calls.
 - Every step is wrapped: if a file is missing or a parse fails, that model is skipped and the
   procedural vegetation still fills the world.
 
+## Inventory — what the supplied Drive folder actually contains
+
+Verified folder by folder (`OBJ`, `glTF`, `Blends`, `FBX`, `Textures`):
+
+- **63 meshes**: Birch 1-5, Maple 1-5, NormalTree 1-5, Pine 1-5, Palm 1-5, DeadTree 1-10,
+  6 bushes, 7 flowers, 3 grasses, 3 plants, 4 petals, 5 rocks. All 63 OBJ files are downloaded
+  (the used ones in `app/src/main/assets`, the rest in `assets-source`).
+- **21 texture maps.** The 4K PNG bark/normal maps (up to 19.9 MB) were replaced by the
+  matching JPEGs from the glTF folder (321–991 KB) — `BirchTree_Bark`, `MapleTree_Bark`,
+  `NormalTree_Bark`, `PineTree_Bark`, `PalmTree_Trunk`, `Rocks`. Leaves, flowers, grass and
+  bush maps are PNGs and are used as shipped.
+- `License.txt` and `Preview.jpg` are kept in `assets-source/quaternius/` for provenance.
+- **No fauna, no birds, no sky, no mountain or field geometry.** The pack is vegetation and
+  rocks only; there is no animal or bird model anywhere in its five subfolders.
+
+Bark maps are now used per species (birch on birch, pine on pine, palm trunk on palms, and so
+on) instead of the procedural bark, which matches the models' own UV layout. Dead trees use the
+NormalTree bark.
+
+### Where the rest of the ecosystem comes from
+
+| Need | Source |
+|---|---|
+| Animals / birds | **Not in this pack.** Quaternius' *Ultimate Animated Animals* (CC0, 12 animals) is the natural follow-up, but it is delivered through a tokenised itch.io download, and the engine has no skeletal animation — static OBJ poses would work, animation would need a skinning renderer. |
+| Mountains, fields, valley | `Terrain` + `TerrainMesh` height field: ridges, meadows, bare soil. No meshes needed. |
+| Sky, clouds, haze | Analytic `SkyRenderer` plus fog in the PBR shaders. |
+| Water | `WaterRenderer` (normal-mapped, Fresnel). |
+| Wind, snow, dust | `WeatherSystem` + `ParticleRenderer`. |
+
 ## What was implemented in its place
 
 `WorldScene` now selects a plant family from the realm and builds different silhouettes with
