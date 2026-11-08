@@ -56,16 +56,18 @@ propeller), so every stage changes visible structure rather than colour: wing ha
 longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
 
 **Slingshot (`slingshot`)** — five upgrade categories and exactly the reference rig: two plain
-upright wooden poles standing just outside the wingtips, and **one** elastic sling tied to
-both pole tips and hooked onto the tail — no ramp, no braces, no metalwork. The sling sags
-when slack and pulls straight as the draw deepens; sling thickness and draw length follow the
+squared wooden posts with a slight outward splay, standing about 1.2× the wingspan apart, and
+**one** striped elastic sling tied to both tips and meeting at a single tow point on the
+fuselage at the wing root — no ramp, no crossbar, no braces, no metalwork. The sling sags when
+slack and pulls straight as the draw deepens; sling thickness and draw length follow the
 upgrade levels, every segment casts a shadow, and the release plays a recoil wobble, a dust
 puff and a camera impulse. Launch elevation (20°–55°) is stored in the profile.
 
-**Hangar (`world/HangarMesh`)** — the home screen sits inside a wooden hangar: plank floor,
-side and back walls, corner posts, a rafter every bay, roof panels with a wide sky opening
-over the aircraft, and crates against the back wall. It is drawn in the hangar and workshop
-views and hidden for the outdoor launch shot.
+**Hangar (`world/HangarMesh`)** — the home screen sits inside the reference barn: a dark
+weathered plank wall down the left, a heavy beamed roof over the whole rig, a warm tan plank
+floor, corner posts down the open right side and crates and bales outside in the daylight. The
+hangar view is a fixed close rear-side oblique like Ref-2; the launch view stays centred
+behind the aircraft under the roof eave, as in Ref-3.
 
 **Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
 gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.

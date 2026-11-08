@@ -87,17 +87,18 @@ class CameraDirector(private val camera: Camera) {
     }
 
     /**
-     * Rear view of the aircraft inside the hangar. The camera sits directly behind on the
-     * centre line, at a low eye height, and only orbits when the player drags.
+     * Rear-side view of the aircraft inside the hangar, matching Ref-2: close, slightly
+     * elevated, on a fixed oblique so the plank wall fills one edge and the open side shows
+     * daylight. It only turns when the player drags.
      */
     fun updateOrbitAircraft(center: Vec3, time: Float, dt: Float, radius: Float, yawOffset: Float) {
-        val angle = yawOffset
+        val angle = HANGAR_BASE_ANGLE + yawOffset
         desiredPosition.set(
             center.x + sin(angle) * radius,
-            center.y + 1.0f,
+            center.y + 1.2f,
             center.z + cos(angle) * radius
         )
-        desiredTarget.set(center.x, center.y - 0.15f, center.z)
+        desiredTarget.set(center.x, center.y + 0.30f, center.z + 0.40f)
         follow(dt, 3.6f)
     }
 
@@ -138,5 +139,8 @@ class CameraDirector(private val camera: Camera) {
         /** Camera height above the pad and distance behind the aircraft. */
         const val SEATED_HEIGHT = 3.3f
         const val SEATED_DISTANCE = 9.6f
+
+        /** Fixed rear-side oblique of the hangar view (Ref-2), not an animation. */
+        const val HANGAR_BASE_ANGLE = -0.30f
     }
 }

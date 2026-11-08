@@ -126,7 +126,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     /** Camera orbit distance on the pad, adjusted by pinch zoom. */
     @Volatile
-    var orbitRadius: Float = 9.5f
+    var orbitRadius: Float = 6.2f
 
     var lastLaunchStretch: Float = 0.75f
         private set
@@ -663,6 +663,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val definition = currentScene.definition
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
         val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
+        val showHangarRoof = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (showSling) {
@@ -718,8 +719,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         if (showHangar) {
             hangar?.let { set ->
-                sceneRenderer.shadowMesh(set.shellMesh, slingshotModel)
-                sceneRenderer.shadowMesh(set.frameMesh, slingshotModel)
+                sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
+                sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
+                sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
             }
         }
         for (tree in currentScene.trees) {
@@ -762,8 +764,14 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (showHangar) {
             hangar?.let { set ->
-                sceneRenderer.drawMesh(set.shellMesh, set.shellMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.frameMesh, set.frameMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
+            }
+        } else if (showHangarRoof) {
+            // The launch shot is still under the eave, like Ref-3's dark roof strip.
+            hangar?.let { set ->
+                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
             }
         }
 

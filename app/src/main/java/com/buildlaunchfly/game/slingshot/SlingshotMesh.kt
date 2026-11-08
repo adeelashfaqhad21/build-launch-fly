@@ -10,33 +10,42 @@ import com.buildlaunchfly.game.math.Vec3
 import kotlin.math.sqrt
 
 /**
- * The reference slingshot: two plain upright poles planted just outside the aircraft's
- * wingtips, and one elastic sling tied to both tips and hooked behind the tail. No ramp, no
- * braces, no metal, no tapered tree trunks.
+ * The reference slingshot: two plain squared wooden posts standing just wider than the
+ * wingtips and splaying slightly outward, with one elastic sling tied to both tips and meeting
+ * at a single tow point on the forward fuselage. No ramp, no crossbar, no metal.
  *
  * All values are relative to the pad origin.
  */
 object SlingshotLayout {
     const val SEAT_HEIGHT = 3.05f
 
-    /** Poles stand just outside the 1.78 m wing half-span, so the sling clears the tips. */
-    const val POLE_X = 2.00f
-    const val POLE_HEIGHT = 3.60f
-    const val POLE_RADIUS = 0.085f
+    /** Posts about 1.2× the 3.56 m wingspan apart, like the plate. */
+    const val POLE_X = 2.15f
 
-    /** Where the elastic is tied at the top of each pole. */
-    val LEFT_TIP = Vec3(-POLE_X, POLE_HEIGHT - 0.10f, 0f)
-    val RIGHT_TIP = Vec3(POLE_X, POLE_HEIGHT - 0.10f, 0f)
+    /** Roughly the aircraft's nose-to-tail length. */
+    const val POLE_HEIGHT = 3.15f
+    const val POLE_HALF = 0.065f
 
-    /** The sling hooks onto the tail skid: below and behind the aircraft origin. */
-    val CRADLE_OFFSET = Vec3(0f, -0.45f, 1.10f)
+    /** Slight outward splay of the posts toward their tips. */
+    const val POLE_SPLAY = 0.05f
+
+    private const val TIP_X = POLE_X + 0.16f
+    private const val TIP_Y = POLE_HEIGHT - 0.04f
+
+    /** Where the elastic is tied at the top of each post. */
+    val LEFT_PRONG = Vec3(-TIP_X, TIP_Y, 0f)
+    val RIGHT_PRONG = Vec3(TIP_X, TIP_Y, 0f)
+
+    /** Sling meets the aircraft at the wing root, not the tail. */
+    const val ANCHOR_Y = -0.08f
+    const val ANCHOR_Z = -0.08f
 
     val HOLD_POINT = Vec3(0f, SEAT_HEIGHT, 0f)
 }
 
 /**
- * Two upright poles, one elastic sling drawn as two segments from the pole tips to the cradle
- * behind the tail, and the small leather pad that holds the aircraft.
+ * Two squared posts, one elastic sling drawn as two arms from the post tips to the tow point at
+ * the wing root, and the small leather pad on the fuselage.
  *
  * The band segments are unit cylinders whose model matrix is rebuilt from the current draw
  * position every frame, so the sling stretches and sags with the pull.
@@ -86,20 +95,27 @@ class SlingshotMesh(textures: TextureFactory) {
         pouchMesh = Mesh("slingshotPouch", buildPouchData())
     }
 
-    /** Two plain upright poles, straight and thin, with a rounded band notch at the top. */
+    /** Two plain squared posts, splaying slightly outward toward their tips. */
     private fun buildFrameData(): MeshData {
         val b = MeshBuilder()
         for (side in intArrayOf(-1, 1)) {
-            b.addCylinder(
-                side * SlingshotLayout.POLE_X, SlingshotLayout.POLE_HEIGHT * 0.5f, 0f,
-                SlingshotLayout.POLE_RADIUS, SlingshotLayout.POLE_RADIUS * 0.82f,
-                SlingshotLayout.POLE_HEIGHT,
-                10, true, true, 2f
+            b.pushTrs(
+                side * SlingshotLayout.POLE_X, 0f, 0f,
+                0f, 0f, -side * SlingshotLayout.POLE_SPLAY,
+                1f
             )
-            b.addSphere(
-                side * SlingshotLayout.POLE_X, SlingshotLayout.POLE_HEIGHT - 0.06f, 0f,
-                SlingshotLayout.POLE_RADIUS * 1.2f, 5, 8
+            b.addBox(
+                0f, SlingshotLayout.POLE_HEIGHT * 0.5f, 0f,
+                SlingshotLayout.POLE_HALF, SlingshotLayout.POLE_HEIGHT * 0.5f,
+                SlingshotLayout.POLE_HALF, 2f
             )
+            // Rounded nock where the elastic is tied.
+            b.addBox(
+                0f, SlingshotLayout.POLE_HEIGHT - 0.05f, 0f,
+                SlingshotLayout.POLE_HALF * 1.35f, 0.07f,
+                SlingshotLayout.POLE_HALF * 1.35f, 2f
+            )
+            b.pop()
         }
         return b.build()
     }
@@ -107,15 +123,14 @@ class SlingshotMesh(textures: TextureFactory) {
     /** Unit cylinder from y=0 to y=1, radius 1, so a model matrix can stretch it. */
     private fun buildBandData(): MeshData {
         val b = MeshBuilder()
-        b.addCylinder(0f, 0.5f, 0f, 0.060f, 0.060f, 1f, 8, false, false, BAND_STRIPE_TILES)
+        b.addCylinder(0f, 0.5f, 0f, 0.075f, 0.075f, 1f, 8, false, false, BAND_STRIPE_TILES)
         return b.build()
     }
 
-    /** Small flattened leather pad where the sling meets the tail. */
+    /** Small flattened leather pad at the tow point on the fuselage. */
     private fun buildPouchData(): MeshData {
         val b = MeshBuilder()
-        b.addBox(0f, 0f, 0f, 0.22f, 0.045f, 0.15f, 1f)
-        b.addBox(0f, -0.01f, 0.05f, 0.12f, 0.038f, 0.05f, 1f)
+        b.addBox(0f, 0f, 0f, 0.20f, 0.055f, 0.14f, 1f)
         return b.build()
     }
 
@@ -154,20 +169,20 @@ class SlingshotMesh(textures: TextureFactory) {
         return out
     }
 
-    /** Left half of the sling, as two segments hung from a sagging midpoint. */
+    /** Left arm of the sling, as two segments hung from a sagging midpoint. */
     fun leftBandMatrices(draw: Float, sag: Float, outA: Mat4, outB: Mat4) {
         val thickness = 1f + thicknessBoost
-        val from = SlingshotLayout.LEFT_TIP
+        val from = SlingshotLayout.LEFT_PRONG
         val to = cradlePoint(draw)
         sagPoint(from, to, sag, tempSag)
         bandMatrix(from, tempSag, thickness, outA)
         bandMatrix(tempSag, to, thickness, outB)
     }
 
-    /** Right half of the sling. */
+    /** Right arm of the sling. */
     fun rightBandMatrices(draw: Float, sag: Float, outA: Mat4, outB: Mat4) {
         val thickness = 1f + thicknessBoost
-        val from = SlingshotLayout.RIGHT_TIP
+        val from = SlingshotLayout.RIGHT_PRONG
         val to = cradlePoint(draw)
         sagPoint(from, to, sag, tempSag)
         bandMatrix(from, tempSag, thickness, outA)
@@ -184,13 +199,13 @@ class SlingshotMesh(textures: TextureFactory) {
         return out
     }
 
-    /** Where the sling hooks the aircraft: just behind and below its origin, at the tail. */
+    /** Where the sling meets the aircraft: the tow point at the wing root. */
     fun cradlePoint(pull: Float): Vec3 {
         val hold = holdPoint(pull)
         return tempCradle.set(
-            hold.x + SlingshotLayout.CRADLE_OFFSET.x,
-            hold.y + SlingshotLayout.CRADLE_OFFSET.y,
-            hold.z + SlingshotLayout.CRADLE_OFFSET.z
+            hold.x,
+            hold.y + SlingshotLayout.ANCHOR_Y,
+            hold.z + SlingshotLayout.ANCHOR_Z
         )
     }
 

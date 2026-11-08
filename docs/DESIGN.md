@@ -232,8 +232,8 @@ on tap.
 **Audio:** hangar ambience; tap pops; purchase cascade.
 
 **Checklist**
-- [x] Hangar 3D set: plank floor, side and back walls, corner posts, rafters, roof panels with
-  a sky opening, crates — `world/HangarMesh`
+- [x] Hangar 3D set: tan plank floor, dark weathered plank wall down the left, open right side
+  with posts, heavy beamed roof, crates and bales outside — `world/HangarMesh`
 - [ ] Plane displayed in hangar, idle bob — the plane is held in the sling, no bob yet
 - [x] Two currency pills with compact formatting (`28.15K`)
 - [x] Gear opens settings
@@ -345,23 +345,23 @@ validated. No pay-to-progress wall in the first 30 minutes.
 
 **Purpose:** the launch device — visible, physical, readable from behind.
 
-**Form:** two plain upright wooden poles, and **one** elastic sling tied to both tips and
-hooked onto the aircraft at the tail. No ramp, no braces, no metal brackets, no mechanical
-parts. The poles stand just outside the wingtips so the sling clears them. Bands are
-yellow/white striped. In Ref-3 the plane sits back; in Ref-4 the camera is closer and the
-sling forms a wide V.
+**Form:** two plain squared wooden posts with a slight outward splay, and **one** elastic sling
+tied to both tips and meeting at a single tow point on the forward fuselage at the wing root.
+No ramp, no crossbar, no braces, no metal. The posts stand about 1.2× the wingspan apart, so
+the sling clears them. Bands are yellow/white striped. In Ref-3 the plane sits back; in Ref-4
+the camera is closer and the sling forms a steeper V.
 
-**Layout in world space:** poles at x ±2.00 m, height 3.60 m, radius 0.085 m; sling tied at
-3.50 m; sling radius 0.060 m; the leather cradle hooks 0.45 m below and 1.10 m behind the
-aircraft origin, at the tail skid; aircraft seat at 3.05 m; camera directly behind at ~3.3 m
-height.
+**Layout in world space:** posts at x ±2.15 m, height 3.15 m (about the nose-to-tail length),
+squared 0.13 m section with 0.05 rad outward splay; sling radius 0.075 m; tow point 0.08 m
+below and 0.08 m forward of the aircraft origin; aircraft seat at 3.05 m; camera directly
+behind at ~3.3 m height.
 
-**Colours:** timber `#8A6A4A` poles, sling `yellow #FFD52B` + `cream #F5F2E8` stripes, dark
-leather cradle.
+**Colours:** timber `#8A6A4A` posts, sling `yellow #FFD52B` + `cream #F5F2E8` stripes, dark
+leather pad.
 
 **Surfaces:** flat-shaded, no gloss, no metal; sling stripes are a two-colour texture.
 
-**Assets to generate:** two pole meshes, sling tube mesh (stripable), leather cradle, back
+**Assets to generate:** two post meshes, sling tube mesh (stripable), leather tow pad, back
 button plate.
 
 **States:** rest (sling slack, slight sag), draw (sling taut, plane pulled back), release
@@ -374,16 +374,17 @@ button plate.
 **Audio:** creak on draw (pitch rises); release whoosh.
 
 **Checklist**
-- [x] Exactly two poles and a sling — `SlingshotMesh` builds two cylinders and one elastic
-  band; there is no ramp or metalwork
-- [x] Poles just wider than the aeroplane — `POLE_X = 2.00` against a 1.78 m wing half-span
-- [x] One sling tied to both pole tips and hooked at the tail — `CRADLE_OFFSET`
+- [x] Exactly two posts and a sling — `SlingshotMesh` builds two squared posts and one elastic
+  sling; there is no ramp, crossbar or metalwork
+- [x] Posts about 1.2× the wingspan apart — `POLE_X = 2.15` against a 1.78 m wing half-span
+- [x] Posts about the aircraft's nose-to-tail length — `POLE_HEIGHT = 3.15`
+- [x] One sling tied to both tips and anchored at the wing root — `ANCHOR_Y` / `ANCHOR_Z`
 - [x] Yellow/white striped sling — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
-- [x] Sling articulates with draw — `holdPoint(draw)` moves the cradle back with the aircraft
-- [x] Rest sag, taut draw, recoil — two-segment sling sagging to `BAND_SAG`, 0.6 s recoil
+- [x] Sling articulates with draw — `holdPoint(draw)` moves the anchor back with the aircraft
+- [x] Rest sag, taut draw, recoil — two-segment arms sagging to `BAND_SAG`, 0.6 s recoil
 - [x] Upgrade level visibly changes sling thickness/length — `thicknessBoost` and `drawLength`
 - [x] Sling casts a shadow — every segment is in the shadow pass
-- [ ] Rear-view framing with both poles visible (camera path exists; needs an on-device check)
+- [ ] Rear-view framing with both posts visible (camera path exists; needs an on-device check)
 
 **Acceptance:** from the launch camera a first-time player understands "pull back here".
 
