@@ -669,7 +669,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         currentScene.rocks.applyDistanceLod(camera.position, 205f, 82f, true)
         currentScene.bushes.applyDistanceLod(camera.position, 125f, 48f)
         currentScene.bushesVariantB.applyDistanceLod(camera.position, 145f, 54f)
-        currentScene.bushesVariantC.applyDistanceLod(camera.position, 205f, 68f)
+        currentScene.bushesVariantC.applyDistanceLod(camera.position, 145f, 54f)
         currentScene.grass?.applyDistanceLod(camera.position, 68f, 26f)
         currentScene.birdsMesh.applyDistanceLod(camera.position, 210f, 78f)
         currentScene.animalsMesh.applyDistanceLod(camera.position, 160f, 60f)
