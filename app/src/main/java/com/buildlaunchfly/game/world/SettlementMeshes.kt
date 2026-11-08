@@ -85,13 +85,18 @@ object SettlementMeshes {
                             walls.addBox(-width * 0.95f, -height * 0.24f, -depth * 0.62f, 0.16f, height * 0.26f, depth * 0.12f, 1f)
                             walls.addBox(width * 0.62f, -height * 0.24f, -depth * 0.62f, 0.16f, height * 0.26f, depth * 0.12f, 1f)
                             walls.addBox(-width * 0.18f, -height * 0.24f, -depth * 1.02f, width * 0.80f, height * 0.26f, 0.14f, 1f)
-                            // Slightly uneven flat earthen roofs with low parapets.
+                            // Roof pieces must share the house transform. Previously these
+                            // boxes were emitted at world origin, stacking every desert roof
+                            // into one strange tower-like cluster instead of sitting on homes.
+                            roofs.pushTrs(x, ground, z, 0f, rotation, 0f, 1f)
+                            // Low, irregular flat mud-brick roofs with modest parapets.
                             roofs.addBox(-width * 0.12f, height + 0.02f, 0f, width * 0.90f, 0.12f, depth * 0.80f, 1.2f)
                             roofs.addBox(width * 0.66f, height * 0.76f, depth * 0.28f, width * 0.36f, 0.10f, depth * 0.50f, 1.1f)
                             roofs.addBox(-width * 0.12f, height + 0.24f, -depth * 0.73f, width * 0.90f, 0.10f, 0.09f, 1f)
                             roofs.addBox(-width * 0.94f, height + 0.24f, -depth * 0.20f, 0.09f, 0.10f, depth * 0.55f, 1f)
                             // Timber/reed shade canopy over the recessed doorway.
                             roofs.addBox(-width * 0.18f, height * 0.72f, -depth * 1.20f, width * 0.42f, 0.055f, depth * 0.28f, 1f)
+                            roofs.pop()
                             details.addCylinder(-width * 0.55f, height * 0.34f, -depth * 1.18f, 0.055f, 0.055f, height * 0.68f, 6, true, true, 1f)
                             details.addCylinder(width * 0.18f, height * 0.34f, -depth * 1.18f, 0.055f, 0.055f, height * 0.68f, 6, true, true, 1f)
                         } else {

@@ -34,15 +34,16 @@ float sampleShadow(vec3 worldPos, vec3 n) {
     if (proj.z > 1.0 || proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0) {
         return 1.0;
     }
-    float bias = 0.0016;
+    float bias = 0.0018;
+    // Four-tap rotated cross PCF: substantially less texture bandwidth than the
+    // old 3x3 kernel while retaining soft, stable contact shadows on mobile GPUs.
+    vec2 texel = vec2(uShadowTexel * 0.75);
     float sum = 0.0;
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
-            float depth = texture(uShadowMap, proj.xy + vec2(float(x), float(y)) * uShadowTexel).r;
-            sum += ((proj.z - bias) <= depth) ? 1.0 : 0.0;
-        }
-    }
-    return sum / 9.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2(-texel.x, -texel.y)).r) ? 1.0 : 0.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2( texel.x, -texel.y)).r) ? 1.0 : 0.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2(-texel.x,  texel.y)).r) ? 1.0 : 0.0;
+    sum += ((proj.z - bias) <= texture(uShadowMap, proj.xy + vec2( texel.x,  texel.y)).r) ? 1.0 : 0.0;
+    return sum * 0.25;
 }
 
 vec3 shadeSurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos, float roughness, float metallic, float emissive) {
@@ -84,18 +85,15 @@ vec3 applyFog(vec3 color, vec3 worldPos) {
     float dist = length(toCamera);
     float horizontalDist = length(toCamera.xz);
 
-    // Low-altitude sight lines accumulate more suspended moisture/dust than
-    // elevated alpine views. This keeps nearby aircraft and terrain crisp while
-    // progressively veiling distant ground layers toward the horizon.
+    // Atmospheric perspective is deliberately restrained: keep the aircraft,
+    // settlements and nearby terrain fully readable, and veil only far distance.
     float viewHeight = max(min(worldPos.y, uCameraPos.y), 0.0);
-    // Keep the aircraft and nearby terrain crisp. Atmospheric perspective should
-    // gently soften only the far horizon, never wash out the playable scene.
-    float lowAltitudeDensity = mix(0.92, 0.72, smoothstep(24.0, 210.0, viewHeight));
-    float horizonWeight = 1.0 + 0.16 * smoothstep(180.0, 620.0, horizontalDist);
+    float lowAltitudeDensity = mix(0.92, 0.78, smoothstep(24.0, 210.0, viewHeight));
+    float horizonWeight = 1.0 + 0.10 * smoothstep(260.0, 900.0, horizontalDist);
     float opticalDepth = max(uFogDensity, 0.0) * dist *
-                         lowAltitudeDensity * horizonWeight * 0.34;
+                         lowAltitudeDensity * horizonWeight * 0.16;
     float fog = 1.0 - exp(-opticalDepth);
-    return mix(color, uFogColor, clamp(fog, 0.0, 0.68));
+    return mix(color, uFogColor, clamp(fog, 0.0, 0.42));
 }
 
 vec3 applyTonemap(vec3 c) {
@@ -240,14 +238,10 @@ float terrainNoise(vec2 p) {
 }
 
 float terrainFbm(vec2 p) {
-    float value = 0.0;
-    float amplitude = 0.58;
-    for (int octave = 0; octave < 3; ++octave) {
-        value += terrainNoise(p) * amplitude;
-        p *= 2.03;
-        amplitude *= 0.5;
-    }
-    return value;
+    // Two broad octaves retain natural, non-periodic material breakup at a
+    // fraction of the hash/sine work of the previous three-octave field.
+    float broad = terrainNoise(p) * 0.66;
+    return broad + terrainNoise(p * 2.03) * 0.30;
 }
 
 void main() {
@@ -262,8 +256,7 @@ void main() {
     // elevation transitions read as geology rather than clean shader bands.
     vec2 terrainUv = vWorldPos.xz;
     float broadNoise = terrainFbm(terrainUv * 0.0028);
-    float fineNoise = terrainNoise(terrainUv * 0.0145) * 0.72 +
-                      terrainNoise(terrainUv * 0.031) * 0.28;
+    float fineNoise = terrainNoise(terrainUv * 0.018);
     float slope = 1.0 - upness;
     float rockBoundary = uRockThreshold + broadNoise * 0.075 + fineNoise * 0.018;
     float rockMask = 1.0 - smoothstep(rockBoundary - 0.27, rockBoundary + 0.025, upness);
@@ -275,15 +268,13 @@ void main() {
     // The broad field creates connected soil islands; a finer field roughens their edges.
     // Overlapping medium and fine fields create broken, natural soil islands instead
     // of broad smooth bands. Their edges remain irregular at both near and flight scale.
-    float soilField = terrainFbm(terrainUv * 0.0068);
-    float soilDetail = terrainNoise(terrainUv * 0.027) * 0.72 +
-                       terrainNoise(terrainUv * 0.061) * 0.28;
+    float soilField = terrainFbm(terrainUv * 0.0068 + vec2(17.3, -9.1));
+    float soilDetail = terrainNoise(terrainUv * 0.032);
     float soilMask = (1.0 - smoothstep(-0.06, 0.46, soilField + soilDetail * 0.30)) *
                      clamp(uSoilStrength, 0.0, 0.65);
-    // A second, broader erosion field breaks up large uninterrupted grass/snow
-    // material regions at flight scale without drawing artificial contour lines.
-    float erosionField = terrainFbm(terrainUv * 0.00135 + vec2(17.3, -9.1));
-    float erosionPatch = smoothstep(-0.22, 0.34, erosionField + broadNoise * 0.30);
+    // Reuse the broad geological field for a second scale of broken erosion
+    // patches instead of evaluating a third independent multi-octave field.
+    float erosionPatch = smoothstep(-0.22, 0.34, soilField + broadNoise * 0.30);
     soilMask = max(soilMask, erosionPatch * clamp(uSoilStrength * 0.34, 0.0, 0.24));
     vec3 exposedEarth = texture(uTexB, vUv * 1.73).rgb * vec3(0.58, 0.43, 0.30);
     albedo = mix(albedo, exposedEarth, soilMask);
