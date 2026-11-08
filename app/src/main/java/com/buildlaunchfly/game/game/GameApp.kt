@@ -548,7 +548,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val recoilTurbulence = 0.28f * (1f - damperFraction * 0.92f)
         physics.launch(
             speed,
-            profile.launchAngleDegrees.coerceIn(2f, 8f),
+            profile.launchAngleDegrees.coerceIn(0f, 90f),
             0f,
             recoilTurbulence
         )
