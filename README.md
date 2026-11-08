@@ -9,8 +9,9 @@ OpenGL ES 3.0, and the complete landscape UI system specified in `design.md`.
 - [`docs/MASTER_BRIEF.md`](docs/MASTER_BRIEF.md) — creative and technical directive.
 - [`docs/DESIGN.md`](docs/DESIGN.md) — normative visual/UI specification (tokens, five
   ecosystems, aircraft stages, all ten screens).
-- [`docs/reference/`](docs/reference/README.md) — visual reference plates for the five
-  ecosystems (documentation only, never packaged in the APK).
+- [`docs/reference/`](docs/reference/README.md) — **authoritative** visual references
+  (`Ref-1` … `Ref-7`): the primary truth for design, UI and engine look, ahead of the
+  written design where they disagree (documentation only, never packaged in the APK).
 
 ## Current status
 

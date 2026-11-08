@@ -1,34 +1,55 @@
-# Reference image slots
+# Reference plates — authoritative
 
-Visual reference images for the five ecosystems. The design specification
-(`docs/DESIGN.md` §3 and the verification matrix in §8) refers to five reference
-plates, mapped as follows:
+`Ref-1` … `Ref-7` are the **primary source of truth for the game's design, UI and engine
+look**. Where the references and `docs/DESIGN.md` disagree, the references win. The written
+documents stay authoritative only for what the references do not show: tokens, exact copy,
+build and engineering constraints.
 
-| Slot | File name to use | Biome / world | Design token in `design.md` |
+## Files
+
+| File | Kind | Size | Measured dimensions |
 |---|---|---|---|
-| 1 | `biome-mountain.png` | Mountain / countryside (alpine terraces, highland valleys) | `{{DATA:IMAGE:IMAGE_1}}` |
-| 2 | `biome-ocean.png` | Ocean / coastal (cliffs, sea stacks, quartz shoreline) | `{{DATA:IMAGE:IMAGE_2}}` |
-| 3 | `slot-desert.png` → rename to `biome-desert.png` | Desert (barchan dunes, wadis, buttes) | `{{DATA:IMAGE:IMAGE_3}}` |
-| 4 | `biome-snow.png` | Snow / glacier (crevasses, frozen lake, spindrift) | `{{DATA:IMAGE:IMAGE_4}}` |
-| 5 | `biome-forest.png` | Forest / green landscape (canopy, stream, sun shafts) | `{{DATA:IMAGE:IMAGE_5}}` |
+| `Ref-1.png` | PNG screenshot | 3.5 MB | 1284 × 2778 |
+| `Ref-2.png` | PNG screenshot | 1.4 MB | 1284 × 2778 |
+| `Ref-3.png` | PNG screenshot | 390 KB | 1284 × 2778 |
+| `Ref-4.png` | PNG screenshot | 708 KB | 1284 × 2778 |
+| `Ref-5.png` | PNG screenshot | 1.0 MB | 1284 × 2778 |
+| `Ref-6.png` | PNG screenshot | 825 KB | 1284 × 2778 |
+| `Ref-7.mp4` | Screen recording | 39.2 MB | — |
 
-Optional extras, if available:
+`Ref.zip` is a local duplicate of the stills and is git-ignored.
 
-- `aircraft-stages.png` — the six-stage aircraft progression reference
-- `slingshot-rig.png` — the kinetic slingshot / launch rig reference
-- `ui-screens.png` — any UI/UX reference board
+## Precedence
 
-## How these are used
+1. `Ref-1` … `Ref-7` (this folder)
+2. `docs/DESIGN.md`
+3. `docs/MASTER_BRIEF.md`
 
-- **Art direction:** target look for each biome's terrain shaping, palette, atmosphere,
-  vegetation density and depth layering (`world/WorldDefinition.kt`,
-  `gfx/TextureFactory.kt`).
-- **Review aid:** compare a build screenshot against the plate for that biome.
-- **Not shipped in the APK.** This folder is documentation only; nothing here is packaged
-  into the app and no code references these files.
+## Aspect note
 
-## Adding more
+All six stills are **portrait** (1284 × 2778), while `docs/MASTER_BRIEF.md` §9 and
+`docs/DESIGN.md` §2.3 mandate **landscape, 16:9-first**. Those two positions cannot both be
+literal. Until the references are re-captured in landscape (or the rule is changed), the
+working interpretation is: the references define the visual language — palette, materials,
+silhouettes, HUD content, camera framing, aircraft and slingshot forms — and it is adapted
+to the landscape canvas the brief requires.
 
-Drop PNG/JPG/WebP files into this folder using the names above (or add new rows to the
-table), then commit. Keep images reasonably sized (long edge ≤ 2048 px) so the repository
-stays light.
+## What each plate is used for
+
+To be completed from the plates themselves (screen type, biome, HUD elements, aircraft
+stage, slingshot state). Keep this table in sync whenever a plate is added or replaced:
+
+| File | Screen / state | Biome | Notes |
+|---|---|---|---|
+| `Ref-1.png` | _to fill_ | _to fill_ | |
+| `Ref-2.png` | _to fill_ | _to fill_ | |
+| `Ref-3.png` | _to fill_ | _to fill_ | |
+| `Ref-4.png` | _to fill_ | _to fill_ | |
+| `Ref-5.png` | _to fill_ | _to fill_ | |
+| `Ref-6.png` | _to fill_ | _to fill_ | |
+| `Ref-7.mp4` | _to fill_ | _to fill_ | moving reference for flight/launch feel |
+
+## Packaged?
+
+No. This folder is documentation and art direction only; nothing here is included in the
+APK and no game code references these files.

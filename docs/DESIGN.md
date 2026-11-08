@@ -9,6 +9,12 @@ This document is normative for visuals. Where it and an earlier document disagre
 visuals, tokens, layout or screen content, this document wins. `docs/MASTER_BRIEF.md` stays
 normative for scope, technology and quality bar.
 
+**Reference precedence.** The original reference plates `Ref-1` … `Ref-7` in
+`docs/reference/` are the primary source of truth for design, UI and engine look. Where the
+plates and this document disagree, the plates win; this document fills in the details the
+plates do not show. See `docs/reference/README.md` for the file list and the portrait versus
+landscape note.
+
 ---
 
 ## 1. PROJECT SCOPE & DESIGNER BOUNDARIES (Brief Sections 1 & 11)
