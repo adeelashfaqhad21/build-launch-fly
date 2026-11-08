@@ -59,6 +59,10 @@ class WorldScene(
     // Compact collision proxies for authored natural obstacles (trees and rocks).
     // Each record stores centre XYZ, horizontal radius and vertical half-extent.
     private var naturalObstacleProxies: FloatArray = FloatArray(0)
+    // Spatial broadphase: test only nearby 64m cells instead of scanning every
+    // tree, rock and house proxy on every rendered frame.
+    private val obstacleBuckets: Array<MutableList<Int>?> =
+        arrayOfNulls(OBSTACLE_GRID_WIDTH * OBSTACLE_GRID_DEPTH)
 
     val birds: Wildlife.Birds
     val animals: Wildlife.GroundAnimals
@@ -299,6 +303,7 @@ class WorldScene(
             treeSet.matrices, treeSet.count, rockSet.matrices, rockSet.count,
             settlementGeometry.obstacles
         )
+        buildObstacleBuckets()
 
         val grassCount = (definition.grassCount * scale).toInt()
         if (grassCount > 0) {
@@ -340,20 +345,48 @@ class WorldScene(
      * by the renderer. This makes the natural landscape itself the obstacle course.
      */
     fun collidesWithNaturalObstacle(x: Float, y: Float, z: Float, aircraftRadius: Float = 1.25f): Boolean {
-        val data = naturalObstacleProxies
+        val cellX = ((x - OBSTACLE_GRID_MIN_X) / OBSTACLE_CELL_SIZE).toInt()
+        val cellZ = ((z - OBSTACLE_GRID_MIN_Z) / OBSTACLE_CELL_SIZE).toInt()
+        for (dz in -1..1) {
+            val gz = cellZ + dz
+            if (gz !in 0 until OBSTACLE_GRID_DEPTH) continue
+            for (dx in -1..1) {
+                val gx = cellX + dx
+                if (gx !in 0 until OBSTACLE_GRID_WIDTH) continue
+                val bucket = obstacleBuckets[gz * OBSTACLE_GRID_WIDTH + gx] ?: continue
+                for (entry in bucket) {
+                    val dxWorld = x - naturalObstacleProxies[entry]
+                    val dyWorld = y - naturalObstacleProxies[entry + 1]
+                    val dzWorld = z - naturalObstacleProxies[entry + 2]
+                    val horizontal = naturalObstacleProxies[entry + 3] + aircraftRadius
+                    val vertical = naturalObstacleProxies[entry + 4] + 0.9f
+                    if (kotlin.math.abs(dyWorld) < vertical &&
+                        dxWorld * dxWorld + dzWorld * dzWorld < horizontal * horizontal
+                    ) return true
+                }
+            }
+        }
+        return false
+    }
+
+    private fun buildObstacleBuckets() {
         var offset = 0
-        while (offset < data.size) {
-            val dx = x - data[offset]
-            val dy = y - data[offset + 1]
-            val dz = z - data[offset + 2]
-            val horizontal = data[offset + 3] + aircraftRadius
-            val vertical = data[offset + 4] + 0.9f
-            if (kotlin.math.abs(dy) < vertical && dx * dx + dz * dz < horizontal * horizontal) {
-                return true
+        while (offset < naturalObstacleProxies.size) {
+            val x = naturalObstacleProxies[offset]
+            val z = naturalObstacleProxies[offset + 2]
+            val gx = ((x - OBSTACLE_GRID_MIN_X) / OBSTACLE_CELL_SIZE).toInt()
+            val gz = ((z - OBSTACLE_GRID_MIN_Z) / OBSTACLE_CELL_SIZE).toInt()
+            if (gx in 0 until OBSTACLE_GRID_WIDTH && gz in 0 until OBSTACLE_GRID_DEPTH) {
+                val index = gz * OBSTACLE_GRID_WIDTH + gx
+                var bucket = obstacleBuckets[index]
+                if (bucket == null) {
+                    bucket = ArrayList()
+                    obstacleBuckets[index] = bucket
+                }
+                bucket.add(offset)
             }
             offset += 5
         }
-        return false
     }
 
     private fun buildNaturalObstacleProxies(
@@ -367,20 +400,25 @@ class WorldScene(
         var out = 0
         for (index in 0 until treeCount) {
             val i = index * 16
-            val height = trees[i + 5]
+            val sx = kotlin.math.sqrt(trees[i] * trees[i] + trees[i + 1] * trees[i + 1] + trees[i + 2] * trees[i + 2])
+            val sy = kotlin.math.sqrt(trees[i + 4] * trees[i + 4] + trees[i + 5] * trees[i + 5] + trees[i + 6] * trees[i + 6])
+            val sz = kotlin.math.sqrt(trees[i + 8] * trees[i + 8] + trees[i + 9] * trees[i + 9] + trees[i + 10] * trees[i + 10])
             result[out++] = trees[i + 12]
-            result[out++] = trees[i + 13] + height * 0.55f
+            result[out++] = trees[i + 13] + sy * 0.55f
             result[out++] = trees[i + 14]
-            result[out++] = maxOf(trees[i], trees[i + 10]) * 0.72f + 0.75f
-            result[out++] = height * 0.60f
+            result[out++] = maxOf(sx, sz) * 0.72f + 0.75f
+            result[out++] = sy * 0.60f
         }
         for (index in 0 until rockCount) {
             val i = index * 16
+            val sx = kotlin.math.sqrt(rocks[i] * rocks[i] + rocks[i + 1] * rocks[i + 1] + rocks[i + 2] * rocks[i + 2])
+            val sy = kotlin.math.sqrt(rocks[i + 4] * rocks[i + 4] + rocks[i + 5] * rocks[i + 5] + rocks[i + 6] * rocks[i + 6])
+            val sz = kotlin.math.sqrt(rocks[i + 8] * rocks[i + 8] + rocks[i + 9] * rocks[i + 9] + rocks[i + 10] * rocks[i + 10])
             result[out++] = rocks[i + 12]
             result[out++] = rocks[i + 13]
             result[out++] = rocks[i + 14]
-            result[out++] = maxOf(rocks[i], rocks[i + 10]) * 0.78f + 0.35f
-            result[out++] = rocks[i + 5] * 0.82f + 0.35f
+            result[out++] = maxOf(sx, sz) * 0.78f + 0.35f
+            result[out++] = sy * 0.82f + 0.35f
         }
         if (settlements.isNotEmpty()) {
             System.arraycopy(settlements, 0, result, out, settlements.size)
@@ -399,6 +437,14 @@ class WorldScene(
             animalsMesh.setInstances(animals.matrices(), animals.instanceCount)
         }
         weather.updateAndEmit(camera, dt, time, particles)
+    }
+
+    private companion object {
+        const val OBSTACLE_CELL_SIZE = 64f
+        const val OBSTACLE_GRID_MIN_X = -1280f
+        const val OBSTACLE_GRID_MIN_Z = -3200f
+        const val OBSTACLE_GRID_WIDTH = 44
+        const val OBSTACLE_GRID_DEPTH = 64
     }
 
     fun dispose() {
