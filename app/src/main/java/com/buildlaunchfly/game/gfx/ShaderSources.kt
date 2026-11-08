@@ -88,12 +88,14 @@ vec3 applyFog(vec3 color, vec3 worldPos) {
     // elevated alpine views. This keeps nearby aircraft and terrain crisp while
     // progressively veiling distant ground layers toward the horizon.
     float viewHeight = max(min(worldPos.y, uCameraPos.y), 0.0);
-    float lowAltitudeDensity = mix(1.22, 0.76, smoothstep(24.0, 210.0, viewHeight));
-    float horizonWeight = 1.0 + 0.42 * smoothstep(90.0, 420.0, horizontalDist);
+    // Keep the aircraft and nearby terrain crisp. Atmospheric perspective should
+    // gently soften only the far horizon, never wash out the playable scene.
+    float lowAltitudeDensity = mix(0.92, 0.72, smoothstep(24.0, 210.0, viewHeight));
+    float horizonWeight = 1.0 + 0.16 * smoothstep(180.0, 620.0, horizontalDist);
     float opticalDepth = max(uFogDensity, 0.0) * dist *
-                         lowAltitudeDensity * horizonWeight;
-    float fog = 1.0 - exp(-opticalDepth * 1.12);
-    return mix(color, uFogColor, clamp(fog, 0.0, 0.92));
+                         lowAltitudeDensity * horizonWeight * 0.34;
+    float fog = 1.0 - exp(-opticalDepth);
+    return mix(color, uFogColor, clamp(fog, 0.0, 0.68));
 }
 
 vec3 applyTonemap(vec3 c) {
