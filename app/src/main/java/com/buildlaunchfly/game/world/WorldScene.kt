@@ -121,10 +121,17 @@ class WorldScene(
             roughness = 0.86f
         )
         settlementDetailMaterial = Material(
-            albedo = textures.metal,
-            tint = Vec3(0.20f, 0.24f, 0.27f),
-            roughness = 0.72f,
-            metallic = 0.08f
+            // Doors, shutters and porch timbers should read as aged natural wood,
+            // not industrial metal fittings on otherwise rural buildings.
+            albedo = textures.bark,
+            tint = when (definition.id) {
+                WorldId.DESERT -> Vec3(0.30f, 0.19f, 0.11f)
+                WorldId.SNOW -> Vec3(0.34f, 0.28f, 0.22f)
+                WorldId.OCEAN -> Vec3(0.38f, 0.30f, 0.20f)
+                else -> Vec3(0.28f, 0.18f, 0.12f)
+            },
+            roughness = 0.94f,
+            metallic = 0f
         )
 
         val trunkData = buildTrunkData()
