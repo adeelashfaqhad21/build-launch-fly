@@ -50,10 +50,13 @@ Grass grows only in noise-driven meadows at roughly three to four feet tall; bet
 terrain shader exposes bare soil patches, so the ground reads as a mix of grass, earth and
 rock rather than a uniform green carpet.
 
-The external nature packs that were investigated for this (Quaternius, Kenney, OpenGameArt,
-Poly Haven) are reviewed in [`docs/ASSETS.md`](docs/ASSETS.md) with licences, formats, style
-fit, animation requirements and the decision: the Kenney Nature Kit is the preferred future
-source, but no pack is shipped today.
+The external nature packs that were investigated for this are reviewed in
+[`docs/ASSETS.md`](docs/ASSETS.md) with licences, formats, style fit, animation requirements
+and the decision. **Quaternius' Ultimate Stylized Nature pack (CC0) is adopted** as a
+near-field hero layer: birch/maple/pine/palm trees plus bushes, flower clumps, grass and rocks
+are loaded from OBJ at runtime (`gfx/ObjLoader`, `gfx/AssetTextures`) and instanced around the
+launch area at HIGH/ULTRA detail, while the procedural species still fill the distance. Every
+load is guarded, so a missing asset simply falls back to the procedural set.
 
 **Aircraft (`aircraft`)** — procedural vintage biplane per
 [`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with

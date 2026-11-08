@@ -225,7 +225,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         val definition = WorldCatalog.byId(id)
 
         scene?.dispose()
-        val newScene = WorldScene(definition, textureFactory, quality.detailLevel)
+        val newScene = WorldScene(
+            definition,
+            textureFactory,
+            quality.detailLevel,
+            context.assets
+        )
         scene = newScene
 
         applyEnvironment(definition, sceneRenderer)
@@ -730,6 +735,11 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         for (part in currentScene.shrubs) sceneRenderer.shadowInstanced(part.instanced)
         for (part in currentScene.rockParts) sceneRenderer.shadowInstanced(part.instanced)
+        for (tree in currentScene.heroTrees) {
+            sceneRenderer.shadowInstanced(tree.trunk.instanced)
+            sceneRenderer.shadowInstanced(tree.canopy.instanced)
+        }
+        for (part in currentScene.heroPlants) sceneRenderer.shadowInstanced(part.instanced)
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
@@ -757,6 +767,13 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.drawInstanced(part.instanced, part.material)
         }
         for (part in currentScene.grassParts) {
+            sceneRenderer.drawInstanced(part.instanced, part.material)
+        }
+        for (tree in currentScene.heroTrees) {
+            sceneRenderer.drawInstanced(tree.trunk.instanced, tree.trunk.material)
+            sceneRenderer.drawInstanced(tree.canopy.instanced, tree.canopy.material)
+        }
+        for (part in currentScene.heroPlants) {
             sceneRenderer.drawInstanced(part.instanced, part.material)
         }
         sceneRenderer.drawInstanced(currentScene.birdsMesh, currentScene.birdMaterial)

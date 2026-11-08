@@ -56,13 +56,39 @@ that currently cost two draw calls.
 
 ## Decision
 
-- **Not adopted**: no pack is integrated, so nothing ships that we cannot verify, and the
-  zero-binary-asset build stays intact.
-- **Recorded as the preferred future source**: Kenney Nature Kit (CC0, static, single atlas,
-  low-poly) — best style/format/performance match. Quaternius MegaKit is the strongest
-  alternative if a zip is supplied.
-- **Delivered instead**: per-ecosystem species sets in the existing procedural system, which
-  is what the packs were wanted for.
+- **Adopted: Quaternius — Ultimate Stylized Nature (CC0).** Its free OBJ set is a close match
+  for the plates' low-poly stylised look, the licence is CC0, and the files are static
+  (no rig) so they fit the renderer.
+- Used as a **near-field hero layer**, not as the whole landscape:
+  - Forest: `BirchTree_1`, `MapleTree_1`
+  - Alpine: `PineTree_1`
+  - Coast: `PalmTree_1`
+  - All realms: `Bush`, `Flower_1_Clump`, `Grass_Large`, `Rock_1`
+  - Desert: procedural saguaro/dead-tree set stays (no desert props in this pack)
+- Bush, grass, flowers and rocks are 54–490 faces; the trees are 240 (palm), 1,092 (pine),
+  1,924 (maple) and 2,299 (birch) faces. That is 2–10× the procedural proxy, which is why
+  they are instanced only in the near ring (18–90 m around the launch area) and only at
+  **HIGH/ULTRA** detail (`detailLevel >= 2`). The procedural scatter still fills the distance.
+- The pack's `NormalTree_1` (4,260 faces) and its 19.9 MB 4K bark map were rejected: the tree
+  is too heavy for background use and bark is drawn with the game's own procedural texture.
+- Animation packs (Quaternius animals, OpenGameArt pigeon/shrike) are still **not** adopted:
+  they need skinning, which the renderer does not have. Poly Haven stays rejected on style and
+  budget.
+
+### How it is integrated
+
+- `app/src/main/assets/quaternius/` holds the OBJ + leaf/rock PNG files (≈6.7 MB total).
+- `gfx/ObjLoader` parses OBJ at load time: triangulates Blender's n-gon faces, splits the
+  geometry into the bark and foliage material groups, flips the OBJ V coordinate to match the
+  decoded PNG orientation, and normalises both groups with one shared transform (1 unit tall,
+  base at y = 0, centred in XZ) so the two meshes stay aligned.
+- `gfx/AssetTextures` decodes each PNG with `inSampleSize` down to ≤512 px, uploads it
+  mip-mapped, and recycles the bitmap — the source maps are much larger than a phone needs.
+- `WorldScene` builds one `Mesh` + `InstancedMesh` per model and scatters it with the same
+  deterministic terrain rules used by the procedural species. Their draw calls are added to
+  the existing shadow pass and main pass, so no new renderer state is involved.
+- Every step is wrapped: if a file is missing or a parse fails, that model is skipped and the
+  procedural vegetation still fills the world.
 
 ## What was implemented in its place
 

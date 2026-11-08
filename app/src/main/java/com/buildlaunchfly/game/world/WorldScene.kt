@@ -1,5 +1,7 @@
 package com.buildlaunchfly.game.world
 
+import android.content.res.AssetManager
+import com.buildlaunchfly.game.gfx.AssetTextures
 import com.buildlaunchfly.game.gfx.Camera
 import com.buildlaunchfly.game.gfx.InstancedMesh
 import com.buildlaunchfly.game.gfx.InstanceSet
@@ -7,10 +9,13 @@ import com.buildlaunchfly.game.gfx.Material
 import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
+import com.buildlaunchfly.game.gfx.ObjLoader
 import com.buildlaunchfly.game.gfx.ParticleRenderer
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
+import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
+import kotlin.random.Random
 
 /** Which plant family a realm grows; the same scatter rules, different silhouettes. */
 private enum class PlantStyle { FOREST, DESERT, ALPINE, COAST }
@@ -38,7 +43,8 @@ class TreePart(
 class WorldScene(
     val definition: WorldDefinition,
     textures: TextureFactory,
-    detailLevel: Int = 2
+    detailLevel: Int = 2,
+    private val assets: AssetManager? = null
 ) {
 
     val terrain = Terrain(definition)
@@ -65,6 +71,16 @@ class WorldScene(
 
     /** Tall meadow grass, split into three clump shapes. */
     val grassParts: List<InstancedPart>
+
+    /**
+     * Hand-authored Quaternius trees, scattered only in the near field where the player
+     * actually looks; the procedural scatter still fills the distance at a fraction of the
+     * triangle cost.
+     */
+    val heroTrees: List<TreePart>
+
+    /** Hand-authored bushes, flowers, grass and rocks for the near field. */
+    val heroPlants: List<InstancedPart>
 
     val birdMaterial: Material
     val animalMaterial: Material
@@ -243,6 +259,15 @@ class WorldScene(
             buildGrassData(plantStyle, it)
         }
 
+        // ---- near-field hand-authored props ----
+        val heroTreeBuilder = ArrayList<TreePart>(2)
+        val heroPlantBuilder = ArrayList<InstancedPart>(5)
+        if (assets != null && detailLevel >= 2) {
+            buildHeroProps(assets, textures, heroTreeBuilder, heroPlantBuilder)
+        }
+        heroTrees = heroTreeBuilder
+        heroPlants = heroPlantBuilder
+
         birdMaterial = Material(
             albedo = textures.rubber,
             tint = Vec3(0.16f, 0.15f, 0.16f),
@@ -312,6 +337,16 @@ class WorldScene(
             part.mesh.dispose()
             part.instanced.dispose()
         }
+        for (tree in heroTrees) {
+            tree.trunk.mesh.dispose()
+            tree.trunk.instanced.dispose()
+            tree.canopy.mesh.dispose()
+            tree.canopy.instanced.dispose()
+        }
+        for (part in heroPlants) {
+            part.mesh.dispose()
+            part.instanced.dispose()
+        }
         birdsMesh.dispose()
         animalsMesh.dispose()
     }
@@ -323,6 +358,158 @@ class WorldScene(
         PlantStyle.DESERT -> species == 1
         PlantStyle.COAST -> species != 0
         else -> true
+    }
+
+    // ---- hand-authored near-field props -----------------------------------
+
+    /** One asset file plus how many to place and how tall it grows, in metres. */
+    private class HeroSpec(
+        val file: String,
+        val texture: String,
+        val count: Int,
+        val height: Float,
+        val seedOffset: Int
+    )
+
+    private fun heroTreeSpecs(): List<HeroSpec> = when (plantStyle) {
+        PlantStyle.FOREST -> listOf(
+            HeroSpec("BirchTree_1", "BirchTree_Leaves.png", 14, 7.0f, 1),
+            HeroSpec("MapleTree_1", "MapleTree_Leaves.png", 12, 7.5f, 2)
+        )
+        PlantStyle.ALPINE -> listOf(
+            HeroSpec("PineTree_1", "PineTree_Leaves.png", 18, 7.5f, 3)
+        )
+        PlantStyle.COAST -> listOf(
+            HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 12, 8.5f, 4)
+        )
+        PlantStyle.DESERT -> emptyList()
+    }
+
+    private fun heroPlantSpecs(): List<HeroSpec> {
+        val plants = ArrayList<HeroSpec>(5)
+        when (plantStyle) {
+            PlantStyle.FOREST -> {
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 60, 1.5f, 11))
+                plants.add(HeroSpec("Flower_1_Clump", "Flowers.png", 50, 0.7f, 12))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 60, 1.0f, 13))
+            }
+            PlantStyle.ALPINE -> {
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 40, 1.2f, 14))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 40, 0.9f, 15))
+            }
+            PlantStyle.COAST -> {
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 30, 1.5f, 16))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 50, 1.3f, 17))
+            }
+            PlantStyle.DESERT -> Unit
+        }
+        plants.add(HeroSpec("Rock_1", "Rocks.png", 26, 2.0f, 18))
+        return plants
+    }
+
+    private fun buildHeroProps(
+        assets: AssetManager,
+        textures: TextureFactory,
+        outTrees: MutableList<TreePart>,
+        outPlants: MutableList<InstancedPart>
+    ) {
+        val trunkMaterial = Material(
+            albedo = textures.bark,
+            tint = Vec3(0.72f, 0.56f, 0.40f),
+            roughness = 0.90f,
+            metallic = 0f,
+            uvScale = 2f
+        )
+
+        for (spec in heroTreeSpecs()) {
+            val model = ObjLoader.load(assets, "quaternius/${spec.file}.obj") ?: continue
+            val barkData = model.bark ?: continue
+            val foliageData = model.foliage ?: continue
+            val foliageTexture =
+                AssetTextures.load(assets, "quaternius/${spec.texture}") ?: continue
+
+            val set = heroScatter(spec.count, spec.seedOffset, spec.height)
+            if (set.count == 0) continue
+
+            val trunkMesh = Mesh("heroTrunk${spec.file}", barkData)
+            val canopyMesh = Mesh("heroCanopy${spec.file}", foliageData)
+            val trunks = InstancedMesh("heroTrunks${spec.file}", barkData, set.count)
+            trunks.setInstances(set.matrices, set.count)
+            val canopies = InstancedMesh("heroCanopies${spec.file}", foliageData, set.count)
+            canopies.setInstances(set.matrices, set.count)
+
+            val foliageMaterial = Material(
+                albedo = foliageTexture,
+                tint = Vec3(1f, 1f, 1f),
+                roughness = 0.86f,
+                metallic = 0f,
+                uvScale = 1f
+            )
+            outTrees.add(
+                TreePart(
+                    InstancedPart(trunkMesh, trunks, trunkMaterial),
+                    InstancedPart(canopyMesh, canopies, foliageMaterial)
+                )
+            )
+        }
+
+        for (spec in heroPlantSpecs()) {
+            val model = ObjLoader.load(assets, "quaternius/${spec.file}.obj") ?: continue
+            val data = model.foliage ?: model.bark ?: continue
+            val texture = AssetTextures.load(assets, "quaternius/${spec.texture}") ?: continue
+
+            val set = heroScatter(spec.count, spec.seedOffset, spec.height)
+            if (set.count == 0) continue
+
+            val mesh = Mesh("heroProp${spec.file}", data)
+            val instanced = InstancedMesh("heroProps${spec.file}", data, set.count)
+            instanced.setInstances(set.matrices, set.count)
+            val material = Material(
+                albedo = texture,
+                tint = Vec3(1f, 1f, 1f),
+                roughness = 0.88f,
+                metallic = 0f,
+                uvScale = 1f
+            )
+            outPlants.add(InstancedPart(mesh, instanced, material))
+        }
+    }
+
+    /** Places [count] props in a ring around the launch area, avoiding pad and water. */
+    private fun heroScatter(count: Int, seedOffset: Int, height: Float): InstanceSet {
+        if (count <= 0) return InstanceSet.EMPTY
+        val out = FloatArray(count * 16)
+        val rng = Random(definition.seed + 7919 + seedOffset)
+        val normal = Vec3()
+        val matrix = Mat4()
+        var placed = 0
+        var attempts = 0
+        val maxAttempts = count * 24
+
+        while (placed < count && attempts < maxAttempts) {
+            attempts++
+            val angle = rng.nextFloat() * M.TWO_PI
+            val radius = 20f + rng.nextFloat() * 70f
+            val x = kotlin.math.cos(angle) * radius
+            val z = -55f + kotlin.math.sin(angle) * radius
+            if (x * x + z * z < 26f * 26f) continue
+
+            val h = terrain.height(x, z)
+            if (h < definition.waterLevel + 1.5f) continue
+            terrain.normal(x, z, normal)
+            if (normal.y < 0.84f) continue
+
+            val scale = height * (0.85f + rng.nextFloat() * 0.30f)
+            matrix.setTrs(
+                x, h - 0.12f, z,
+                0f, rng.nextFloat() * M.TWO_PI, 0f,
+                scale, scale, scale
+            )
+            System.arraycopy(matrix.m, 0, out, placed * 16, 16)
+            placed++
+        }
+
+        return if (placed == 0) InstanceSet.EMPTY else InstanceSet(placed, out)
     }
 
     /**
