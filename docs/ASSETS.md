@@ -1,3 +1,58 @@
+# Asset policy and migration decision — 9 November 2026
+
+## Single visual-asset source
+
+**Decision: imported, pre-built assets are the canonical source for visible game objects.**
+Do not add new procedural mesh substitutes for trees, bushes, grass, flowers, rocks,
+buildings, animals, aircraft, slingshot parts or hangar props when an appropriate imported
+asset is available. Do not render imported and procedurally modelled versions of the same
+visual category together.
+
+Procedural *placement* is still allowed: deterministic scatter, transforms, biome rules,
+terrain sampling, collision, LOD selection and animation may position and operate imported
+meshes. These systems do not create a competing art style.
+
+## Cleanup rules
+
+1. Imported Quaternius vegetation/rock models and their own textures are the canonical
+   vegetation set. Remove the parallel generated tree/canopy, shrub, rock and grass meshes
+   after the imported set has full-world coverage and quality/performance checks.
+2. Imported building, mountain, animal, ship and pad-prop models remain canonical where
+   they exist. A generated fallback must not silently appear when an imported asset fails;
+   log the missing asset and keep that item absent so broken packaging is visible.
+3. The five Poly Haven JPGs are imported terrain **albedo textures**, not terrain meshes.
+   The heightfield in `Terrain`/`TerrainMesh` is currently the actual continuous land
+   surface used by flight, placement and collision. Keep that gameplay surface until a
+   compatible authored terrain/height source and collision representation are integrated.
+4. The analytic sky and water shader are environment rendering systems, not duplicate
+   object-model libraries. They require their own visual audit; do not confuse them with
+   generated vegetation.
+5. Aircraft, slingshot and hangar geometry are still built in code. The current
+   `kits/aircraft-kit.zip` only supplies pad props (windsock/cone); it is not a replacement
+   aircraft, slingshot or hangar model. These code-built models are migration targets, but
+   must not be deleted until matching imported models are integrated and the upgrade/launch
+   behaviour still has valid attachment points.
+6. Keep flight physics, aircraft upgrade state, slingshot tension/release, terrain collision,
+   weather simulation, deterministic placement and renderer infrastructure. These are game
+   systems, not visual asset substitutes.
+
+## Current migration status
+
+- Imported assets already present: Quaternius trees, dead trees, bushes, flowers, grass,
+  plants and rocks; static OBJ animals; OBJ buildings/mountains; OBJ ships; five Poly Haven
+  terrain albedo maps; aircraft-kit archive with two pad props.
+- Known duplicate visual systems: procedural tree/trunk/canopy, shrub, rock and grass meshes
+  are still built and rendered alongside imported vegetation.
+- Known generated core models without a matching imported replacement in the current asset
+  inventory: aircraft, slingshot and hangar/ramp.
+- Terrain geometry remains a generated heightfield because the imported terrain files are
+  texture maps only.
+- Do not mark the migration complete until the duplicate procedural vegetation has been
+  removed, imported vegetation covers the intended flight corridor with suitable LOD, and
+  all five worlds have been checked on-device.
+
+---
+
 # Asset source review — external nature packs
 
 Reviewed against the project's actual constraints before anything was adopted. The short
