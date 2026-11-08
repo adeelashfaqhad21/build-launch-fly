@@ -740,6 +740,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.shadowInstanced(tree.canopy.instanced)
         }
         for (part in currentScene.heroPlants) sceneRenderer.shadowInstanced(part.instanced)
+        for (part in currentScene.animalParts) sceneRenderer.shadowInstanced(part.instanced)
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
@@ -777,7 +778,13 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.drawInstanced(part.instanced, part.material)
         }
         sceneRenderer.drawInstanced(currentScene.birdsMesh, currentScene.birdMaterial)
-        sceneRenderer.drawInstanced(currentScene.animalsMesh, currentScene.animalMaterial)
+        if (currentScene.animalParts.isEmpty()) {
+            sceneRenderer.drawInstanced(currentScene.animalsMesh, currentScene.animalMaterial)
+        } else {
+            for (part in currentScene.animalParts) {
+                sceneRenderer.drawInstanced(part.instanced, part.material)
+            }
+        }
 
         if (showHangar) {
             hangar?.let { set ->

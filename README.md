@@ -190,7 +190,9 @@ Why the two APKs behaved differently before:
 
 - UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks are
   in `ui/UiFrame.kt` and `ui/UiIcons.kt`.
-- Wildlife uses simple procedural meshes with scripted motion.
+- Wildlife: ground animals are the Quaternius pack's Deer / Donkey / Husky / Cow / Stag models
+  (static pose, flat MTL colours) driven by the existing scripted grazing paths; birds are
+  still procedural. Skeletal animation would need a skinning pass.
 - Ecosystem layouts are still procedural: reference plates in `docs/reference/` guide art
   direction but are not baked into authored terrain or building assets.
 - Play Protect warnings on self-signed sideloads are outside the app's control; publishing to

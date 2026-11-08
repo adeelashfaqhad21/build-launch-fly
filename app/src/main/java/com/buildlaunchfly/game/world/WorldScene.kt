@@ -1,6 +1,7 @@
 package com.buildlaunchfly.game.world
 
 import android.content.res.AssetManager
+import com.buildlaunchfly.game.gfx.AnimalLoader
 import com.buildlaunchfly.game.gfx.AssetTextures
 import com.buildlaunchfly.game.gfx.Camera
 import com.buildlaunchfly.game.gfx.InstancedMesh
@@ -87,6 +88,12 @@ class WorldScene(
 
     val birdsMesh: InstancedMesh
     val animalsMesh: InstancedMesh
+
+    /**
+     * Hand-authored animal meshes, one per material group. When present they replace the
+     * procedural animal mesh and share the same scripted instance matrices.
+     */
+    val animalParts: List<InstancedPart>
 
     val birds: Wildlife.Birds
     val animals: Wildlife.GroundAnimals
@@ -299,6 +306,11 @@ class WorldScene(
 
         birdsMesh = InstancedMesh("birds", buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))
+        animalParts = if (assets != null && detailLevel >= 2) {
+            buildAnimalParts(assets, textures)
+        } else {
+            emptyList()
+        }
 
         waterDeep = definition.waterDeep
         waterShallow = definition.waterShallow
@@ -311,7 +323,14 @@ class WorldScene(
         }
         if (animals.instanceCount > 0) {
             animals.update(dt, time, terrain)
-            animalsMesh.setInstances(animals.matrices(), animals.instanceCount)
+            val matrices = animals.matrices()
+            if (animalParts.isEmpty()) {
+                animalsMesh.setInstances(matrices, animals.instanceCount)
+            } else {
+                for (part in animalParts) {
+                    part.instanced.setInstances(matrices, animals.instanceCount)
+                }
+            }
         }
         weather.updateAndEmit(camera, dt, time, particles)
     }
@@ -349,6 +368,10 @@ class WorldScene(
         }
         birdsMesh.dispose()
         animalsMesh.dispose()
+        for (part in animalParts) {
+            part.mesh.dispose()
+            part.instanced.dispose()
+        }
     }
 
     // ---- geometry ---------------------------------------------------------
@@ -542,6 +565,50 @@ class WorldScene(
                 outPlants.add(InstancedPart(mesh, instanced, deadMaterial))
             }
         }
+    }
+
+    /** Picks the animal that belongs in this realm. */
+    private class AnimalSpec(val file: String, val height: Float)
+
+    private fun buildAnimalParts(
+        assets: AssetManager,
+        textures: TextureFactory
+    ): List<InstancedPart> {
+        val spec = when (definition.id) {
+            WorldId.FOREST -> AnimalSpec("Deer", 1.35f)
+            WorldId.DESERT -> AnimalSpec("Donkey", 1.50f)
+            WorldId.SNOW -> AnimalSpec("Husky", 0.75f)
+            WorldId.OCEAN -> AnimalSpec("Cow", 1.45f)
+            WorldId.MOUNTAIN -> AnimalSpec("Stag", 1.75f)
+        }
+        val parts = AnimalLoader.load(
+            assets,
+            "animals/${spec.file}.obj",
+            "animals/${spec.file}.mtl",
+            spec.height
+        )
+        if (parts.isEmpty()) return emptyList()
+
+        val out = ArrayList<InstancedPart>(parts.size)
+        for ((index, part) in parts.withIndex()) {
+            val mesh = Mesh("animal${spec.file}$index", part.data)
+            val instanced = InstancedMesh(
+                "animal${spec.file}$index",
+                part.data,
+                animals.instanceCount.coerceAtLeast(1)
+            )
+            val material = Material(
+                albedo = textures.white,
+                tint = com.buildlaunchfly.game.math.Vec3(
+                    part.color.x, part.color.y, part.color.z
+                ),
+                roughness = 0.88f,
+                metallic = 0f,
+                uvScale = 1f
+            )
+            out.add(InstancedPart(mesh, instanced, material))
+        }
+        return out
     }
 
     /** Places [count] props in a ring around the launch area, avoiding pad and water. */
