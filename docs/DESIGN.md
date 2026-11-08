@@ -464,13 +464,13 @@ flight. Anything not in the reference HUD goes to results.
 **Colours:** white text with `navy` outline; red warnings; blue/white track; green trails.
 
 **Checklist**
-- [ ] Remove the top three-column telemetry panel
-- [ ] Remove the attitude gimbal from the flight HUD
-- [ ] Dial top-left, pause beneath
-- [ ] Distance centred over the world
-- [ ] Progress track pinned right, vertically centred on the flight window
-- [ ] Feedback overlays at the reference position
-- [ ] Safe margins respected on 20:9
+- [x] Remove the top three-column telemetry panel
+- [x] Remove the attitude gimbal from the flight HUD
+- [x] Dial top-left, pause beneath
+- [x] Distance centred over the world
+- [x] Progress track pinned right, vertically centred on the flight window
+- [x] Feedback overlays at the reference position
+- [x] Safe margins respected on 20:9
 
 **Acceptance:** screenshot parity with Ref-5/Ref-6 composition at 1284×2778.
 
@@ -490,11 +490,11 @@ value `#37DD6B`, unit white.
 **Data:** airspeed km/h from the flight model.
 
 **Checklist**
-- [ ] Arc-dial renderer with tick marks
-- [ ] Needle smoothing (200 ms)
-- [ ] Green zone / red zone mapping to gameplay thresholds
-- [ ] Digital value + unit
-- [ ] Red rim flash tied to the LOW SPEED state
+- [x] Arc-dial renderer with tick marks
+- [x] Needle smoothing (200 ms) — `GameApp.hudAirspeedKmh`
+- [x] Green zone / red zone mapping to gameplay thresholds
+- [x] Digital value + unit
+- [x] Red rim flash tied to the LOW SPEED state
 
 ---
 
@@ -513,12 +513,12 @@ black/white; plane icon white.
 ticks up in 1 % steps.
 
 **Checklist**
-- [ ] Capsule track with rim
-- [ ] Checkered flag asset
-- [ ] Yellow marker + arrow
-- [ ] Plane icon + percentage readout
-- [ ] Percentage = distance / target (per realm)
-- [ ] Completion flash
+- [x] Capsule track with rim
+- [x] Checkered flag asset
+- [x] Yellow marker + arrow
+- [x] Plane icon + percentage readout
+- [x] Percentage = distance / target (per realm)
+- [x] Completion flash
 
 ---
 
@@ -533,10 +533,11 @@ ticks up in 1 % steps.
 | Thermal/climb (derived, optional) | cyan `+X m` chip | soft whoosh |
 
 **Checklist**
-- [ ] Central feedback component with entrance/exit animation
-- [ ] Warning component anchored under the dial
-- [ ] Thresholds driven by the flight model, not timers
-- [ ] One feedback at a time, priority: stall > low speed > perfect
+- [ ] Central feedback component with entrance/exit animation — `PERFECT!` pops in with a
+  scale overshoot but currently cuts out when the timer ends
+- [x] Warning component anchored under the dial
+- [x] Thresholds driven by the flight model, not timers
+- [x] One feedback at a time, priority: stall > low speed > perfect
 - [ ] Haptics on perfect and stall (respect system setting)
 
 ---

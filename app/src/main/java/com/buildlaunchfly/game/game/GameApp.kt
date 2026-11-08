@@ -77,6 +77,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var slingRecoilStretch = 0f
     private var launchPuffTimer = 0f
     private var perfectFlashTimer = 0f
+    private var hudAirspeedKmh = 0f
 
     private var viewportWidth = 1
     private var viewportHeight = 1
@@ -438,6 +439,9 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     fun pullAmount(): Float = pull
 
+    /** Smoothed airspeed the speedometer needle follows (about 200 ms of lag). */
+    fun hudAirspeedKmh(): Float = hudAirspeedKmh
+
     /** Fade for the one-shot launch hint: 1 right after entering the rig, 0 once shown. */
     fun launchHintAlpha(): Float = (launchHintTimer / HINT_DURATION).coerceIn(0f, 1f)
 
@@ -480,6 +484,11 @@ class GameApp(private val context: Context, private val input: InputState) {
                 resultTimer += dt
             }
         }
+
+        // The HUD needle lags the real airspeed by about 200 ms instead of snapping.
+        val speedTarget = physics.speed() * 3.6f
+        val speedAlpha = 1f - kotlin.math.exp(-dt / 0.20f)
+        hudAirspeedKmh += (speedTarget - hudAirspeedKmh) * speedAlpha
 
         when (state) {
             GameState.SEATED -> when (cameraMode) {

@@ -7,6 +7,7 @@ import com.buildlaunchfly.game.gfx.DesignTokens
 import com.buildlaunchfly.game.ui.UiButtonStyle
 import com.buildlaunchfly.game.ui.UiFrame
 import com.buildlaunchfly.game.ui.UiIcon
+import com.buildlaunchfly.game.ui.UiIcons
 import com.buildlaunchfly.game.ui.UiScreen
 import com.buildlaunchfly.game.ui.UiTextStyle
 
@@ -40,22 +41,34 @@ object FlightHudScreen {
     fun drawFlight(f: UiFrame) {
         val w = f.width
         val h = f.height
-        val t = f.app.telemetry()
+        val telemetry = f.app.telemetry()
         val target = f.app.targetDistanceMeters().coerceAtLeast(1f)
-        val fraction = (t.distanceMeters / target).coerceIn(0f, 1f)
+        val fraction = (telemetry.distanceMeters / target).coerceIn(0f, 1f)
+        val speedKmh = f.app.hudAirspeedKmh()
 
-        drawSpeedDial(f, 58f, 66f, 40f, t.airspeedKmh)
-        f.iconButton(f.rect(42f, 116f, 32f, 32f), UiIcon.PAUSE) { f.nav.setPaused(true) }
+        drawSpeedDial(f, 60f, 64f, 44f, speedKmh)
+        f.iconButton(f.rect(24f, 116f, 32f, 32f), UiIcon.PAUSE) { f.nav.setPaused(true) }
 
-        val speedKmh = t.airspeedKmh
-        if (t.stallWarning) {
-            warningLabel(f, "STALL", 140f, 1f)
-        } else if (speedKmh < 45f) {
-            warningLabel(f, "LOW SPEED", 140f, 0.65f + 0.35f * kotlin.math.abs(kotlin.math.sin(f.time * 4f)))
+        // One feedback at a time, priority stall > low speed > perfect.
+        val warning = when {
+            telemetry.stallWarning -> "STALL"
+            speedKmh < 45f -> "LOW SPEED"
+            else -> null
+        }
+
+        when {
+            warning == "STALL" -> warningLabel(f, "STALL", 140f, 1f)
+            warning != null -> warningLabel(
+                f,
+                "LOW SPEED",
+                140f,
+                0.65f + 0.35f * kotlin.math.abs(kotlin.math.sin(f.time * 4f))
+            )
+            f.app.perfectFlash() > 0f -> drawPerfect(f, w / 2f, h * 0.36f, f.app.perfectFlash())
         }
 
         f.label(
-            "${t.distanceMeters.toInt()}M",
+            "${telemetry.distanceMeters.toInt()}M",
             w / 2f,
             h * 0.47f,
             UiTextStyle.DISPLAY_HERO,
@@ -65,10 +78,6 @@ object FlightHudScreen {
         )
 
         drawProgressTrack(f, w - 34f, 24f, 18f, 300f, fraction)
-
-        if (f.app.perfectFlash() > 0f) {
-            drawPerfect(f, w / 2f, h * 0.36f, f.app.perfectFlash())
-        }
     }
 
     // ---- launch gauge -----------------------------------------------------
@@ -120,39 +129,76 @@ object FlightHudScreen {
     // ---- flight instruments ----------------------------------------------
 
     private fun drawSpeedDial(f: UiFrame, cx: Float, cy: Float, r: Float, kmh: Float) {
-        f.circle(cx, cy, r + 3f, DesignTokens.withAlpha(DesignTokens.INK, 0.25f))
-        f.circle(cx, cy, r + 2f, DesignTokens.WHITE)
-        f.circle(cx, cy, r - 1f, 0xFF39BCE6.toInt())
+        val lowSpeed = kmh < 45f
 
-        val dial = RectF(cx - r + 4f, cy - r + 4f, cx + r - 4f, cy + r - 4f)
-        f.painter.stroke.strokeWidth = 5f
-        f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.GREEN, 0.85f)
-        f.canvas.drawArc(dial, -122f, 119f, false, f.painter.stroke)
+        // Two-tone chrome rim over the cyan face.
+        f.circle(cx, cy, r + 4f, 0xFF8E9AA6.toInt())
+        f.circle(cx, cy, r + 2f, 0xFFBFCBD4.toInt())
+        f.circle(cx, cy, r, 0xFF39BCE6.toInt())
 
-        val start = -218f + (kmh / 120f).coerceIn(0f, 1f) * 256f
+        if (lowSpeed) {
+            val pulse = 0.35f + 0.45f * kotlin.math.abs(kotlin.math.sin(f.time * 6f))
+            f.ringCircle(cx, cy, r + 3f, DesignTokens.withAlpha(DesignTokens.RED, pulse), 3f)
+        }
+
+        // A tick every 10 km/h on the 0–120 sweep.
+        for (step in 0..12) {
+            f.painter.stroke.strokeWidth = if (step % 3 == 0) 2f else 1.2f
+            f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.WHITE, 0.7f)
+            f.canvas.save()
+            f.canvas.rotate(dialAngle(step * 10f) + 90f, cx, cy)
+            f.canvas.drawLine(cx, cy - r + 4f, cx, cy - r + 9f, f.painter.stroke)
+            f.canvas.restore()
+        }
+
+        // Green safe band 45–100 km/h, red above 100.
+        val dial = RectF(cx - r + 12f, cy - r + 12f, cx + r - 12f, cy + r - 12f)
+        f.painter.stroke.strokeWidth = 4f
+        f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.GREEN, 0.9f)
+        f.canvas.drawArc(
+            dial,
+            dialAngle(45f) + 90f,
+            dialAngle(100f) - dialAngle(45f),
+            false,
+            f.painter.stroke
+        )
+        f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.RED, 0.9f)
+        f.canvas.drawArc(
+            dial,
+            dialAngle(100f) + 90f,
+            dialAngle(120f) - dialAngle(100f),
+            false,
+            f.painter.stroke
+        )
+
+        // Dark needle with a hub.
         f.painter.stroke.strokeWidth = 2.5f
-        f.painter.stroke.color = DesignTokens.INK
+        f.painter.stroke.color = 0xFF112233.toInt()
         f.canvas.save()
-        f.canvas.rotate(start + 90f, cx, cy)
-        f.canvas.drawLine(cx, cy, cx, cy - r + 10f, f.painter.stroke)
+        f.canvas.rotate(dialAngle(kmh) + 90f, cx, cy)
+        f.canvas.drawLine(cx, cy, cx, cy - r + 11f, f.painter.stroke)
         f.canvas.restore()
+        f.circle(cx, cy, 3f, 0xFF112233.toInt())
 
         f.label(
             kmh.toInt().toString(),
             cx,
             cy + 12f,
             UiTextStyle.H1,
-            DesignTokens.WHITE,
+            0xFF37DD6B.toInt(),
             Paint.Align.CENTER,
             outline = true
         )
         f.label("KM/H", cx, cy + 24f, UiTextStyle.BADGE, DesignTokens.WHITE, Paint.Align.CENTER, outline = true)
     }
 
+    /** Needle rotation for a speed: 0 km/h at −128°, 120 km/h at +38°, clockwise. */
+    private fun dialAngle(kmh: Float): Float = -218f + (kmh / 120f).coerceIn(0f, 1f) * 256f
+
     private fun warningLabel(f: UiFrame, text: String, y: Float, alpha: Float) {
         f.label(
             text,
-            58f,
+            60f,
             y,
             UiTextStyle.HUD_LABEL,
             DesignTokens.withAlpha(DesignTokens.RED, alpha),
@@ -163,38 +209,70 @@ object FlightHudScreen {
 
     private fun drawProgressTrack(f: UiFrame, cx: Float, top: Float, width: Float, height: Float, fraction: Float) {
         val track = RectF(cx - width / 2f, top, cx + width / 2f, top + height)
-        f.panel(track, width / 2f, DesignTokens.CARD, DesignTokens.CARD_EDGE)
         val inner = RectF(track.left + 4f, track.top + 4f, track.right - 4f, track.bottom - 4f)
+        val complete = fraction >= 0.999f
+
+        f.panel(track, width / 2f, DesignTokens.CARD, DesignTokens.CARD_EDGE)
         f.solid(inner, width / 2f, DesignTokens.withAlpha(DesignTokens.SKY, 0.25f))
 
-        val flagY = top - 30f
+        if (complete) {
+            val glow = 0.45f + 0.55f * kotlin.math.abs(kotlin.math.sin(f.time * 7f))
+            f.ring(track, width / 2f, DesignTokens.withAlpha(DesignTokens.GOLD, glow), 3f)
+        }
+
+        // Checkered flag at the top; it bounces once the target is reached.
+        val bounce = if (complete) kotlin.math.sin(f.time * 9f) * 3f else 0f
+        val flagY = top - 30f + bounce
         for (row in 0 until 2) {
             for (col in 0 until 4) {
                 val color = if ((row + col) % 2 == 0) DesignTokens.INK else DesignTokens.WHITE
                 f.solid(
-                    RectF(track.left - 12f + col * 7f, flagY + row * 7f, track.left - 5f + col * 7f, flagY + (row + 1) * 7f),
+                    RectF(
+                        track.left - 12f + col * 7f,
+                        flagY + row * 7f,
+                        track.left - 5f + col * 7f,
+                        flagY + (row + 1) * 7f
+                    ),
                     0f,
                     color
                 )
             }
         }
 
+        // Yellow marker with a blue arrow, at distance / target.
         val markerY = inner.bottom - inner.height() * fraction
+        val arrow = Path()
+        arrow.moveTo(track.left - 14f, markerY)
+        arrow.lineTo(track.left - 3f, markerY - 5f)
+        arrow.lineTo(track.left - 3f, markerY + 5f)
+        arrow.close()
+        f.painter.fill.color = DesignTokens.BLUE
+        f.canvas.drawPath(arrow, f.painter.fill)
         f.circle(cx, markerY, 7f, DesignTokens.YELLOW)
-        f.ringCircle(cx, cy = markerY, radius = 7f, color = DesignTokens.BLUE, width = 2f)
+        f.ringCircle(cx, markerY, 7f, DesignTokens.BLUE, 2f)
+
+        // Plane icon and percentage, pinned to the foot of the track.
+        val chip = RectF(track.left - 6f, track.bottom + 8f, track.right + 6f, track.bottom + 30f)
+        f.panel(chip, 8f)
+        UiIcons.draw(
+            f.canvas,
+            f.painter,
+            UiIcon.PLANE,
+            RectF(chip.left + 4f, chip.top + 4f, chip.left + 20f, chip.bottom - 4f),
+            DesignTokens.BLUE
+        )
         f.label(
             "${(fraction * 100f).toInt()}%",
-            cx - 12f,
-            markerY + 3f,
+            chip.right - 5f,
+            chip.centerY() + 3.5f,
             UiTextStyle.BADGE,
-            DesignTokens.WHITE,
-            Paint.Align.RIGHT,
-            outline = true
+            DesignTokens.INK,
+            Paint.Align.RIGHT
         )
     }
 
     private fun drawPerfect(f: UiFrame, cx: Float, cy: Float, remaining: Float) {
-        val t = (1.4f - f.app.perfectFlash()) / 1.4f
+        val t = (1.4f - remaining) / 1.4f
         val scale = 0.6f + kotlin.math.sin(kotlin.math.min(t * 3.4f, 3.14159f)) * 0.5f
         f.canvas.save()
         f.canvas.translate(cx, cy)
