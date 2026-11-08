@@ -327,12 +327,14 @@ Slots, all modular and individually disableable:
 validated. No pay-to-progress wall in the first 30 minutes.
 
 **Checklist**
-- [ ] Generic promo-slot component (icon, label, badge, button)
-- [ ] Config flags per slot
-- [ ] Chest timer + claim state persisted
-- [ ] Rewarded-video cap (3/3) persisted
-- [ ] VIP/rocket screens are stubs unless enabled
-- [ ] All disabled slots collapse cleanly (layout without gaps)
+- [x] Generic promo-slot component (icon, label, badge, button) — `MenuScreen.promoIcon` /
+  `promoCard`, driven by `PromoSlot`
+- [x] Config flags per slot — `ui/PromoConfig.enabled`
+- [x] Chest timer + claim state persisted — `PlayerProfile.chestReady` / `claimChest`
+- [ ] Rewarded-video cap (3/3) persisted — no ad surface yet; the slot stays off
+- [x] VIP/rocket screens are stubs unless enabled — VIP hidden, rocket routes to realms
+- [x] All disabled slots collapse cleanly (layout without gaps) — the rail only stacks
+  enabled slots
 
 ---
 

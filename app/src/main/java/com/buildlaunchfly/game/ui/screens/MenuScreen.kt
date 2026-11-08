@@ -6,6 +6,8 @@ import com.buildlaunchfly.game.aircraft.AircraftCatalog
 import com.buildlaunchfly.game.aircraft.PartSlot
 import com.buildlaunchfly.game.gfx.DesignTokens
 import com.buildlaunchfly.game.slingshot.SlingUpgrade
+import com.buildlaunchfly.game.ui.PromoConfig
+import com.buildlaunchfly.game.ui.PromoSlot
 import com.buildlaunchfly.game.ui.UiButtonStyle
 import com.buildlaunchfly.game.ui.UiFormat
 import com.buildlaunchfly.game.ui.UiFrame
@@ -114,64 +116,104 @@ object MenuScreen {
     }
 
     private fun drawPromos(f: UiFrame) {
-        promoIcon(f, f.rect(16f, 112f, 40f, 40f), UiIcon.STORE, false) {}
-        promoIcon(f, f.rect(16f, 170f, 40f, 40f), UiIcon.VIDEO, false) {}
-        promoIcon(f, f.rect(16f, 228f, 40f, 40f), UiIcon.GEM, false) {}
+        // Left icon rail: only the slots that are switched on, stacked without gaps.
+        var y = 112f
+        for (slot in PromoConfig.leftRail) {
+            if (!PromoConfig.isEnabled(slot)) continue
+            promoIcon(f, f.rect(16f, y, 40f, 40f), iconOf(slot), promoAction(f, slot))
+            y += 58f
+        }
 
-        val chest = f.rect(244f, 112f, 100f, 56f)
-        f.panel(chest, 14f)
-        UiIcons.draw(
-            f.canvas,
-            f.painter,
-            UiIcon.CHEST,
-            RectF(chest.left + 8f, chest.top + 8f, chest.left + 36f, chest.top + 36f),
-            DesignTokens.GOLD
-        )
-        val chestReady = f.app.chestReady()
-        f.button(
-            f.rect(chest.right - 54f, chest.bottom - 24f, 46f, 18f),
-            "OPEN",
-            UiButtonStyle.SUCCESS,
-            chestReady
-        ) { f.app.requestClaimChest() }
-
-        val vip = f.rect(244f, 180f, 100f, 44f)
-        f.panel(vip, 14f)
-        UiIcons.draw(
-            f.canvas,
-            f.painter,
-            UiIcon.TROPHY,
-            RectF(vip.left + 8f, vip.top + 9f, vip.left + 36f, vip.top + 37f),
-            DesignTokens.GOLD
-        )
-        f.label("VIP", vip.right - 10f, vip.centerY() + 6f, UiTextStyle.H2, DesignTokens.GOLD, Paint.Align.RIGHT, outline = true)
-
-        val rocket = f.rect(244f, 236f, 100f, 64f)
-        f.panel(rocket, 14f)
-        UiIcons.draw(
-            f.canvas,
-            f.painter,
-            UiIcon.ROCKET,
-            RectF(rocket.left + 8f, rocket.top + 6f, rocket.left + 36f, rocket.top + 34f),
-            DesignTokens.BLUE
-        )
-        f.button(
-            f.rect(rocket.left + 8f, rocket.bottom - 26f, rocket.width() - 16f, 20f),
-            "UNLOCK",
-            UiButtonStyle.PURPLE
-        ) { f.nav.go(UiScreen.WORLDS) }
+        // Right card rail: same rule, one card per enabled slot.
+        y = 112f
+        for (slot in PromoConfig.rightRail) {
+            if (!PromoConfig.isEnabled(slot)) continue
+            val height = PromoConfig.cardHeight(slot)
+            promoCard(f, f.rect(244f, y, 100f, height), slot, promoAction(f, slot))
+            y += height + 12f
+        }
     }
 
-    private fun promoIcon(f: UiFrame, r: RectF, icon: UiIcon, enabled: Boolean, onClick: () -> Unit) {
-        f.panel(r, 12f, if (enabled) DesignTokens.CARD else DesignTokens.withAlpha(DesignTokens.CARD, 0.65f))
+    private fun iconOf(slot: PromoSlot): UiIcon = when (slot) {
+        PromoSlot.STORE -> UiIcon.STORE
+        PromoSlot.REWARDED_GEMS -> UiIcon.GEM
+        PromoSlot.CHEST -> UiIcon.CHEST
+        PromoSlot.VIP -> UiIcon.TROPHY
+        PromoSlot.ROCKET -> UiIcon.ROCKET
+    }
+
+    /** A slot with no destination yet gets no hit target, so it can never be a dead tap. */
+    private fun promoAction(f: UiFrame, slot: PromoSlot): (() -> Unit)? = when (slot) {
+        PromoSlot.CHEST -> ({ f.app.requestClaimChest() })
+        PromoSlot.ROCKET -> ({ f.nav.go(UiScreen.WORLDS) })
+        PromoSlot.STORE, PromoSlot.REWARDED_GEMS, PromoSlot.VIP -> null
+    }
+
+    private fun promoIcon(f: UiFrame, r: RectF, icon: UiIcon, onClick: (() -> Unit)?) {
+        f.panel(r, 12f, DesignTokens.CARD, DesignTokens.CARD_EDGE)
         UiIcons.draw(
             f.canvas,
             f.painter,
             icon,
             RectF(r.left + 10f, r.top + 10f, r.right - 10f, r.bottom - 10f),
-            if (enabled) DesignTokens.INK else DesignTokens.withAlpha(DesignTokens.INK, 0.4f)
+            DesignTokens.INK
         )
-        if (enabled) f.hit(r, onClick)
+        if (onClick != null) f.hit(r, onClick)
+    }
+
+    private fun promoCard(f: UiFrame, r: RectF, slot: PromoSlot, onClick: (() -> Unit)?) {
+        f.panel(r, 14f)
+        when (slot) {
+            PromoSlot.CHEST -> {
+                UiIcons.draw(
+                    f.canvas,
+                    f.painter,
+                    UiIcon.CHEST,
+                    RectF(r.left + 8f, r.top + 8f, r.left + 36f, r.top + 36f),
+                    DesignTokens.GOLD
+                )
+                f.button(
+                    f.rect(r.right - 54f, r.bottom - 24f, 46f, 18f),
+                    "OPEN",
+                    UiButtonStyle.SUCCESS,
+                    f.app.chestReady()
+                ) { f.app.requestClaimChest() }
+            }
+            PromoSlot.VIP -> {
+                UiIcons.draw(
+                    f.canvas,
+                    f.painter,
+                    UiIcon.TROPHY,
+                    RectF(r.left + 8f, r.top + 9f, r.left + 36f, r.top + 37f),
+                    DesignTokens.GOLD
+                )
+                f.label(
+                    "VIP",
+                    r.right - 10f,
+                    r.centerY() + 6f,
+                    UiTextStyle.H2,
+                    DesignTokens.GOLD,
+                    Paint.Align.RIGHT,
+                    outline = true
+                )
+            }
+            PromoSlot.ROCKET -> {
+                UiIcons.draw(
+                    f.canvas,
+                    f.painter,
+                    UiIcon.ROCKET,
+                    RectF(r.left + 8f, r.top + 6f, r.left + 36f, r.top + 34f),
+                    DesignTokens.BLUE
+                )
+                f.button(
+                    f.rect(r.left + 8f, r.bottom - 26f, r.width() - 16f, 20f),
+                    "UNLOCK",
+                    UiButtonStyle.PURPLE
+                ) { f.nav.go(UiScreen.WORLDS) }
+            }
+            else -> Unit
+        }
+        if (onClick != null) f.hit(r, onClick)
     }
 
     private fun upgradeCard(
