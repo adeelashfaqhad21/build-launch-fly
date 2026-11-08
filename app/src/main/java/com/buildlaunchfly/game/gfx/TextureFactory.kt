@@ -1,5 +1,6 @@
 package com.buildlaunchfly.game.gfx
 
+import android.content.res.AssetManager
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
 
@@ -7,13 +8,17 @@ import com.buildlaunchfly.game.math.Vec3
 enum class SurfaceKind { GRASS, ROCK, SAND, SNOW, ICE }
 
 /**
- * Generates every texture the game needs at load time. Nothing is shipped as a binary
- * asset: the whole look is defined by code and a fixed seed, so worlds are reproducible
- * and the repository stays small.
+ * Builds runtime materials from compact procedural fallbacks and optional imported maps.
+ * Imported Poly Haven albedo maps are loaded on the GL thread from Android assets; all
+ * non-terrain materials retain their existing procedural generation.
  *
  * [size] is driven by the "High-Resolution Textures" setting.
  */
-class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE) {
+class TextureFactory(
+    private val seed: Int = 1337,
+    private val size: Int = SIZE,
+    private val assets: AssetManager? = null
+) {
 
     val white: Texture2D
     val metal: Texture2D
@@ -40,14 +45,30 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         surfaces[SurfaceKind.SNOW] = register(Texture2D.create("snow", texSize, texSize, snowTexture(texSize)))
         surfaces[SurfaceKind.ICE] = register(Texture2D.create("ice", texSize, texSize, iceTexture(texSize)))
 
+        // Imported albedo maps replace only their matching procedural fallback. Missing or
+        // undecodable files leave the fallback intact, so low-end devices still start safely.
+        loadSurface(SurfaceKind.GRASS, "terrain/grass_ground_1k.jpg", texSize)
+        loadSurface(SurfaceKind.ROCK, "terrain/rocky_terrain_02_1k.jpg", texSize)
+        loadSurface(SurfaceKind.SAND, "terrain/dense_sand_1k.jpg", texSize)
+        loadSurface(SurfaceKind.SNOW, "terrain/snow_02_1k.jpg", texSize)
+
         metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
         rubber = register(Texture2D.create("rubber", texSize, texSize, rubberTexture(texSize)))
         hazard = register(Texture2D.create("hazard", texSize, texSize, hazardTexture(texSize)))
         bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
         leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
-        soil = register(Texture2D.create("soil", texSize, texSize, soilTexture(texSize)))
+        soil = register(
+            assets?.let { AssetTextures.load(it, "terrain/forest_ground_06_1k.jpg", texSize) }
+                ?: Texture2D.create("soil", texSize, texSize, soilTexture(texSize))
+        )
         planks = register(Texture2D.create("planks", texSize, texSize, plankTexture(texSize)))
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
+    }
+
+    private fun loadSurface(kind: SurfaceKind, path: String, maxSize: Int) {
+        val manager = assets ?: return
+        val imported = AssetTextures.load(manager, path, maxSize) ?: return
+        surfaces[kind] = register(imported)
     }
 
     private fun register(texture: Texture2D): Texture2D {
