@@ -276,11 +276,11 @@ class WorldScene(
         val grassSets = Vegetation.scatterGrass(
             terrain,
             definition,
-            (definition.grassCount * scale).toInt(),
+            (definition.grassCount * scale * 1.8f).toInt(),
             definition.seed,
             0f,
-            -90f,
-            320f
+            -1150f,
+            1200f
         )
         grassParts = buildParts(grassSets, "grass", grassMaterials) {
             buildGrassData(plantStyle, it)
