@@ -181,15 +181,8 @@ object ObjLoader {
             out.add(0f)
         }
 
-        if (uvIndex >= 0 && uvIndex * 2 + 1 < texCoords.size) {
-            // OBJ V runs bottom-up, decoded PNGs are sampled top-down.
-            out.add(texCoords[uvIndex * 2])
-            out.add(1f - texCoords[uvIndex * 2 + 1])
-        } else {
-            out.add(0f)
-            out.add(0f)
-        }
-
+        // Keep the shared MeshData layout: Position (3), Normal (3), UV (2).
+        // GLUtil.bindStandardAttributes() binds normals at byte offset 12 and UVs at 24.
         if (normalIndex >= 0 && normalIndex * 3 + 2 < normals.size) {
             out.add(normals[normalIndex * 3])
             out.add(normals[normalIndex * 3 + 1])
@@ -197,6 +190,15 @@ object ObjLoader {
         } else {
             out.add(0f)
             out.add(1f)
+            out.add(0f)
+        }
+
+        if (uvIndex >= 0 && uvIndex * 2 + 1 < texCoords.size) {
+            // OBJ V runs bottom-up, decoded PNGs are sampled top-down.
+            out.add(texCoords[uvIndex * 2])
+            out.add(1f - texCoords[uvIndex * 2 + 1])
+        } else {
+            out.add(0f)
             out.add(0f)
         }
     }

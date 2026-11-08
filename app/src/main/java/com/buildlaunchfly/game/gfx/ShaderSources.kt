@@ -298,7 +298,7 @@ void main() {
     float h = clamp(d.y, -1.0, 1.0);
     float t = pow(clamp(h, 0.0, 1.0), 0.55);
     vec3 sky = mix(uHorizon, uZenith, t);
-    sky = mix(sky, uHorizon * 0.55, smoothstep(0.0, -0.3, h));
+    sky = mix(sky, uHorizon * 0.55, 1.0 - smoothstep(-0.3, 0.0, h));
 
     float sunDot = max(dot(d, normalize(uSunDir)), 0.0);
     sky += uSunColor * pow(sunDot, 220.0) * 1.6;
