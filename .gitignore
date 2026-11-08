@@ -31,3 +31,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local reference archives (the individual plates are tracked)
+docs/reference/*.zip
