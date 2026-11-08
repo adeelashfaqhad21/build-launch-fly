@@ -136,6 +136,27 @@ NormalTree bark.
 | Water | `WaterRenderer` (normal-mapped, Fresnel). |
 | Wind, snow, dust | `WeatherSystem` + `ParticleRenderer`. |
 
+## Animals — Ultimate Animated Animals (CC0)
+
+Second supplied Drive folder, same method. It holds 12 rigged animals — Alpaca, Bull, Cow,
+Deer, Donkey, Fox, Horse, Horse_White, Husky, ShibaInu, Stag, Wolf — each with 12+ skeletal
+clips, in OBJ/MTL plus glTF/FBX/Blend. **All 12 OBJ/MTL pairs are downloaded.**
+
+- **Shipped:** Deer (forest), Donkey (desert), Husky (snow), Cow (coast), Stag (mountain).
+- **No texture maps** — the MTL carries flat `Kd` colours across 5–7 materials per animal.
+  `gfx/AnimalLoader` splits each OBJ by material, reads those colours, normalises all groups
+  with one transform to a target height, and returns one mesh per colour, drawn with the white
+  texture tinted by the MTL colour.
+- They replace the procedural animal mesh in `WorldScene` while keeping the existing scripted
+  grazing/wandering instance matrices, so motion and spawn rules are unchanged. The procedural
+  mesh stays as the fallback.
+- **Animation is not playable:** the clips are skeletal and the renderer has no skinning, so the
+  animals stand in their bind pose and the scripted path moves them.
+- **No birds in this pack.** Birds remain the procedural silhouettes in `Wildlife.Birds`.
+
+Python-style "everything else" (mountains, fields, sky, weather) stays procedural — see the
+table above; the packs contain no geometry for it.
+
 ## What was implemented in its place
 
 `WorldScene` now selects a plant family from the realm and builds different silhouettes with
