@@ -22,6 +22,7 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
     val bark: Texture2D
     val leaf: Texture2D
     val soil: Texture2D
+    val planks: Texture2D
     val waterNormals: Texture2D
 
     private val surfaces = HashMap<SurfaceKind, Texture2D>()
@@ -45,6 +46,7 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
         leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
         soil = register(Texture2D.create("soil", texSize, texSize, soilTexture(texSize)))
+        planks = register(Texture2D.create("planks", texSize, texSize, plankTexture(texSize)))
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
     }
 
@@ -192,6 +194,24 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
 
         val lum = 0.34f + clods * 0.06f + grit * 0.05f + damp * 0.05f + stone
         rgb(lum, lum * 0.72f, lum * 0.50f)
+    }
+
+    /**
+     * Sawn planks for the hangar walls and floor: six boards across the tile, a dark seam
+     * between them, lengthwise grain and the odd knot.
+     */
+    private fun plankTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
+        val boards = 6f
+        val pos = v * boards
+        val index = kotlin.math.floor(pos).toInt()
+        val edge = pos - index
+        val seam = if (edge < 0.055f || edge > 0.945f) 0.58f else 1f
+        val grain = Noise.fbm2(u * 3f, v * 34f, 3, 2f, 0.5f, seed + 501 + index)
+        val fine = Noise.value2(u * 140f, v * 180f, seed + 509)
+        val knot = if (Noise.value2(u * 7f + index * 3f, v * 9f, seed + 517) > 0.88f) 0.22f else 0f
+
+        val base = (0.62f + grain * 0.09f + fine * 0.04f - knot) * seam
+        rgb(base, base * 0.78f, base * 0.56f)
     }
 
     private fun barkTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->

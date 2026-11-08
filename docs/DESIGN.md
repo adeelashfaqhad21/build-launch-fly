@@ -232,8 +232,10 @@ on tap.
 **Audio:** hangar ambience; tap pops; purchase cascade.
 
 **Checklist**
-- [x] Hangar 3D set: tan plank floor, dark weathered plank wall down the left, open right side
-  with posts, heavy beamed roof, crates and bales outside — `world/HangarMesh`
+- [x] Hangar 3D set — `world/HangarMesh`: a sawn-plank wall down the left on vertical studs, a
+  gable roof on a ridge beam with exposed rafters, ties and purlins, a heavy timber door frame
+  at the open front, a plank floor, and the working-shed clutter (hay bales, crates, a barrel,
+  a bench and stool, a lamp hanging from the ridge)
 - [ ] Plane displayed in hangar, idle bob — the plane is held in the sling, no bob yet
 - [x] Two currency pills with compact formatting (`28.15K`)
 - [x] Gear opens settings
@@ -351,6 +353,11 @@ No ramp, no crossbar, no braces, no metal. The posts stand about 1.2× the wings
 the sling clears them. Bands are yellow/white striped. In Ref-3 the plane sits back; in Ref-4
 the camera is closer and the sling forms a steeper V.
 
+Each post is **planted**, not floating: a foot pad at the base, a squared shaft, a chamfered
+tip and a rounded nock the elastic rides over. Three leather lashings bind the elastic under
+each nock, and the tow point carries a leather cradle — a plate with upturned side flaps and a
+strap over the fuselage — rather than a bare band end.
+
 **Layout in world space:** posts at x ±2.15 m, height 3.15 m (about the nose-to-tail length),
 squared 0.13 m section with 0.05 rad outward splay; sling radius 0.075 m; tow point 0.10 m
 below the origin and 0.25 m behind it, so the arms pass behind the wings and the V meets on
@@ -376,6 +383,11 @@ button plate.
 **Checklist**
 - [x] Exactly two posts and a sling — `SlingshotMesh` builds two squared posts and one elastic
   sling; there is no ramp, crossbar or metalwork
+- [x] Posts planted, not floating — a foot pad at each base (`buildFrameData`)
+- [x] Chamfered tip with a rounded nock the elastic rides over (`buildFrameData`)
+- [x] Leather lashings binding the elastic to each tip — `wrapMesh`, three collars per post
+- [x] Leather cradle at the tow point — plate, upturned side flaps and a strap (`buildPouchData`)
+- [x] Lashings and cradle cast shadows — both meshes are in the shadow pass
 - [x] Posts about 1.2× the wingspan apart — `POLE_X = 2.15` against a 1.78 m wing half-span
 - [x] Posts about the aircraft's nose-to-tail length — `POLE_HEIGHT = 3.15`
 - [x] One sling tied to both tips and anchored at the wing root — `ANCHOR_Y` / `ANCHOR_Z`

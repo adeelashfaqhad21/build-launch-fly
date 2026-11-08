@@ -5,6 +5,7 @@ import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.TextureFactory
+import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
 import kotlin.math.sqrt
@@ -32,6 +33,12 @@ object SlingshotLayout {
     private const val TIP_X = POLE_X + 0.16f
     private const val TIP_Y = POLE_HEIGHT - 0.04f
 
+    /**
+     * Horizontal half-span of a post at height [y]. The posts pivot at their feet, so a point
+     * part-way up sits slightly inboard of the tip.
+     */
+    fun postX(y: Float): Float = POLE_X + y * POLE_SPLAY
+
     /** Where the elastic is tied at the top of each post. */
     val LEFT_PRONG = Vec3(-TIP_X, TIP_Y, 0f)
     val RIGHT_PRONG = Vec3(TIP_X, TIP_Y, 0f)
@@ -58,6 +65,7 @@ class SlingshotMesh(textures: TextureFactory) {
     val frameMesh: Mesh
     val bandMesh: Mesh
     val pouchMesh: Mesh
+    val wrapMesh: Mesh
 
     val frameMaterial = Material(
         albedo = textures.bark,
@@ -96,9 +104,10 @@ class SlingshotMesh(textures: TextureFactory) {
         frameMesh = Mesh("slingshotFrame", buildFrameData())
         bandMesh = Mesh("slingshotBand", buildBandData())
         pouchMesh = Mesh("slingshotPouch", buildPouchData())
+        wrapMesh = Mesh("slingshotWrap", buildWrapData())
     }
 
-    /** Two plain squared posts, splaying slightly outward toward their tips. */
+    /** Two squared posts with planted feet, chamfered tips and a rounded nock. */
     private fun buildFrameData(): MeshData {
         val b = MeshBuilder()
         for (side in intArrayOf(-1, 1)) {
@@ -107,16 +116,26 @@ class SlingshotMesh(textures: TextureFactory) {
                 0f, 0f, -side * SlingshotLayout.POLE_SPLAY,
                 1f
             )
+            // Foot pad: the post is planted, not floating.
+            b.addBox(
+                0f, 0.045f, 0f,
+                SlingshotLayout.POLE_HALF * 1.7f, 0.045f,
+                SlingshotLayout.POLE_HALF * 1.7f, 2f
+            )
+            // Post.
             b.addBox(
                 0f, SlingshotLayout.POLE_HEIGHT * 0.5f, 0f,
                 SlingshotLayout.POLE_HALF, SlingshotLayout.POLE_HEIGHT * 0.5f,
                 SlingshotLayout.POLE_HALF, 2f
             )
-            // Rounded nock where the elastic is tied.
+            // Chamfered cap and the rounded nock the elastic rides over.
+            b.pushTrs(0f, SlingshotLayout.POLE_HEIGHT - 0.19f, 0f, 0f, 0f, 0f, 1f)
+            b.addBox(0f, 0f, 0f, SlingshotLayout.POLE_HALF * 0.45f, 0.10f, SlingshotLayout.POLE_HALF * 0.45f, 2f)
+            b.pop()
             b.addBox(
-                0f, SlingshotLayout.POLE_HEIGHT - 0.05f, 0f,
-                SlingshotLayout.POLE_HALF * 1.35f, 0.07f,
-                SlingshotLayout.POLE_HALF * 1.35f, 2f
+                0f, SlingshotLayout.POLE_HEIGHT - 0.06f, 0f,
+                SlingshotLayout.POLE_HALF * 1.45f, 0.075f,
+                SlingshotLayout.POLE_HALF * 1.45f, 2f
             )
             b.pop()
         }
@@ -126,14 +145,39 @@ class SlingshotMesh(textures: TextureFactory) {
     /** Unit cylinder from y=0 to y=1, radius 1, so a model matrix can stretch it. */
     private fun buildBandData(): MeshData {
         val b = MeshBuilder()
-        b.addCylinder(0f, 0.5f, 0f, 0.075f, 0.075f, 1f, 8, false, false, BAND_STRIPE_TILES)
+        b.addCylinder(0f, 0.5f, 0f, BAND_RADIUS, BAND_RADIUS, 1f, 10, false, false, BAND_STRIPE_TILES)
         return b.build()
     }
 
-    /** Small flattened leather pad at the tow point on the fuselage. */
+    /** Leather cradle: a plate, two upturned flaps and a strap over the fuselage. */
     private fun buildPouchData(): MeshData {
         val b = MeshBuilder()
-        b.addBox(0f, 0f, 0f, 0.20f, 0.055f, 0.14f, 1f)
+        b.addBox(0f, 0f, 0f, 0.20f, 0.05f, 0.15f, 1f)
+        b.pushTrs(0.17f, 0.055f, 0f, 0f, 0f, -0.55f, 1f)
+        b.addBox(0f, 0f, 0f, 0.09f, 0.035f, 0.13f, 1f)
+        b.pop()
+        b.pushTrs(-0.17f, 0.055f, 0f, 0f, 0f, 0.55f, 1f)
+        b.addBox(0f, 0f, 0f, 0.09f, 0.035f, 0.13f, 1f)
+        b.pop()
+        b.addBox(0f, 0.055f, 0f, 0.05f, 0.02f, 0.17f, 1f)
+        return b.build()
+    }
+
+    /** Leather lashings where the elastic is tied around each post tip. */
+    private fun buildWrapData(): MeshData {
+        val b = MeshBuilder()
+        for (side in intArrayOf(-1, 1)) {
+            for (i in 0 until 3) {
+                // Three collars binding the elastic just under the nock.
+                val y = SlingshotLayout.POLE_HEIGHT - 0.36f + i * 0.07f
+                b.pushTrs(
+                    side * SlingshotLayout.postX(y), y, 0f,
+                    0f, 0f, M.HALF_PI, 1f
+                )
+                b.addCylinder(0f, 0f, 0f, WRAP_RADIUS, WRAP_RADIUS, 0.05f, 8, true, true, 1f)
+                b.pop()
+            }
+        }
         return b.build()
     }
 
@@ -237,6 +281,7 @@ class SlingshotMesh(textures: TextureFactory) {
         frameMesh.dispose()
         bandMesh.dispose()
         pouchMesh.dispose()
+        wrapMesh.dispose()
     }
 
     companion object {
@@ -244,6 +289,12 @@ class SlingshotMesh(textures: TextureFactory) {
 
         /** How far the bands hang below their chord when fully slack. */
         const val BAND_SAG = 0.17f
+
+        /** Radius of the band cylinder before the tension/upgrade thickness scale. */
+        private const val BAND_RADIUS = 0.075f
+
+        /** Radius of a lashing collar, which has to clear the squared post. */
+        private const val WRAP_RADIUS = 0.115f
 
         /** Yellow/cream stripe repeats along a band; the texture carries four per tile. */
         private const val BAND_STRIPE_TILES = 3f

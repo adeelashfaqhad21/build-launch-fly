@@ -71,16 +71,20 @@ longer Mk II spans, tail end-plates and the engine block each arrive as separate
 **Slingshot (`slingshot`)** — five upgrade categories and exactly the reference rig: two plain
 squared wooden posts with a slight outward splay, standing about 1.2× the wingspan apart, and
 **one** striped elastic sling tied to both tips and meeting at a single tow point on the
-fuselage at the wing root — no ramp, no crossbar, no braces, no metalwork. The sling sags when
-slack and pulls straight as the draw deepens; sling thickness and draw length follow the
-upgrade levels, every segment casts a shadow, and the release plays a recoil wobble, a dust
-puff and a camera impulse. Launch elevation (20°–55°) is stored in the profile.
+fuselage at the wing root — no ramp, no crossbar, no braces, no metalwork. Each post is planted
+on a foot pad, tapers to a chamfered tip and carries a rounded nock; three leather lashings
+bind the elastic under each nock, and the tow point has a leather cradle with upturned flaps.
+The sling sags when slack and pulls straight as the draw deepens; sling thickness and draw
+length follow the upgrade levels, every part casts a shadow, and the release plays a recoil
+wobble, a dust puff and a camera impulse. Launch elevation (20°–55°) is stored in the profile.
 
-**Hangar (`world/HangarMesh`)** — the home screen sits inside the reference barn: a dark
-weathered plank wall down the left, a heavy beamed roof over the whole rig, a warm tan plank
-floor, corner posts down the open right side and crates and bales outside in the daylight. The
-hangar view is a fixed close rear-side oblique like Ref-2; the launch view stays centred
-behind the aircraft under the roof eave, as in Ref-3.
+**Hangar (`world/HangarMesh`)** — the home screen sits inside the reference shed: a sawn-plank
+wall down the left on vertical studs, a gable roof carried on a ridge beam with exposed rafters,
+tie beams and purlins, a heavy timber door frame at the open front, a warm plank floor under the
+rig, and the clutter of a working shed (hay bales against the wall, crates, a barrel, a bench
+and stool, and a lamp hanging from the ridge). The hangar view is a fixed close rear-side
+oblique like Ref-2; the launch view stays centred behind the aircraft under the roof eave, as in
+Ref-3.
 
 **Fleet (`world/WorldScene`)** — the ocean realm anchors five Quaternius ships at the water
 line (Viking boat, sailing boat, lifeboat, tall ship, cruise liner), each rocking slowly on the

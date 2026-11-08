@@ -716,6 +716,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         if (showSling) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+            sceneRenderer.shadowMesh(rig.wrapMesh, slingshotModel)
             sceneRenderer.shadowMesh(rig.pouchMesh, pouchModel)
             sceneRenderer.shadowMesh(rig.bandMesh, leftBand)
             sceneRenderer.shadowMesh(rig.bandMesh, leftBandB)
@@ -727,6 +728,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
+                sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
             }
         }
         for (tree in currentScene.trees) {
@@ -791,6 +793,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
             }
         } else if (showHangarRoof) {
             // The launch shot is still under the eave, like Ref-3's dark roof strip.
@@ -819,6 +822,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (showSling) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
+            sceneRenderer.drawMesh(rig.wrapMesh, rig.pouchMaterial, slingshotModel)
             sceneRenderer.drawMesh(rig.pouchMesh, rig.pouchMaterial, pouchModel)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBandB)
