@@ -13,6 +13,7 @@ import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.ObjLoader
 import com.buildlaunchfly.game.gfx.ParticleRenderer
 import com.buildlaunchfly.game.gfx.PropLoader
+import com.buildlaunchfly.game.gfx.ZipKit
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
@@ -732,10 +733,58 @@ class WorldScene(
             )
             out.add(InstancedPart(mesh, instanced, material))
         }
+        // The itch.io aircraft kit arrives as a zip; pull out the pad-side props it holds.
+        out.addAll(buildKitProps(assets, textures))
         return out
     }
 
-    /** One mooring: species model, its height in metres, position and heading. */
+    /**
+     * Windsock and traffic cone straight from the kit archive. Both are optional: if the
+     * archive layout differs, nothing is added and the pad keeps its crates and barrel.
+     */
+    private fun buildKitProps(
+        assets: AssetManager,
+        textures: TextureFactory
+    ): List<InstancedPart> {
+        val entries = ZipKit.read(assets, "kits/aircraft-kit.zip")
+        if (entries.isEmpty()) return emptyList()
+
+        val out = ArrayList<InstancedPart>(2)
+        val matrix = Mat4()
+        val specs = listOf(
+            Triple("windsock", 3.5f, Triple(-9.5f, -21f, 0f)),
+            Triple("cone", 0.7f, Triple(7.5f, -24f, 0f))
+        )
+        for (spec in specs) {
+            val obj = ZipKit.find(entries, ".obj", spec.first) ?: continue
+            val data = PropLoader.loadFromText(
+                String(obj.bytes, Charsets.ISO_8859_1),
+                obj.name,
+                spec.second
+            ) ?: continue
+            val png = ZipKit.textureFor(entries, obj.name) ?: continue
+            val texture = AssetTextures.loadFromBytes(png.bytes, png.name) ?: continue
+
+            val spot = spec.third
+            val y = terrain.height(spot.first, spot.second) - 0.05f
+            matrix.setTrs(spot.first, y, spot.second, 0f, spot.third, 0f, 1f, 1f, 1f)
+            val matrices = FloatArray(16)
+            System.arraycopy(matrix.m, 0, matrices, 0, 16)
+
+            val mesh = Mesh("kit${spec.first}", data)
+            val instanced = InstancedMesh("kit${spec.first}", data, 1)
+            instanced.setInstances(matrices, 1)
+            val material = Material(
+                albedo = texture,
+                tint = Vec3(1f, 1f, 1f),
+                roughness = 0.88f,
+                metallic = 0f,
+                uvScale = 1f
+            )
+            out.add(InstancedPart(mesh, instanced, material))
+        }
+        return out
+    }
     private class ShipSpec(
         val asset: String,
         val height: Float,

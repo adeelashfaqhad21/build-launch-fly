@@ -189,13 +189,21 @@ animal/ship path.
 - Draw cost: one instanced draw per model per realm (1–2 instances each). Mountains are large
   normalised meshes placed 300–700 m out to build the skyline.
 
-### itch.io — Low-Poly Aircraft Kit Free
+### itch.io — Low-Poly Aircraft Kit Free (CC BY 4.0)
 
-Reviewed but **not downloaded**: it is an itch.io JavaScript download (702 kB ZIP) rather than
-a direct file, so it cannot be fetched here. It is usable in principle — GLB/FBX/static OBJ,
-metre scale, one atlas, CC BY 4.0 — but CC BY requires visible attribution ("Low-Poly Aircraft
-Kit Free by heyheythere", with page link and licence), and the kit's trainer/helicopter would
-also need skinless-part animation for the propeller and control surfaces. Not adopted.
+The archive supplied in `docs/reference/` is shipped as
+`app/src/main/assets/kits/aircraft-kit.zip` (703 kB) and read at runtime by `gfx/ZipKit` —
+there is no build-time unzip step, so the loader enumerates the archive in memory, picks the
+**windsock** and **traffic cone** by name, parses them with `PropLoader.loadFromText` and binds
+the matching PNG through `AssetTextures.loadFromBytes`. Both stand beside the launch pad.
+
+- Licence is **CC BY 4.0**, not CC0: attribution is required and is provided in the README
+  "Credits" section and `docs/licenses/LowPolyAircraftKit-CC-BY-4.0.txt`.
+- The kit's trainer plane, helicopter, runway tiles and hangar are not used: the aircraft is
+  the game's own procedural biplane, the hangar is the reference barn, and the animated kit
+  parts would need a part-hierarchy animator.
+- If the archive's layout differs from the names above, the loader simply adds nothing — the
+  pad keeps its crates and barrel.
 
 ## What was implemented in its place
 

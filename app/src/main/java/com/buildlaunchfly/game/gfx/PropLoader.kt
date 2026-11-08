@@ -14,49 +14,55 @@ object PropLoader {
     private const val TAG = "BLF-PROPS"
 
     fun load(assets: AssetManager, objPath: String, heightMeters: Float): MeshData? = try {
-        parse(assets, objPath, heightMeters)
+        assets.open(objPath).bufferedReader().use { reader ->
+            parseLines(reader.lineSequence(), heightMeters)
+        }
     } catch (error: Throwable) {
         Log.e(TAG, "Failed to load prop $objPath", error)
         null
     }
 
-    private fun parse(assets: AssetManager, path: String, heightMeters: Float): MeshData? {
+    /** Same parser for OBJ text held in memory (props read out of a zip archive). */
+    fun loadFromText(text: String, label: String, heightMeters: Float): MeshData? = try {
+        parseLines(text.lineSequence(), heightMeters)
+    } catch (error: Throwable) {
+        Log.e(TAG, "Failed to parse prop $label", error)
+        null
+    }
+
+    private fun parseLines(lines: Sequence<String>, heightMeters: Float): MeshData? {
         val positions = ArrayList<Float>(8192)
         val texCoords = ArrayList<Float>(8192)
         val normals = ArrayList<Float>(8192)
         val vertices = FloatList()
         val indices = IntList()
 
-        assets.open(path).bufferedReader().use { reader ->
-            var line = reader.readLine()
-            while (line != null) {
-                when {
-                    line.startsWith("v ") -> {
-                        val p = line.trim().split(WHITESPACE)
-                        if (p.size >= 4) {
-                            positions.add(p[1].toFloatOrNull() ?: 0f)
-                            positions.add(p[2].toFloatOrNull() ?: 0f)
-                            positions.add(p[3].toFloatOrNull() ?: 0f)
-                        }
+        for (line in lines) {
+            when {
+                line.startsWith("v ") -> {
+                    val p = line.trim().split(WHITESPACE)
+                    if (p.size >= 4) {
+                        positions.add(p[1].toFloatOrNull() ?: 0f)
+                        positions.add(p[2].toFloatOrNull() ?: 0f)
+                        positions.add(p[3].toFloatOrNull() ?: 0f)
                     }
-                    line.startsWith("vt ") -> {
-                        val p = line.trim().split(WHITESPACE)
-                        if (p.size >= 2) {
-                            texCoords.add(p[1].toFloatOrNull() ?: 0f)
-                            texCoords.add(if (p.size >= 3) p[2].toFloatOrNull() ?: 0f else 0f)
-                        }
-                    }
-                    line.startsWith("vn ") -> {
-                        val p = line.trim().split(WHITESPACE)
-                        if (p.size >= 4) {
-                            normals.add(p[1].toFloatOrNull() ?: 0f)
-                            normals.add(p[2].toFloatOrNull() ?: 0f)
-                            normals.add(p[3].toFloatOrNull() ?: 0f)
-                        }
-                    }
-                    line.startsWith("f ") -> addFace(line, positions, texCoords, normals, vertices, indices)
                 }
-                line = reader.readLine()
+                line.startsWith("vt ") -> {
+                    val p = line.trim().split(WHITESPACE)
+                    if (p.size >= 2) {
+                        texCoords.add(p[1].toFloatOrNull() ?: 0f)
+                        texCoords.add(if (p.size >= 3) p[2].toFloatOrNull() ?: 0f else 0f)
+                    }
+                }
+                line.startsWith("vn ") -> {
+                    val p = line.trim().split(WHITESPACE)
+                    if (p.size >= 4) {
+                        normals.add(p[1].toFloatOrNull() ?: 0f)
+                        normals.add(p[2].toFloatOrNull() ?: 0f)
+                        normals.add(p[3].toFloatOrNull() ?: 0f)
+                    }
+                }
+                line.startsWith("f ") -> addFace(line, positions, texCoords, normals, vertices, indices)
             }
         }
 
