@@ -83,11 +83,18 @@ Trees, rocks and grass are drawn with per-instance 4×4 matrices in a dynamic VB
 ## Simulation
 
 - Fixed physics step of 1/60 s accumulated from the frame delta (max 3 substeps).
-- Flight model: thrust along the aircraft forward axis, lift from angle of attack
-  (`CL ≈ 2π·α`, clamped, scaled by wing area/efficiency), quadratic drag along the
-  relative airflow, gravity, and stability terms that align the aircraft with the flight
-  path. Wingless aircraft have negligible lift and therefore fall — which is exactly the
-  progression hook.
+- Flight model: a glider. The slingshot is the only power source, so after release there is
+  no thrust — only lift, drag and gravity.
+  - The stick commands an **angle of attack** (neutral holds the efficient glide attitude;
+    pulling up commands more), and the nose follows the airflow at that angle.
+  - Lift is `½ρv²S·CL` along the aircraft's own up axis, with a lift curve that is linear to
+    16° and then falls away, so over-pulling stalls the wing.
+  - Drag is `½ρv²S·CD`, where `CD = CD0 + induced (0.05·CL²) + stall penalty`; this is what
+    turns a nose-high attitude into lost airspeed.
+  - Banking tilts the lift vector, so the horizontal component curves the flight path; the
+    heading then follows the velocity. There is no separate yaw force.
+  - Wing area and mass come from the installed parts, so a wingless airframe really cannot
+    fly (the default build ships a complete airframe so launches are playable).
 - The aircraft orientation is a YXZ Euler triple (yaw, pitch, roll) so the mesh, camera
   and physics share a single convention.
 
@@ -99,6 +106,10 @@ persisted as JSON in `SharedPreferences`. `AircraftCatalog` prices parts,
 `SlingshotState` prices upgrades, `Economy` converts a flight into coins,
 `AchievementCatalog` evaluates badge progress and `GameSettings` holds graphics/audio
 preferences.
+
+**Development switch:** `PlayerProfile.ALL_WORLDS_UNLOCKED` is true while the game is in
+development, so every realm is available for testing. Setting it to false restores the
+distance-gated progression already implemented in `refreshUnlocks()`.
 
 ## UI layer
 

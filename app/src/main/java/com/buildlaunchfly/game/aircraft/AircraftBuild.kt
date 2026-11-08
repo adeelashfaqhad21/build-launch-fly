@@ -37,12 +37,14 @@ class AircraftStats(
                 stability += upgrade.stability
                 maxRpm = maxOf(maxRpm, upgrade.maxRpm)
                 if (slot == PartSlot.WING_LEFT || slot == PartSlot.WING_RIGHT) {
-                    wingArea += 1.9f + upgrade.lift * 1.4f
+                    // Real wing area in square metres: a stage-1 pair is about 7 m², which
+                    // puts the stall speed of a 340 kg airframe near 24 m/s.
+                    wingArea += 2.6f + upgrade.lift * 0.9f
                 }
             }
 
             return AircraftStats(
-                mass = M.clamp(mass, 20f, 400f),
+                mass = M.clamp(mass, 20f, 900f),
                 wingArea = wingArea,
                 lift = lift,
                 dragArea = M.clamp(drag, 0.12f, 2.5f),

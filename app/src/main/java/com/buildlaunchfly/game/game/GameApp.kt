@@ -93,13 +93,11 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val aircraftModel = Mat4()
     private val propellerModel = Mat4()
     private val slingshotModel = Mat4()
-    private val bandLocal = Mat4()
-    private val bandLocalB = Mat4()
-    private val leftBand = Mat4()
-    private val leftBandB = Mat4()
-    private val rightBand = Mat4()
-    private val rightBandB = Mat4()
-    private val pouchModel = Mat4()
+
+    /** One matrix per band segment: the sling is a single elastic drawn in pieces. */
+    private val bandLocal = Array(SlingshotMesh.BAND_SEGMENTS) { Mat4() }
+    private val bandWorld = Array(SlingshotMesh.BAND_SEGMENTS) { Mat4() }
+
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
     private val focusPoint = Vec3()
@@ -126,7 +124,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     /** Camera orbit distance on the pad, adjusted by pinch zoom. */
     @Volatile
-    var orbitRadius: Float = 6.2f
+    var orbitRadius: Float = 9.5f
 
     var lastLaunchStretch: Float = 0.75f
         private set
@@ -190,6 +188,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             padPosition.z + SlingshotLayout.HOLD_POINT.z
         )
         physics.reset(seatPosition)
+        physics.visualScale = AIRCRAFT_VISUAL_SCALE
 
         cameraDirector.snapTo(
             Vec3(
@@ -455,7 +454,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             airspeedKmh = speed * 3.6f,
             pitchDegrees = physics.pitch * 57.29578f,
             rollDegrees = physics.roll * 57.29578f,
-            stallWarning = physics.pitch > 0.38f && speed < 17f && state == GameState.FLIGHT,
+            stallWarning = state == GameState.FLIGHT && physics.stalled,
             verticalSpeed = physics.velocity.y,
             flightTimeSeconds = flightTime
         )
@@ -581,7 +580,10 @@ class GameApp(private val context: Context, private val input: InputState) {
             padPosition.z + SlingshotLayout.HOLD_POINT.z
         )
         physics.reset(seatPosition)
+        physics.visualScale = AIRCRAFT_VISUAL_SCALE
         physics.launch(speed, profile.launchAngleDegrees.coerceIn(20f, 55f), 0f)
+        // The ramp lip adds a little upward push on top of the throw.
+        physics.velocity.y += LAUNCH_RAMP_BOOST
 
         state = GameState.FLIGHT
         flightTime = 0f
@@ -682,17 +684,13 @@ class GameApp(private val context: Context, private val input: InputState) {
                 0f
             }
 
-            // Each band is two segments hung from a sagging midpoint: slack bands droop,
-            // a full draw pulls them dead straight.
+            // The band is one continuous elastic strung between the two tips through the tow
+            // point, so it is drawn as a chain of stretched segments.
             val sag = SlingshotMesh.BAND_SAG * (1f - slingDraw)
-            rig.leftBandMatrices(slingDraw, sag, bandLocal, bandLocalB)
-            leftBand.setProduct(slingshotModel, bandLocal)
-            leftBandB.setProduct(slingshotModel, bandLocalB)
-            rig.rightBandMatrices(slingDraw, sag, bandLocal, bandLocalB)
-            rightBand.setProduct(slingshotModel, bandLocal)
-            rightBandB.setProduct(slingshotModel, bandLocalB)
-            rig.pouchMatrix(slingDraw, bandLocal)
-            pouchModel.setProduct(slingshotModel, bandLocal)
+            rig.bandMatrices(slingDraw, sag, bandLocal)
+            for (i in bandLocal.indices) {
+                bandWorld[i].setProduct(slingshotModel, bandLocal[i])
+            }
             applyBandTension(rig, slingDraw)
         }
 
@@ -703,10 +701,10 @@ class GameApp(private val context: Context, private val input: InputState) {
                 padPosition.y + hold.y,
                 padPosition.z + hold.z,
                 0.10f * pull, 0f, 0f,
-                1f
+                AIRCRAFT_VISUAL_SCALE
             )
             propellerModel.set(aircraftModel)
-            propellerModel.translate(0f, 0f, -1.62f)
+            propellerModel.translate(0f, 0f, -1.62f * AIRCRAFT_VISUAL_SCALE)
         } else {
             aircraftModel.set(physics.orientation)
             physics.propellerMatrix(propellerModel)
@@ -723,12 +721,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         if (showSling) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
-            sceneRenderer.shadowMesh(rig.wrapMesh, slingshotModel)
-            sceneRenderer.shadowMesh(rig.pouchMesh, pouchModel)
-            sceneRenderer.shadowMesh(rig.bandMesh, leftBand)
-            sceneRenderer.shadowMesh(rig.bandMesh, leftBandB)
-            sceneRenderer.shadowMesh(rig.bandMesh, rightBand)
-            sceneRenderer.shadowMesh(rig.bandMesh, rightBandB)
+            for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
         }
         if (showHangar) {
             hangar?.let { set ->
@@ -736,6 +729,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
+                sceneRenderer.shadowMesh(set.rampMesh, slingshotModel)
             }
         }
         for (tree in currentScene.trees) {
@@ -801,11 +795,14 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
             }
         } else if (showHangarRoof) {
-            // The launch shot is still under the eave, like Ref-3's dark roof strip.
+            // The launch shot is still under the eave, like Ref-3's dark roof strip, with the
+            // ramp and the open end framing the way out.
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
             }
         }
 
@@ -829,12 +826,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (showSling) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-            sceneRenderer.drawMesh(rig.wrapMesh, rig.pouchMaterial, slingshotModel)
-            sceneRenderer.drawMesh(rig.pouchMesh, rig.pouchMaterial, pouchModel)
-            sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
-            sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBandB)
-            sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
-            sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBandB)
+            for (band in bandWorld) sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, band)
         }
 
         aircraftMesh.canvasMesh?.let {
@@ -932,6 +924,13 @@ class GameApp(private val context: Context, private val input: InputState) {
         private const val SLING_RECOIL_DURATION = 0.6f
         private const val PUFF_DURATION = 0.85f
         private const val HINT_DURATION = 3f
+
+        /** The aircraft is drawn larger than life so it reads as the hero of the launch shot. */
+        const val AIRCRAFT_VISUAL_SCALE = 1.5f
+
+        /** Upward push from the launch ramp lip, in m/s. */
+        const val LAUNCH_RAMP_BOOST = 2.2f
+
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
     }
 }

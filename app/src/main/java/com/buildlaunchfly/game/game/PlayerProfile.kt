@@ -35,7 +35,15 @@ class PlayerProfile {
     val settings: GameSettings = GameSettings()
 
     init {
+        // The aircraft has to be a flyable aeroplane from the first launch: without wings,
+        // a tail and a propeller the slingshot fires a brick and no stick input can help.
+        // The engine and the Mk II surfaces stay as upgrades.
         partTiers[PartSlot.BODY] = 1
+        partTiers[PartSlot.WING_LEFT] = 1
+        partTiers[PartSlot.WING_RIGHT] = 1
+        partTiers[PartSlot.TAIL] = 1
+        partTiers[PartSlot.PROPELLER] = 1
+        if (ALL_WORLDS_UNLOCKED) unlockAllWorlds()
     }
 
     // ---- pilot progression ------------------------------------------------
@@ -60,12 +68,41 @@ class PlayerProfile {
 
     // ---- worlds -----------------------------------------------------------
 
+    /**
+     * Every realm is open while the game is in development, so each environment can be
+     * played and reviewed. Set back to false to restore distance-gated unlocking.
+     */
+    fun unlockAllWorlds() {
+        for (world in WorldCatalog.all) unlockedWorlds.add(world.id)
+    }
+
+    /**
+     * Guarantees the minimum flyable airframe: fuselage, both wings, tail and propeller.
+     * Older saves could hold a bare fuselage, which no amount of stick input could fly.
+     */
+    fun ensureFlyable() {
+        val minimum = listOf(
+            PartSlot.BODY,
+            PartSlot.WING_LEFT,
+            PartSlot.WING_RIGHT,
+            PartSlot.TAIL,
+            PartSlot.PROPELLER
+        )
+        for (slot in minimum) {
+            if ((partTiers[slot] ?: 0) <= 0) partTiers[slot] = 1
+        }
+    }
+
     fun selectWorld(id: WorldId) {
         unlockedWorlds.add(WorldId.FOREST)
         if (unlockedWorlds.contains(id)) selectedWorld = id
     }
 
     fun refreshUnlocks() {
+        if (ALL_WORLDS_UNLOCKED) {
+            unlockAllWorlds()
+            return
+        }
         unlockedWorlds.add(WorldId.FOREST)
         for (world in WorldCatalog.all) {
             if (bestDistance >= world.unlockDistanceMeters) unlockedWorlds.add(world.id)
@@ -247,6 +284,7 @@ class PlayerProfile {
                 return PlayerProfile()
             }
             if (!profile.partTiers.containsKey(PartSlot.BODY)) profile.partTiers[PartSlot.BODY] = 1
+            profile.ensureFlyable()
             profile.refreshUnlocks()
             return profile
         }
@@ -260,6 +298,15 @@ class PlayerProfile {
         settings.masterVolume = other.masterVolume
         settings.engineVolume = other.engineVolume
         settings.ambienceVolume = other.ambienceVolume
+    }
+
+    companion object {
+        /**
+         * Development switch: every realm stays open so each environment can be tested.
+         * Flip to false to restore the distance-gated progression, which is already
+         * implemented in [refreshUnlocks].
+         */
+        const val ALL_WORLDS_UNLOCKED = true
     }
 }
 

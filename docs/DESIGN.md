@@ -232,11 +232,16 @@ on tap.
 **Audio:** hangar ambience; tap pops; purchase cascade.
 
 **Checklist**
-- [x] Hangar 3D set — `world/HangarMesh`: a sawn-plank wall down the left on vertical studs, a
-  gable roof on a ridge beam with exposed rafters, ties and purlins, a heavy timber door frame
-  at the open front, a plank floor, and the working-shed clutter (hay bales, crates, a barrel,
-  a bench and stool, a lamp hanging from the ridge)
-- [ ] Plane displayed in hangar, idle bob — the plane is held in the sling, no bob yet
+- [x] Hangar 3D set — `world/HangarMesh`: a sawn-plank wall down the left on vertical studs, an
+  open right side between heavy posts, a closing back wall, a gable roof on a ridge beam with
+  exposed rafters, ties and purlins, a heavy timber door frame at the open front, a plank floor,
+  and the working-shed clutter (hay bales, crates, a barrel, a bench and stool, a lamp hanging
+  from the ridge)
+- [x] **Launch ramp** — six metres of deck rising one metre directly in front of the open end
+  (`buildRampData`); the lip adds a small upward push to the launch (`LAUNCH_RAMP_BOOST`)
+- [x] Hero scale — interior 10.6 m wide and 21 m long, walls 6.4 m, ridge 8.55 m, so the
+  1.5× aircraft and the 4.85 m slingshot fit inside with room to read
+- [x] Plane idles with the reference's ±2 cm bob (`SlingshotMesh.idleBob`)
 - [x] Two currency pills with compact formatting (`28.15K`)
 - [x] Gear opens settings
 - [x] Title plaque bound to plane tier name
@@ -244,9 +249,9 @@ on tap.
 - [x] Chest / VIP / rocket slots as modular components
 - [x] `TAP TO FLY` entry into launch setup
 - [x] Three upgrade cards pinned to the bottom row
-- [ ] Scene camera framing: rear-side, plane lower-middle, sky opening right — the camera is
-  directly behind on the centre line and the roof opening is central, as the user asked; the
-  rear-side variant is still open
+- [ ] Scene camera framing: rear-side, plane lower-middle, sky opening right — the camera sits
+  inside the shed on a rear-side oblique (`HANGAR_BASE_ANGLE`); the sky-opening side still
+  needs an on-device check against Ref-2
 - [x] No glass/blur panels
 
 **Acceptance:** the whole hub reads in one glance; all four currencies/promotions and three
@@ -347,55 +352,49 @@ validated. No pay-to-progress wall in the first 30 minutes.
 
 **Purpose:** the launch device — visible, physical, readable from behind.
 
-**Form:** two plain squared wooden posts with a slight outward splay, and **one** elastic sling
-tied to both tips and meeting at a single tow point on the forward fuselage at the wing root.
-No ramp, no crossbar, no braces, no metal. The posts stand about 1.2× the wingspan apart, so
-the sling clears them. Bands are yellow/white striped. In Ref-3 the plane sits back; in Ref-4
-the camera is closer and the sling forms a steeper V.
+**Form:** **two wide squared timber posts**, one on each side, and **one central elastic band**
+strung between their tips. The band is a single continuous piece: it leaves one tip, sags
+through the tow point on the fuselage just behind the wing root and climbs to the other tip.
+There is no lattice, no cross-bar, no brace, no central rigging, no metalwork and no separate
+leather cradle — the rig is exactly two supports and one band. Bands are yellow/white striped.
+In Ref-3 the plane sits back; in Ref-4 the camera is closer and the band forms a steeper V.
 
-Each post is **planted**, not floating: a foot pad at the base, a squared shaft, a chamfered
-tip and a rounded nock the elastic rides over. Three leather lashings bind the elastic under
-each nock, and the tow point carries a leather cradle — a plate with upturned side flaps and a
-strap over the fuselage — rather than a bare band end.
+Each post is planted, not floating: a foot block, a wide squared shaft and a chamfered crown.
+Both posts splay slightly outward so the band clears the wings.
 
-**Layout in world space:** posts at x ±2.15 m, height 3.15 m (about the nose-to-tail length),
-squared 0.13 m section with 0.05 rad outward splay; sling radius 0.075 m; tow point 0.10 m
-below the origin and 0.25 m behind it, so the arms pass behind the wings and the V meets on
-the fuselage centre line; aircraft seat at 3.05 m; camera directly behind at ~3.3 m height.
+**Layout in world space:** posts at x ±3.30 m with a 0.34 m square section, 4.85 m tall and a
+0.045 rad outward splay; band radius 0.10 m before the upgrade multiplier; tow point 0.12 m
+below the aircraft origin and 0.30 m behind it; aircraft seat at 4.55 m; camera behind at about
+6.2 m height and 9.0 m back so both posts and the whole aircraft stay in frame.
 
-**Colours:** timber `#8A6A4A` posts, sling `yellow #FFD52B` + `cream #F5F2E8` stripes, dark
-leather pad.
+**Colours:** timber `#8A6A4A` posts, band `yellow #FFD52B` + `cream #F5F2E8` stripes.
 
-**Surfaces:** flat-shaded, no gloss, no metal; sling stripes are a two-colour texture.
+**Surfaces:** flat-shaded, no gloss, no metal; the band stripes are a two-colour texture.
 
-**Assets to generate:** two post meshes, sling tube mesh (stripable), leather tow pad, back
-button plate.
+**Assets to generate:** two wide post meshes, one striped band tube, back button plate.
 
-**States:** rest (sling slack, slight sag), draw (sling taut, plane pulled back), release
+**States:** rest (band slack, slight sag), draw (band taut, plane pulled back), release
 (snap, recoil wobble, smoke).
 
-**Data:** pull 0–1, sling length, tension, launch elevation, upgrade level → thickness/length.
+**Data:** pull 0–1, band length, tension, launch elevation, upgrade level → thickness/length
+and launch speed.
 
-**Motion:** sling stretches and sags with the pull; 0.6 s recoil after release; dust puff.
+**Motion:** the band stretches and sags with the pull; 0.6 s recoil after release; dust puff.
 
 **Audio:** creak on draw (pitch rises); release whoosh.
 
 **Checklist**
-- [x] Exactly two posts and a sling — `SlingshotMesh` builds two squared posts and one elastic
-  sling; there is no ramp, crossbar or metalwork
-- [x] Posts planted, not floating — a foot pad at each base (`buildFrameData`)
-- [x] Chamfered tip with a rounded nock the elastic rides over (`buildFrameData`)
-- [x] Leather lashings binding the elastic to each tip — `wrapMesh`, three collars per post
-- [x] Leather cradle at the tow point — plate, upturned side flaps and a strap (`buildPouchData`)
-- [x] Lashings and cradle cast shadows — both meshes are in the shadow pass
-- [x] Posts about 1.2× the wingspan apart — `POLE_X = 2.15` against a 1.78 m wing half-span
-- [x] Posts about the aircraft's nose-to-tail length — `POLE_HEIGHT = 3.15`
-- [x] One sling tied to both tips and anchored at the wing root — `ANCHOR_Y` / `ANCHOR_Z`
-- [x] Yellow/white striped sling — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
-- [x] Sling articulates with draw — `holdPoint(draw)` moves the anchor back with the aircraft
-- [x] Rest sag, taut draw, recoil — two-segment arms sagging to `BAND_SAG`, 0.6 s recoil
-- [x] Upgrade level visibly changes sling thickness/length — `thicknessBoost` and `drawLength`
-- [x] Sling casts a shadow — every segment is in the shadow pass
+- [x] Exactly two posts and one band — `SlingshotMesh` builds two wide posts and a single
+  continuous band; no lattice, mast, cross-bar, cradle or metalwork
+- [x] Posts planted, not floating — a foot block at each base (`buildFrameData`)
+- [x] Wide supports — `POLE_HALF = 0.17`, so each post is 0.34 m across
+- [x] Single central band strung tip-to-tip through the tow point (`bandMatrices`, one curve)
+- [x] Band sags when slack and pulls straight as the draw deepens (`BAND_SAG`, 4 segments/arm)
+- [x] Yellow/white striped band — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
+- [x] Band and frame cast shadows — both meshes are in the shadow pass
+- [x] Upgrade level changes band thickness and draw length — `thicknessBoost` / `drawLength`,
+  and the band strength / launching power levels raise launch speed
+- [x] Hero scale — 4.85 m posts, 3.30 m half-spacing, aircraft drawn at 1.5×
 - [ ] Rear-view framing with both posts visible (camera path exists; needs an on-device check)
 
 **Acceptance:** from the launch camera a first-time player understands "pull back here".
@@ -650,7 +649,7 @@ view, one saturated accent colour, matching haze and shadow softness. No realism
 | Context | Spec |
 |---|---|
 | Hangar | rear-side, slightly elevated, plane lower-middle, slow orbit; sky opening to the right |
-| Launch setup | directly behind, ~3.3 m up, centred on the plane |
+| Launch setup | directly behind, ~6.2 m up, centred on the plane |
 | Aim | same axis, ~25 % closer as pull increases |
 | Flight | rear chase, low, 3–4 m behind, looking slightly down; FOV wide enough for 360 dp |
 | Perfect / launch | 0.35 s shake, no cut |
@@ -659,7 +658,7 @@ view, one saturated accent colour, matching haze and shadow softness. No realism
 **Checklist**
 - [ ] Hangar framing matches Ref-2 (plane, roof, sky opening)
 - [x] Launch framing matches Ref-3/4 (posts at the edges, plane centre) — camera sits on the
-  plane's centre line, 3.3 m up and 9.6 m behind, and closes 25 % as the pull deepens
+  plane's centre line, 6.2 m up and 9.0 m behind, and closes 25 % as the pull deepens
 - [ ] Flight framing matches Ref-5/6 (plane lower third, terrain ahead)
 - [x] No camera clipping through the slingshot posts
 - [x] No automatic camera orbit — the hangar and launch views are fixed until the player drags

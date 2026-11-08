@@ -54,12 +54,17 @@ rock rather than a uniform green carpet.
 The external nature packs that were investigated for this are reviewed in
 [`docs/ASSETS.md`](docs/ASSETS.md) with licences, formats, style fit, animation requirements
 and the decision. **Quaternius' Ultimate Stylized Nature pack (CC0) is adopted** as a
-near-field hero layer, mapped per realm: birch/maple/broadleaf for the forest, three pines for
-the alpine worlds, four palms for the coast, dead trees for the desert, and bushes, flower
+near-field detail layer, mapped per realm: birch/maple/broadleaf for the forest, three pines
+for the alpine worlds, four palms for the coast, dead trees for the desert, and bushes, flower
 clumps, grasses, plants and three rock forms everywhere. They are loaded from OBJ at runtime
-(`gfx/ObjLoader`, `gfx/AssetTextures`) and instanced around the launch area at HIGH/ULTRA
-detail, while the procedural species still fill the distance. Every load is guarded, so a
-missing asset simply falls back to the procedural set.
+(`gfx/ObjLoader`, `gfx/AssetTextures`) and instanced in a 18–140 m ring around the launch area,
+so they dress the hangar approach and line the first part of every flight. **They now load at
+every quality level** — only the number of copies follows the graphics setting — so the
+imported packs are never invisible on a mid-range phone.
+
+**All five realms are unlocked while the game is in development** (`PlayerProfile.ALL_WORLDS_UNLOCKED`),
+so every environment can be tested; the distance-gated progression is retained behind that
+switch for the release pass.
 
 **Aircraft (`aircraft`)** — procedural vintage biplane per
 [`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with
@@ -69,23 +74,24 @@ spin-blur disc. Geometry is split by material (canvas, rib, wood, metal, glazing
 propeller), so every stage changes visible structure rather than colour: wing halves,
 longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
 
-**Slingshot (`slingshot`)** — five upgrade categories and exactly the reference rig: two plain
-squared wooden posts with a slight outward splay, standing about 1.2× the wingspan apart, and
-**one** striped elastic sling tied to both tips and meeting at a single tow point on the
-fuselage at the wing root — no ramp, no crossbar, no braces, no metalwork. Each post is planted
-on a foot pad, tapers to a chamfered tip and carries a rounded nock; three leather lashings
-bind the elastic under each nock, and the tow point has a leather cradle with upturned flaps.
-The sling sags when slack and pulls straight as the draw deepens; sling thickness and draw
-length follow the upgrade levels, every part casts a shadow, and the release plays a recoil
-wobble, a dust puff and a camera impulse. Launch elevation (20°–55°) is stored in the profile.
+**Slingshot (`slingshot`)** — five upgrade categories and the rig the brief asks for, and
+nothing else: **two wide squared timber posts**, one on each side, and **one central elastic
+band** strung between their tips. There is no ramp-side lattice, no crossbar, no mast and no
+extra structure. The aircraft hangs on the middle of the single band, which is drawn as one
+continuous curve from tip to tip through the tow point. The band sags when slack, pulls
+straight as the draw deepens, and its thickness and draw length follow the upgrade levels;
+the release plays a recoil wobble, a dust puff and a camera impulse.
 
 **Hangar (`world/HangarMesh`)** — the home screen sits inside the reference shed: a sawn-plank
-wall down the left on vertical studs, a gable roof carried on a ridge beam with exposed rafters,
-tie beams and purlins, a heavy timber door frame at the open front, a warm plank floor under the
-rig, and the clutter of a working shed (hay bales against the wall, crates, a barrel, a bench
-and stool, and a lamp hanging from the ridge). The hangar view is a fixed close rear-side
-oblique like Ref-2; the launch view stays centred behind the aircraft under the roof eave, as in
-Ref-3.
+wall down the left on vertical studs, an open right side between heavy posts, a gable roof on
+a ridge beam with exposed rafters, tie beams and purlins, a plank floor, a closing back wall,
+a heavy timber door frame at the open front, and the clutter of a working airfield (hay bales,
+crates, a barrel, a bench and stool, a lamp hanging from the ridge). A **six-metre launch ramp**
+rises one metre directly in front of the open end, so the aircraft runs out of the shed and up
+the slope; the ramp lip also adds a small upward push to the launch.
+
+**Scale** — the slingshot stands 4.85 m tall with 3.3 m post spacing, and the aircraft is drawn
+at 1.5× so both are the hero elements of the launch shot, as in the plates.
 
 **Fleet (`world/WorldScene`)** — the ocean realm anchors five Quaternius ships at the water
 line (Viking boat, sailing boat, lifeboat, tall ship, cruise liner), each rocking slowly on the
@@ -97,8 +103,15 @@ a dock on the coast; a mine in the desert; crates and a barrel at the launch pad
 mountain meshes building the skyline 300–700 m out. Loaded through `gfx/PropLoader` with each
 model's own PNG texture.
 
-**Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
-gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
+**Flight (`aircraft/FlightPhysics`)** — a glider model, because the brief makes the slingshot
+the only launch power: after release the aircraft flies on momentum and aerodynamics. Lift
+comes from angle of attack (nose angle relative to the airflow), with a real lift curve that
+falls away past 16°; pulling the nose up buys lift but adds induced drag, so airspeed bleeds
+away and the wing stalls. Banking tilts the lift vector, and that is what curves the flight
+path around trees and buildings — there is no separate "steer" force. A gearless, wingless
+airframe really cannot fly. The default build is a complete airframe (fuselage, both wings,
+tail, propeller) so the first launch is playable; the engine and Mk II surfaces remain
+upgrades.
 
 **UI (`ui`)** — portrait screens modelled on the reference plates, with the full component
 catalog and checklists in [`docs/DESIGN.md`](docs/DESIGN.md) §3:

@@ -32,10 +32,10 @@ object AircraftCatalog {
         displayName = "Stage 1 — Fuselage",
         description = "Bare airframe. No wings, no tail, no propulsion.",
         price = 0,
-        lift = 0.04f,
-        dragArea = 0.32f,
+        lift = 0.05f,
+        dragArea = 0.55f,
         thrust = 0f,
-        mass = 42f,
+        mass = 260f,
         stability = 0.15f,
         maxRpm = 0f
     )
@@ -44,63 +44,63 @@ object AircraftCatalog {
         bareBody,
         PartUpgrade(
             PartSlot.WING_LEFT, 1, "wing_left_1", "Left Wing — Stage 2",
-            "First wing. Adds real lift and a visible panel.",
+            "First wing pair. The airframe gets real lift and visible panels.",
             price = 180, lift = 1.05f, dragArea = 0.10f, thrust = 0f,
-            mass = 4.5f, stability = 0.10f, maxRpm = 0f
+            mass = 26f, stability = 0.10f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.WING_RIGHT, 1, "wing_right_1", "Right Wing — Stage 3",
             "Second wing. Balanced lift for stable glides.",
             price = 240, lift = 1.05f, dragArea = 0.10f, thrust = 0f,
-            mass = 4.5f, stability = 0.14f, maxRpm = 0f
+            mass = 26f, stability = 0.14f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.TAIL, 1, "tail_1", "Tail Assembly — Stage 4",
             "Vertical fin and stabiliser. Much better pitch control.",
-            price = 360, lift = 0.10f, dragArea = 0.06f, thrust = 0f,
-            mass = 2.4f, stability = 0.55f, maxRpm = 0f
+            price = 360, lift = 0.10f, dragArea = 0.07f, thrust = 0f,
+            mass = 16f, stability = 0.55f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.PROPELLER, 1, "propeller_1", "Propeller — Stage 5",
             "Two-blade propeller on a polished hub. Windmills in the airflow.",
             price = 420, lift = 0f, dragArea = 0.03f, thrust = 0f,
-            mass = 2.0f, stability = 0.02f, maxRpm = 900f
+            mass = 12f, stability = 0.02f, maxRpm = 900f
         ),
         PartUpgrade(
             PartSlot.ENGINE, 1, "engine_1", "Engine — Stage 6",
-            "Light aircraft engine. Turns the propeller into real thrust.",
+            "Light aircraft engine. Gives a little sustain when the glide runs out.",
             price = 900, lift = 0f, dragArea = 0.05f, thrust = 340f,
-            mass = 9.0f, stability = 0.05f, maxRpm = 2400f
+            mass = 70f, stability = 0.05f, maxRpm = 2400f
         ),
         PartUpgrade(
             PartSlot.WING_LEFT, 2, "wing_left_2", "Left Wing Mk II",
             "Longer spar with improved aerofoil and finish.",
             price = 1500, lift = 0.55f, dragArea = -0.02f, thrust = 0f,
-            mass = 1.2f, stability = 0.12f, maxRpm = 0f
+            mass = 8f, stability = 0.12f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.WING_RIGHT, 2, "wing_right_2", "Right Wing Mk II",
             "Matched Mk II wing for clean, symmetric lift.",
             price = 1500, lift = 0.55f, dragArea = -0.02f, thrust = 0f,
-            mass = 1.2f, stability = 0.12f, maxRpm = 0f
+            mass = 8f, stability = 0.12f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.TAIL, 2, "tail_2", "Tail Assembly Mk II",
             "Enlarged surfaces tuned for high-speed flight.",
             price = 2100, lift = 0.12f, dragArea = -0.01f, thrust = 0f,
-            mass = 0.8f, stability = 0.45f, maxRpm = 0f
+            mass = 6f, stability = 0.45f, maxRpm = 0f
         ),
         PartUpgrade(
             PartSlot.PROPELLER, 2, "propeller_2", "Three-Blade Propeller",
             "Better blade loading and smoother thrust delivery.",
             price = 2400, lift = 0f, dragArea = -0.01f, thrust = 40f,
-            mass = 0.6f, stability = 0.02f, maxRpm = 400f
+            mass = 5f, stability = 0.02f, maxRpm = 400f
         ),
         PartUpgrade(
             PartSlot.ENGINE, 2, "engine_2", "Tuned Engine",
-            "Higher compression, more thrust, same weight class.",
+            "Higher compression and a cleaner sustain at low speed.",
             price = 3900, lift = 0f, dragArea = 0f, thrust = 210f,
-            mass = 1.4f, stability = 0.03f, maxRpm = 500f
+            mass = 14f, stability = 0.03f, maxRpm = 500f
         )
     )
 

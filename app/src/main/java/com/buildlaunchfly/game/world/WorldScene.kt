@@ -287,9 +287,12 @@ class WorldScene(
         }
 
         // ---- near-field hand-authored props ----
+        // The imported packs are the world's detail layer, so they load at every quality
+        // level; only the number of copies follows the detail setting. Leaving them behind
+        // the HIGH/ULTRA gate is why the worlds looked bare on a mid-range phone.
         val heroTreeBuilder = ArrayList<TreePart>(2)
         val heroPlantBuilder = ArrayList<InstancedPart>(5)
-        if (assets != null && detailLevel >= 2) {
+        if (assets != null) {
             buildHeroProps(assets, textures, heroTreeBuilder, heroPlantBuilder)
         }
         heroTrees = heroTreeBuilder
@@ -326,19 +329,19 @@ class WorldScene(
 
         birdsMesh = InstancedMesh("birds", buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))
-        animalParts = if (assets != null && detailLevel >= 2) {
+        animalParts = if (assets != null) {
             buildAnimalParts(assets, textures)
         } else {
             emptyList()
         }
 
-        shipParts = if (assets != null && detailLevel >= 2 && definition.id == WorldId.OCEAN) {
+        shipParts = if (assets != null && definition.id == WorldId.OCEAN) {
             buildShipParts(assets, textures)
         } else {
             emptyList()
         }
 
-        structures = if (assets != null && detailLevel >= 2) {
+        structures = if (assets != null) {
             buildStructures(assets, textures)
         } else {
             emptyList()
@@ -530,7 +533,7 @@ class WorldScene(
                 )
             }
 
-            val set = heroScatter(spec.count, spec.seedOffset, spec.height)
+            val set = heroScatter(heroCount(spec.count), spec.seedOffset, spec.height)
             if (set.count == 0) continue
 
             val trunkMesh = Mesh("heroTrunk${spec.file}", barkData)
@@ -560,7 +563,7 @@ class WorldScene(
             val data = model.foliage ?: model.bark ?: continue
             val texture = AssetTextures.load(assets, "quaternius/${spec.texture}") ?: continue
 
-            val set = heroScatter(spec.count, spec.seedOffset, spec.height)
+            val set = heroScatter(heroCount(spec.count), spec.seedOffset, spec.height)
             if (set.count == 0) continue
 
             val mesh = Mesh("heroProp${spec.file}", data)
@@ -598,7 +601,7 @@ class WorldScene(
             )) {
                 val model = ObjLoader.load(assets, "quaternius/${spec.file}.obj") ?: continue
                 val data = model.bark ?: model.foliage ?: continue
-                val set = heroScatter(spec.count, spec.seedOffset, spec.height)
+                val set = heroScatter(heroCount(spec.count), spec.seedOffset, spec.height)
                 if (set.count == 0) continue
                 val mesh = Mesh("heroProp${spec.file}", data)
                 val instanced = InstancedMesh("heroProps${spec.file}", data, set.count)
@@ -622,13 +625,17 @@ class WorldScene(
             WorldId.FOREST -> {
                 specs.add(StructureSpec("Houses_FirstAge_1_Level2", 9f, listOf(
                     Triple(-44f, -70f, 0.5f),
-                    Triple(48f, -104f, -0.7f)
+                    Triple(48f, -104f, -0.7f),
+                    Triple(24f, -46f, 1.2f),
+                    Triple(-30f, -56f, -0.3f)
                 )))
                 specs.add(StructureSpec("Windmill_FirstAge", 15f, listOf(
-                    Triple(78f, -140f, 0.2f)
+                    Triple(78f, -140f, 0.2f),
+                    Triple(-58f, -96f, 0.9f)
                 )))
                 specs.add(StructureSpec("WatchTower_FirstAge_Level2", 16f, listOf(
-                    Triple(-88f, -175f, 0f)
+                    Triple(-88f, -175f, 0f),
+                    Triple(34f, -80f, 0.4f)
                 )))
                 specs.add(StructureSpec("Mountain_Single", 95f, listOf(
                     Triple(-320f, -520f, 0.6f)
@@ -639,10 +646,16 @@ class WorldScene(
             }
             WorldId.MOUNTAIN -> {
                 specs.add(StructureSpec("TownCenter_FirstAge_Level1", 13f, listOf(
-                    Triple(52f, -150f, -0.4f)
+                    Triple(52f, -150f, 0.0f)
                 )))
                 specs.add(StructureSpec("TowerHouse_FirstAge", 18f, listOf(
-                    Triple(-64f, -190f, 0.9f)
+                    Triple(-64f, -190f, 0.9f),
+                    Triple(30f, -66f, -0.6f),
+                    Triple(-26f, -84f, 1.4f)
+                )))
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 9f, listOf(
+                    Triple(18f, -44f, 0.2f),
+                    Triple(-48f, -60f, 1.8f)
                 )))
                 specs.add(StructureSpec("MountainLarge_Single", 160f, listOf(
                     Triple(-380f, -560f, 0.3f),
@@ -657,7 +670,12 @@ class WorldScene(
                     Triple(-46f, -140f, 0.8f)
                 )))
                 specs.add(StructureSpec("TowerHouse_FirstAge", 17f, listOf(
-                    Triple(68f, -185f, -0.5f)
+                    Triple(68f, -185f, -0.5f),
+                    Triple(22f, -58f, 0.6f),
+                    Triple(-34f, -76f, -1.2f)
+                )))
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 9f, listOf(
+                    Triple(-18f, -42f, 1.1f)
                 )))
                 specs.add(StructureSpec("MountainLarge_Single", 150f, listOf(
                     Triple(-300f, -600f, 1.1f)
@@ -665,21 +683,29 @@ class WorldScene(
             }
             WorldId.OCEAN -> {
                 specs.add(StructureSpec("Dock_FirstAge", 4f, listOf(
-                    Triple(-34f, -78f, 1.57f)
+                    Triple(-34f, -78f, 1.57f),
+                    Triple(30f, -64f, 1.57f)
                 )))
                 specs.add(StructureSpec("Houses_FirstAge_1_Level2", 8f, listOf(
-                    Triple(58f, -118f, 0.4f)
+                    Triple(58f, -118f, 0.4f),
+                    Triple(-24f, -52f, 2.4f)
                 )))
                 specs.add(StructureSpec("WatchTower_FirstAge_Level2", 15f, listOf(
-                    Triple(-130f, -240f, 0f)
+                    Triple(-130f, -240f, 0.0f),
+                    Triple(44f, -88f, 0.2f)
                 )))
             }
             WorldId.DESERT -> {
                 specs.add(StructureSpec("Mine", 11f, listOf(
-                    Triple(-70f, -145f, 0.7f)
+                    Triple(-70f, -145f, 0.7f),
+                    Triple(26f, -62f, -0.4f)
                 )))
                 specs.add(StructureSpec("TowerHouse_FirstAge", 15f, listOf(
-                    Triple(88f, -200f, -1.1f)
+                    Triple(88f, -200f, -1.1f),
+                    Triple(-30f, -74f, 0.8f)
+                )))
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 8f, listOf(
+                    Triple(16f, -40f, 1.6f)
                 )))
             }
         }
@@ -891,6 +917,17 @@ class WorldScene(
         return out
     }
 
+    /** Props per species, scaled by the graphics setting rather than switched off entirely. */
+    private fun heroCount(base: Int): Int {
+        val factor = when {
+            detailLevel <= 0 -> 0.35f
+            detailLevel == 1 -> 0.7f
+            detailLevel == 2 -> 1f
+            else -> 1.35f
+        }
+        return (base * factor).toInt().coerceAtLeast(0)
+    }
+
     /** Places [count] props in a ring around the launch area, avoiding pad and water. */
     private fun heroScatter(count: Int, seedOffset: Int, height: Float): InstanceSet {
         if (count <= 0) return InstanceSet.EMPTY
@@ -905,9 +942,11 @@ class WorldScene(
         while (placed < count && attempts < maxAttempts) {
             attempts++
             val angle = rng.nextFloat() * M.TWO_PI
-            val radius = 20f + rng.nextFloat() * 70f
+            // 18–140 m: close enough to dress the hangar approach, far enough to line the
+            // first half of every flight with trees, bushes and rocks to steer around.
+            val radius = 18f + rng.nextFloat() * 122f
             val x = kotlin.math.cos(angle) * radius
-            val z = -55f + kotlin.math.sin(angle) * radius
+            val z = -60f + kotlin.math.sin(angle) * radius
             if (x * x + z * z < 26f * 26f) continue
 
             val h = terrain.height(x, z)
