@@ -4,7 +4,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import com.buildlaunchfly.game.gfx.DesignTokens
 
-/** Font families from design.md §2.2, mapped to the closest Android system families. */
+/** Font families from design.md §2.2. */
 enum class UiFont { DISPLAY, BODY, BODY_MEDIUM }
 
 /** Typography scale from design.md §2.2. */
@@ -40,14 +40,13 @@ class UiPainter {
         style = Paint.Style.FILL
     }
 
-    private val displayTypeface: Typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
-    private val bodyTypeface: Typeface = Typeface.create("sans-serif", Typeface.NORMAL)
-    private val bodyMediumTypeface: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    private val displayTypeface: Typeface = UiFonts.displayBold()
+    private val bodyTypeface: Typeface = UiFonts.body()
 
     fun typeface(font: UiFont): Typeface = when (font) {
         UiFont.DISPLAY -> displayTypeface
         UiFont.BODY -> bodyTypeface
-        UiFont.BODY_MEDIUM -> bodyMediumTypeface
+        UiFont.BODY_MEDIUM -> bodyTypeface
     }
 }
 

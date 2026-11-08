@@ -151,6 +151,7 @@ uniform vec3 uTint;
 uniform float uRoughness;
 uniform float uMetallic;
 uniform float uEmissive;
+uniform float uAlpha;
 
 out vec4 fragColor;
 
@@ -160,7 +161,7 @@ void main() {
     vec3 v = normalize(uCameraPos - vWorldPos);
     vec3 color = shadeSurface(albedo, n, v, vWorldPos, uRoughness, uMetallic, uEmissive);
     color = applyFog(color, vWorldPos);
-    fragColor = vec4(applyTonemap(color), 1.0);
+    fragColor = vec4(applyTonemap(color), clamp(uAlpha, 0.0, 1.0));
 }
 """
 

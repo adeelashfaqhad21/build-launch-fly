@@ -12,6 +12,7 @@ import com.buildlaunchfly.game.aircraft.PartSlot
 import com.buildlaunchfly.game.audio.AudioEngine
 import com.buildlaunchfly.game.gfx.Camera
 import com.buildlaunchfly.game.gfx.DesignTokens
+import com.buildlaunchfly.game.gfx.ParticleRenderer
 import com.buildlaunchfly.game.gfx.SceneRenderer
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.Mat4
@@ -72,6 +73,10 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var maxAltitudeThisFlight = 0f
     private var lastFlightMaxAltitude = 0f
 
+    private var slingRecoilTimer = 0f
+    private var slingRecoilStretch = 0f
+    private var launchPuffTimer = 0f
+
     private var viewportWidth = 1
     private var viewportHeight = 1
 
@@ -90,6 +95,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val flightInput = FlightInput()
     private val particleColorSnow = Vec3(1f, 1f, 1f)
     private val particleColorDust = Vec3(0.95f, 0.84f, 0.66f)
+    private val particleColorSmoke = Vec3(0.94f, 0.95f, 0.97f)
     private val bandTintAmber = Vec3(0.96f, 0.62f, 0.11f)
     private val bandTintCyan = Vec3(0.22f, 0.74f, 0.97f)
     private val bandTintScratch = Vec3(1f, 1f, 1f)
@@ -104,6 +110,10 @@ class GameApp(private val context: Context, private val input: InputState) {
     /** Extra yaw applied to workshop/menu orbits from UI drag. */
     @Volatile
     var orbitOffset: Float = 0f
+
+    /** Camera orbit distance on the pad, adjusted by pinch zoom. */
+    @Volatile
+    var orbitRadius: Float = 9.5f
 
     var lastLaunchStretch: Float = 0.75f
         private set
@@ -349,6 +359,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         orbitOffset += deltaRadians
     }
 
+    /** Pinch zoom: a larger finger spread (scale > 1) moves the orbit camera closer. */
+    fun requestOrbitZoom(scale: Float) {
+        if (scale <= 0.01f) return
+        orbitRadius = (orbitRadius / scale).coerceIn(6f, 18f)
+    }
+
     fun requestClaimAchievement(id: String) {
         post(Runnable {
             if (profile.claimAchievement(id)) {
@@ -396,6 +412,8 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val dt = dtSeconds.coerceIn(0f, 0.05f)
         time += dt
+        slingRecoilTimer = (slingRecoilTimer - dt).coerceAtLeast(0f)
+        launchPuffTimer = (launchPuffTimer - dt).coerceAtLeast(0f)
         sceneRenderer.env.time = time
 
         input.consumeDrag(dragScratch)
@@ -417,7 +435,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         when (state) {
             GameState.SEATED -> when (cameraMode) {
                 CameraMode.ORBIT_AIRCRAFT -> cameraDirector.updateOrbitAircraft(
-                    seatPosition, time, dt, 9.5f, orbitOffset
+                    seatPosition, time, dt, orbitRadius, orbitOffset
                 )
                 CameraMode.ORBIT_SLINGSHOT -> cameraDirector.updateOrbitSlingshot(
                     padPosition, time, dt, orbitOffset
@@ -433,6 +451,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         sceneRenderer.particles.begin()
         currentScene.update(dt, time, camera, sceneRenderer.particles)
+        if (launchPuffTimer > 0f) emitLaunchPuff(sceneRenderer.particles)
     }
 
     private fun updateSeated(dt: Float, released: Boolean) {
@@ -488,6 +507,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         pull = 0f
         maxAltitudeThisFlight = 0f
         lastLaunchStretch = stretch
+        slingRecoilStretch = stretch.coerceIn(0f, 1f)
+        slingRecoilTimer = SLING_RECOIL_DURATION
+        launchPuffTimer = PUFF_DURATION
         cameraDirector.addShake(0.45f + stretch * 0.5f)
 
         audio.playRelease(stretch)
@@ -556,6 +578,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         val aircraftMesh = aircraft ?: return
         val rig = slingMesh ?: return
         val definition = currentScene.definition
+        val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
+        val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (state == GameState.SEATED) {
             val hold = rig.holdPoint(pull)
@@ -580,7 +604,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
         aircraftMesh.bodyMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
-        if (state == GameState.SEATED) sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+        if (showSling) sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
         sceneRenderer.shadowInstanced(currentScene.rocks)
         sceneRenderer.endShadowPass()
@@ -615,16 +639,16 @@ class GameApp(private val context: Context, private val input: InputState) {
             )
         }
 
-        if (state == GameState.SEATED) {
+        if (showSling) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
 
             rig.thicknessBoost = slingStateBandBoost()
-            applyBandTint(rig, pull)
-            rig.leftBandMatrix(pull, bandLocal)
+            applyBandTint(rig, slingDraw)
+            rig.leftBandMatrix(slingDraw, bandLocal)
             leftBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
 
-            rig.rightBandMatrix(pull, bandLocal)
+            rig.rightBandMatrix(slingDraw, bandLocal)
             rightBand.setProduct(slingshotModel, bandLocal)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
         }
@@ -638,9 +662,45 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.propellerMesh?.let {
             sceneRenderer.drawMesh(it, aircraftMesh.propellerMaterial, propellerModel)
         }
+        aircraftMesh.propellerBlurMesh?.let { blur ->
+            val rpmFraction = (physics.propellerRpm / 2200f).coerceIn(0f, 1f)
+            val alpha = ((rpmFraction - 0.30f) / 0.70f).coerceIn(0f, 1f) * 0.30f
+            aircraftMesh.propellerBlurMaterial.alpha = alpha
+            if (alpha > 0.01f) {
+                sceneRenderer.drawMesh(blur, aircraftMesh.propellerBlurMaterial, propellerModel)
+            }
+        }
 
-        val particleColor = if (definition.snowfall > 0f) particleColorSnow else particleColorDust
+        val particleColor = when {
+            launchPuffTimer > 0f -> particleColorSmoke
+            definition.snowfall > 0f -> particleColorSnow
+            else -> particleColorDust
+        }
         sceneRenderer.flushParticles(particleColor)
+    }
+
+    /** Damped elastic recoil that plays out on the bands after release. */
+    private fun recoilDraw(): Float {
+        if (slingRecoilTimer <= 0f) return 0f
+        val t = (slingRecoilTimer / SLING_RECOIL_DURATION).coerceIn(0f, 1f)
+        val wobble = 0.35f + 0.65f * kotlin.math.abs(kotlin.math.cos((1f - t) * 14f))
+        return (slingRecoilStretch * t * wobble).coerceIn(0f, 1f)
+    }
+
+    /** Short-lived smoke puff at the cradle after release. */
+    private fun emitLaunchPuff(particles: ParticleRenderer) {
+        val remaining = (launchPuffTimer / PUFF_DURATION).coerceIn(0f, 1f)
+        val spread = (1f - remaining) * 2.6f
+        for (i in 0 until 5) {
+            val angle = time * 6.5f + i * 1.7f
+            val radius = spread * (0.3f + i * 0.14f)
+            particles.emit(
+                padPosition.x + kotlin.math.cos(angle) * radius,
+                padPosition.y + SlingshotLayout.HOLD_POINT.y - 0.35f + (1f - remaining) * 2f,
+                padPosition.z + kotlin.math.sin(angle) * radius,
+                0.55f + (1f - remaining) * 0.5f
+            )
+        }
     }
 
     private fun slingStateBandBoost(): Float = (sling.bandThickness() - 1f).coerceIn(0f, 1f)
@@ -674,6 +734,8 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     companion object {
         private const val TAG = "BLF-GAME"
+        private const val SLING_RECOIL_DURATION = 0.6f
+        private const val PUFF_DURATION = 0.85f
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
     }
 }

@@ -101,6 +101,7 @@ class UiFrame(
     ) {
         val p = painter.text
         p.typeface = painter.typeface(style.font)
+        p.isFakeBoldText = style.font == UiFont.BODY_MEDIUM
         p.textSize = style.sizeDp
         p.color = color
         p.textAlign = Paint.Align.LEFT
@@ -146,6 +147,7 @@ class UiFrame(
     fun textWidth(text: String, style: UiTextStyle): Float {
         val p = painter.text
         p.typeface = painter.typeface(style.font)
+        p.isFakeBoldText = style.font == UiFont.BODY_MEDIUM
         p.textSize = style.sizeDp
         return p.measureText(text)
     }
@@ -162,6 +164,7 @@ class UiFrame(
     ): Float {
         val p = painter.text
         p.typeface = painter.typeface(style.font)
+        p.isFakeBoldText = style.font == UiFont.BODY_MEDIUM
         p.textSize = style.sizeDp
         p.color = color
         p.textAlign = Paint.Align.LEFT

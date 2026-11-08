@@ -114,7 +114,18 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         model.normalMatrix(normalMatrix)
         pbrProgram.set("uNormalMat", normalMatrix)
         material.bind(pbrProgram, 0, white)
+
+        val blended = material.alpha < 0.999f
+        if (blended) {
+            GLES30.glEnable(GLES30.GL_BLEND)
+            GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
+            GLES30.glDepthMask(false)
+        }
         mesh.draw()
+        if (blended) {
+            GLES30.glDepthMask(true)
+            GLES30.glDisable(GLES30.GL_BLEND)
+        }
     }
 
     fun drawInstanced(mesh: InstancedMesh, material: Material) {

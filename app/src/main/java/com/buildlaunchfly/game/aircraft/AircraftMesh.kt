@@ -25,6 +25,8 @@ class AircraftMesh(textures: TextureFactory) {
         private set
     var propellerMesh: Mesh? = null
         private set
+    var propellerBlurMesh: Mesh? = null
+        private set
 
     private var signature = ""
 
@@ -37,14 +39,15 @@ class AircraftMesh(textures: TextureFactory) {
         uvScale = 1.6f
     )
 
-    /** Tinted polarized cockpit glazing. */
+    /** Tinted polarized cockpit glazing at 85% opacity, per design.md §5.1. */
     val canopyMaterial = Material(
         albedo = textures.metal,
         tint = Vec3(0.10f, 0.20f, 0.28f),
         roughness = 0.08f,
         metallic = 0.0f,
         uvScale = 1f,
-        emissive = 0.04f
+        emissive = 0.04f,
+        alpha = 0.85f
     )
 
     val propellerMaterial = Material(
@@ -53,6 +56,16 @@ class AircraftMesh(textures: TextureFactory) {
         roughness = 0.35f,
         metallic = 0.55f,
         uvScale = 1f
+    )
+
+    /** High-RPM motion-blur disc; alpha is driven from propeller RPM each frame. */
+    val propellerBlurMaterial = Material(
+        albedo = textures.rubber,
+        tint = Vec3(0.58f, 0.62f, 0.66f),
+        roughness = 1f,
+        metallic = 0f,
+        uvScale = 1f,
+        alpha = 0f
     )
 
     /** Rebuilds geometry when the build differs from what is currently uploaded. */
@@ -64,13 +77,16 @@ class AircraftMesh(textures: TextureFactory) {
         bodyMesh?.dispose()
         canopyMesh?.dispose()
         propellerMesh?.dispose()
+        propellerBlurMesh?.dispose()
 
         bodyMesh = Mesh("aircraftBody", buildBodyData(build))
         canopyMesh = Mesh("aircraftCanopy", buildCanopyData())
-        propellerMesh = if (build.isInstalled(PartSlot.PROPELLER)) {
-            Mesh("aircraftPropeller", buildPropellerData(build))
+        if (build.isInstalled(PartSlot.PROPELLER)) {
+            propellerMesh = Mesh("aircraftPropeller", buildPropellerData(build))
+            propellerBlurMesh = Mesh("aircraftPropellerBlur", buildPropellerBlurData())
         } else {
-            null
+            propellerMesh = null
+            propellerBlurMesh = null
         }
     }
 
@@ -78,9 +94,11 @@ class AircraftMesh(textures: TextureFactory) {
         bodyMesh?.dispose()
         canopyMesh?.dispose()
         propellerMesh?.dispose()
+        propellerBlurMesh?.dispose()
         bodyMesh = null
         canopyMesh = null
         propellerMesh = null
+        propellerBlurMesh = null
         signature = ""
     }
 
@@ -149,6 +167,13 @@ class AircraftMesh(textures: TextureFactory) {
     private fun buildCanopyData(): MeshData {
         val b = MeshBuilder()
         b.addEllipsoid(0f, 0.20f, -0.18f, 0.25f, 0.22f, 0.62f, 6, 10)
+        return b.build()
+    }
+
+    /** Flat translucent disc covering the blade sweep, faded in at high RPM. */
+    private fun buildPropellerBlurData(): MeshData {
+        val b = MeshBuilder()
+        b.addEllipsoid(0f, 0f, 0f, 1.55f, 1.55f, 0.005f, 8, 24)
         return b.build()
     }
 

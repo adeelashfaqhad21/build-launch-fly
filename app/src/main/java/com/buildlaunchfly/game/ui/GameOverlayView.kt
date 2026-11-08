@@ -48,8 +48,10 @@ class GameOverlayView(
 
     private var orbitDragging = false
     private var lastOrbitX = 0f
+    private var lastPinchSpan = 0f
 
     init {
+        UiFonts.init(context.applicationContext)
         setBackgroundColor(Color.TRANSPARENT)
         isFocusable = true
         isClickable = true
@@ -156,9 +158,25 @@ class GameOverlayView(
         val flightInput = state == GameState.FLIGHT ||
             (screen == UiScreen.LAUNCH && state == GameState.SEATED)
 
+        // Two-finger pinch zooms the workshop / menu orbit.
+        if (!paused && event.pointerCount >= 2) {
+            val span = pinchSpan(event)
+            if (event.actionMasked == MotionEvent.ACTION_MOVE) {
+                if (lastPinchSpan > 0.01f) {
+                    app.requestOrbitZoom(span / lastPinchSpan)
+                }
+            }
+            lastPinchSpan = span
+            downHit = null
+            dragHit = null
+            orbitDragging = false
+            return true
+        }
+
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 orbitDragging = false
+                lastPinchSpan = 0f
                 val hit = findHit(event.x, event.y)
                 if (hit != null) {
                     downHit = hit
@@ -197,6 +215,7 @@ class GameOverlayView(
             }
 
             MotionEvent.ACTION_UP -> {
+                lastPinchSpan = 0f
                 if (dragHit != null) {
                     dragHit = null
                     return true
@@ -215,6 +234,7 @@ class GameOverlayView(
             }
 
             MotionEvent.ACTION_CANCEL -> {
+                lastPinchSpan = 0f
                 downHit = null
                 dragHit = null
                 orbitDragging = false
@@ -238,6 +258,12 @@ class GameOverlayView(
         val widthPx = hit.rect.width()
         if (widthPx <= 0.01f) return 0f
         return ((x - hit.rect.left) / widthPx).coerceIn(0f, 1f)
+    }
+
+    private fun pinchSpan(event: MotionEvent): Float {
+        val dx = event.getX(0) - event.getX(1)
+        val dy = event.getY(0) - event.getY(1)
+        return kotlin.math.sqrt(dx * dx + dy * dy).coerceAtLeast(1f)
     }
 
     override fun onDetachedFromWindow() {

@@ -63,7 +63,9 @@ gravity, stability terms, stall behaviour, ground contact with landing/crash res
 10. Pilot Career Profile (career totals, favourite realm, configuration)
 
 Plus a pause modal. Design tokens live in `gfx/DesignTokens.kt`; the UI is drawn at a
-640×360 dp design scale that stretches to any landscape ratio without distortion.
+640×360 dp design scale that stretches to any landscape ratio without distortion. The
+Rajdhani and Plus Jakarta Sans typefaces are bundled (`app/src/main/res/font`) and licensed
+under the SIL OFL — see `docs/licenses/`.
 
 **Progression & audio** — coins from distance/performance, persistence in
 SharedPreferences JSON, world unlocks, achievements, four quality tiers, and procedural
@@ -102,8 +104,9 @@ checked in); CI installs Gradle 8.7 explicitly. Locally, use any Gradle 8.7+ ins
 - **Menu:** tap the nav deck (Aircraft / Slingshot / Realms), gear, trophy or pilot icon.
 - **Realms:** tap a card to select it, then *Launch in this realm*.
 - **Launch:** hold anywhere to draw the bands, release to fire.
-- **Flight:** drag to pitch and roll; expand the pause button to stop the flight.
-- **Workshops / menu:** drag on empty space to orbit the 3D aircraft or rig.
+- **Flight:** drag to pitch and roll; the pause button stops the flight.
+- **Workshops / menu:** drag on empty space to orbit the 3D aircraft or rig, pinch with two
+  fingers to zoom.
 
 ## Repository layout
 
@@ -125,12 +128,10 @@ docs/                     master brief, design system, architecture
 
 ## Known gaps (honest list)
 
-- The propeller's alpha motion-blur disc is not rendered; blades simply spin.
-- Rajdhani / Plus Jakarta Sans are substituted with system families of the same sizes,
-  weights and tracking (see `docs/DESIGN.md` §2.2 implementation note).
-- UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks
-  are in `ui/UiFrame.kt` and `ui/UiIcons.kt`.
-- Workshop orbit is drag-only (no pinch zoom).
+- UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks are
+  in `ui/UiFrame.kt` and `ui/UiIcons.kt`.
 - Wildlife uses simple procedural meshes with scripted motion.
+- Ecosystem layouts are still procedural: reference plates in `docs/reference/` guide art
+  direction but are not baked into authored terrain or building assets.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the engine and UI architecture.

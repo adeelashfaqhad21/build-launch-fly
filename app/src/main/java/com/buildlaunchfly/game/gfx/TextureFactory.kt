@@ -222,7 +222,8 @@ class Material(
     var roughness: Float = 0.85f,
     var metallic: Float = 0f,
     var uvScale: Float = 1f,
-    var emissive: Float = 0f
+    var emissive: Float = 0f,
+    var alpha: Float = 1f
 ) {
     fun bind(program: ShaderProgram, textureUnit: Int = 0, fallback: Texture2D? = null) {
         val texture = albedo ?: fallback
@@ -235,5 +236,6 @@ class Material(
         program.set("uMetallic", metallic)
         program.set("uUvScale", uvScale)
         program.set("uEmissive", emissive)
+        program.set("uAlpha", alpha)
     }
 }

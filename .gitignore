@@ -34,3 +34,4 @@ Thumbs.db
 
 # Local reference archives (the individual plates are tracked)
 docs/reference/*.zip
+docs/reference/*.mp4

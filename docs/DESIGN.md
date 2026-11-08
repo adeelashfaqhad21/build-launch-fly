@@ -80,11 +80,11 @@ normative for scope, technology and quality bar.
 | `Body Regular` | Plus Jakarta Sans | 400 Regular | 12dp | 16dp | 0 | Secondary specs, sub-labels |
 | `Badge / Tag` | Rajdhani | 700 Bold | 10dp | 12dp | +0.08em | MAX, NEW, LEVEL UP, 120 FPS |
 
-**Implementation note (Android):** Rajdhani and Plus Jakarta Sans are not Android system
-fonts. The implementation substitutes the closest system families — `sans-serif-condensed`
-Bold for Rajdhani-scale instrument type, `sans-serif` / `sans-serif-medium` for body type —
-with the same sizes, weights and letter tracking. Bundling the licensed fonts later only
-requires swapping the typeface objects in `UiPainter`.
+**Implementation note (Android):** both families ship as `res/font` assets —
+`rajdhani_bold.ttf`, `rajdhani_semibold.ttf` and the variable `plus_jakarta_sans.ttf` —
+loaded by `ui/UiFonts.kt`. They are licensed under the SIL Open Font License; the licence
+texts are in `docs/licenses/`. Platform typefaces remain as a fallback if a font resource
+fails to load.
 
 ### 2.3 Layout & Safe-Area Grids (16:9 Landscape Benchmark)
 - **Base Canvas:** `1920 × 1080 px` (Aspect Ratio 16:9). Implemented as a `640 × 360 dp`
@@ -244,8 +244,8 @@ Stage 6: Further Visual Aircraft Upgrades
 **Implementation status:** Stages 1–5 and the stage-6 geometry (canopy fairing, winglets,
 cowling, tail fairings) are modelled procedurally and rebuilt whenever parts change. The
 fuselage material uses the specified roughness/metallic values; the canopy is a separate
-mesh with its own low-roughness tinted-glass material. A true alpha motion-blur disc is not
-yet rendered (documented gap).
+mesh with its own low-roughness tinted-glass material. A translucent disc mesh fades in
+above ~30% RPM to stand in for the high-RPM motion-blur appearance.
 
 ### 5.2 Kinetic Slingshot Visual System
 - **Frame & Mechanics:**
@@ -259,7 +259,8 @@ yet rendered (documented gap).
 
 **Implementation status:** bands are drawn as dynamically stretched tubes from both prongs
 to the cradle, their tint interpolating Amber → Neon Cyan with draw tension; the HUD tension
-meter matches the same ramp; release triggers a camera impulse shake.
+meter matches the same ramp; release triggers a damped elastic recoil on the bands, a short
+smoke puff at the cradle and a camera impulse shake.
 
 ---
 
