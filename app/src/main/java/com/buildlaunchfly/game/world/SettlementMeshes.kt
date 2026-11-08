@@ -76,15 +76,30 @@ object SettlementMeshes {
                         details.addBox(x, ground + 0.43f, z - depth * 0.62f, 0.52f, 0.48f, 0.12f, 1f)
                     } else {
                         walls.pushTrs(x, ground + height * 0.5f, z, 0f, rotation, 0f, 1f)
-                        walls.addBox(0f, 0f, 0f, width, height * 0.5f, depth, 2f)
+                        if (definition.id == WorldId.DESERT) {
+                            // Traditional low-rise mud-brick home: connected rooms,
+                            // irregular courtyard wall and a shaded entrance. The forms
+                            // are broad, low and earthen rather than tall geometric towers.
+                            walls.addBox(-width * 0.12f, 0f, 0f, width * 0.88f, height * 0.50f, depth * 0.78f, 1.25f)
+                            walls.addBox(width * 0.66f, -height * 0.08f, depth * 0.28f, width * 0.34f, height * 0.42f, depth * 0.48f, 1.1f)
+                            walls.addBox(-width * 0.95f, -height * 0.24f, -depth * 0.62f, 0.16f, height * 0.26f, depth * 0.12f, 1f)
+                            walls.addBox(width * 0.62f, -height * 0.24f, -depth * 0.62f, 0.16f, height * 0.26f, depth * 0.12f, 1f)
+                            walls.addBox(-width * 0.18f, -height * 0.24f, -depth * 1.02f, width * 0.80f, height * 0.26f, 0.14f, 1f)
+                            // Slightly uneven flat earthen roofs with low parapets.
+                            roofs.addBox(-width * 0.12f, height + 0.02f, 0f, width * 0.90f, 0.12f, depth * 0.80f, 1.2f)
+                            roofs.addBox(width * 0.66f, height * 0.76f, depth * 0.28f, width * 0.36f, 0.10f, depth * 0.50f, 1.1f)
+                            roofs.addBox(-width * 0.12f, height + 0.24f, -depth * 0.73f, width * 0.90f, 0.10f, 0.09f, 1f)
+                            roofs.addBox(-width * 0.94f, height + 0.24f, -depth * 0.20f, 0.09f, 0.10f, depth * 0.55f, 1f)
+                            // Timber/reed shade canopy over the recessed doorway.
+                            roofs.addBox(-width * 0.18f, height * 0.72f, -depth * 1.20f, width * 0.42f, 0.055f, depth * 0.28f, 1f)
+                            details.addCylinder(-width * 0.55f, height * 0.34f, -depth * 1.18f, 0.055f, 0.055f, height * 0.68f, 6, true, true, 1f)
+                            details.addCylinder(width * 0.18f, height * 0.34f, -depth * 1.18f, 0.055f, 0.055f, height * 0.68f, 6, true, true, 1f)
+                        } else {
+                            walls.addBox(0f, 0f, 0f, width, height * 0.5f, depth, 2f)
+                        }
 
                         when (definition.id) {
-                            WorldId.DESERT -> {
-                                // Thick adobe parapet and flat roof, with a small raised
-                                // shade canopy to break the silhouette of each hut.
-                                roofs.addBox(0f, height + 0.12f, 0f, width * 1.04f, 0.18f, depth * 1.04f, 1f)
-                                roofs.addBox(0f, height + 0.40f, depth * 0.16f, width * 0.48f, 0.07f, depth * 0.22f, 1f)
-                            }
+                            WorldId.DESERT -> Unit
                             WorldId.SNOW -> {
                                 // Steep paired roof planes shed snow away from the cabin.
                                 roofs.pushTrs(0f, height, 0f, 0f, 0f, 0.62f, 1f)
