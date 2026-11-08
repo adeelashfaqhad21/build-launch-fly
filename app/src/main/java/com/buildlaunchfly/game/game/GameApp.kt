@@ -23,6 +23,7 @@ import com.buildlaunchfly.game.slingshot.SlingshotLayout
 import com.buildlaunchfly.game.slingshot.SlingshotMesh
 import com.buildlaunchfly.game.slingshot.SlingshotState
 import com.buildlaunchfly.game.world.AmbienceStyle
+import com.buildlaunchfly.game.world.HangarMesh
 import com.buildlaunchfly.game.world.WorldCatalog
 import com.buildlaunchfly.game.world.WorldDefinition
 import com.buildlaunchfly.game.world.WorldId
@@ -54,6 +55,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var scene: WorldScene? = null
     private var aircraft: AircraftMesh? = null
     private var slingMesh: SlingshotMesh? = null
+    private var hangar: HangarMesh? = null
 
     private val camera = Camera()
     private val cameraDirector = CameraDirector(camera)
@@ -174,6 +176,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         aircraft = AircraftMesh(textureFactory).also { it.updateFor(build) }
         slingMesh = SlingshotMesh(textureFactory)
+        hangar = HangarMesh(textureFactory)
         loadProgressValue = 0.55f
 
         rebuildScene(profile.selectedWorld)
@@ -659,6 +662,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val rig = slingMesh ?: return
         val definition = currentScene.definition
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
+        val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (showSling) {
@@ -712,6 +716,12 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.shadowMesh(rig.bandMesh, rightBand)
             sceneRenderer.shadowMesh(rig.bandMesh, rightBandB)
         }
+        if (showHangar) {
+            hangar?.let { set ->
+                sceneRenderer.shadowMesh(set.shellMesh, slingshotModel)
+                sceneRenderer.shadowMesh(set.frameMesh, slingshotModel)
+            }
+        }
         for (tree in currentScene.trees) {
             sceneRenderer.shadowInstanced(tree.trunk.instanced)
             sceneRenderer.shadowInstanced(tree.canopy.instanced)
@@ -749,6 +759,13 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         sceneRenderer.drawInstanced(currentScene.birdsMesh, currentScene.birdMaterial)
         sceneRenderer.drawInstanced(currentScene.animalsMesh, currentScene.animalMaterial)
+
+        if (showHangar) {
+            hangar?.let { set ->
+                sceneRenderer.drawMesh(set.shellMesh, set.shellMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.frameMesh, set.frameMaterial, slingshotModel)
+            }
+        }
 
         currentScene.waterMesh?.let { water ->
             sceneRenderer.drawWater(
@@ -850,6 +867,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraft = null
         slingMesh?.dispose()
         slingMesh = null
+        hangar?.dispose()
+        hangar = null
         renderer?.dispose()
         renderer = null
         textures?.disposeAll()

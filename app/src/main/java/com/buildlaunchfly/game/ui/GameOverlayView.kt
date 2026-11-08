@@ -152,8 +152,8 @@ class GameOverlayView(
 
         app.cameraMode = when (screen) {
             UiScreen.SLINGSHOT -> CameraMode.ORBIT_SLINGSHOT
-            UiScreen.AIRCRAFT -> CameraMode.ORBIT_AIRCRAFT
-            else -> CameraMode.LAUNCH
+            UiScreen.LAUNCH -> CameraMode.LAUNCH
+            else -> CameraMode.ORBIT_AIRCRAFT
         }
 
         postInvalidateOnAnimation()

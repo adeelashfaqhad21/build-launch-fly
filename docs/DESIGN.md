@@ -232,17 +232,20 @@ on tap.
 **Audio:** hangar ambience; tap pops; purchase cascade.
 
 **Checklist**
-- [ ] Hangar 3D set: roof, beam, open side to sky, floor, props
-- [ ] Plane displayed in hangar, idle bob
-- [ ] Two currency pills with compact formatting (`28.15K`)
-- [ ] Gear opens settings
-- [ ] Title plaque bound to plane tier name
-- [ ] Promo rail with 3 slots (store, remove-ads, rewarded gems)
-- [ ] Chest / VIP / rocket slots as modular components
-- [ ] `TAP TO FLY` entry into launch setup
-- [ ] Three upgrade cards pinned to the bottom row
-- [ ] Scene camera framing: rear-side, plane lower-middle, sky opening right
-- [ ] No glass/blur panels
+- [x] Hangar 3D set: plank floor, side and back walls, corner posts, rafters, roof panels with
+  a sky opening, crates — `world/HangarMesh`
+- [ ] Plane displayed in hangar, idle bob — the plane is held in the sling, no bob yet
+- [x] Two currency pills with compact formatting (`28.15K`)
+- [x] Gear opens settings
+- [x] Title plaque bound to plane tier name
+- [x] Promo rail with 3 slots (store, remove-ads, rewarded gems)
+- [x] Chest / VIP / rocket slots as modular components
+- [x] `TAP TO FLY` entry into launch setup
+- [x] Three upgrade cards pinned to the bottom row
+- [ ] Scene camera framing: rear-side, plane lower-middle, sky opening right — the camera is
+  directly behind on the centre line and the roof opening is central, as the user asked; the
+  rear-side variant is still open
+- [x] No glass/blur panels
 
 **Acceptance:** the whole hub reads in one glance; all four currencies/promotions and three
 upgrade tracks visible without scrolling; 60 fps with the 3D scene behind.
@@ -342,40 +345,45 @@ validated. No pay-to-progress wall in the first 30 minutes.
 
 **Purpose:** the launch device — visible, physical, readable from behind.
 
-**Form:** two wooden posts at the rear left/right, a dark trapezoidal launch ramp between
-them, and two thick elastic bands running from the post tips to the aircraft cradle. Bands
-are yellow/white striped. In Ref-3 the plane sits back; in Ref-4 the camera is closer and the
-bands form a wide V.
+**Form:** two plain upright wooden poles, and **one** elastic sling tied to both tips and
+hooked onto the aircraft at the tail. No ramp, no braces, no metal brackets, no mechanical
+parts. The poles stand just outside the wingtips so the sling clears them. Bands are
+yellow/white striped. In Ref-3 the plane sits back; in Ref-4 the camera is closer and the
+sling forms a wide V.
 
-**Layout in world space:** posts at x ±2.05 m, height 3.6 m, ramp 1.8 m wide sloping down
-toward −Z; cradle at 3.05 m; camera directly behind at ~3.3 m height.
+**Layout in world space:** poles at x ±2.00 m, height 3.60 m, radius 0.085 m; sling tied at
+3.50 m; sling radius 0.060 m; the leather cradle hooks 0.45 m below and 1.10 m behind the
+aircraft origin, at the tail skid; aircraft seat at 3.05 m; camera directly behind at ~3.3 m
+height.
 
-**Colours:** timber `#8A6A4A` posts, ramp `#554B45`, bands `yellow #FFD52B` + `cream
-#F5F2E8` stripes, dark metal brackets.
+**Colours:** timber `#8A6A4A` poles, sling `yellow #FFD52B` + `cream #F5F2E8` stripes, dark
+leather cradle.
 
-**Surfaces:** flat-shaded, no gloss; band stripes are geometry or a two-colour texture.
+**Surfaces:** flat-shaded, no gloss, no metal; sling stripes are a two-colour texture.
 
-**Assets to generate:** post meshes, ramp mesh, band tube mesh (stripable), cradle, back
+**Assets to generate:** two pole meshes, sling tube mesh (stripable), leather cradle, back
 button plate.
 
-**States:** rest (bands slack, slight sag), draw (bands taut, plane pulled back), release
+**States:** rest (sling slack, slight sag), draw (sling taut, plane pulled back), release
 (snap, recoil wobble, smoke).
 
-**Data:** pull 0–1, band length, tension, launch angle, upgrade level → thickness/length.
+**Data:** pull 0–1, sling length, tension, launch elevation, upgrade level → thickness/length.
 
-**Motion:** band stretch with catenary sag, 0.6 s recoil after release, dust puff.
+**Motion:** sling stretches and sags with the pull; 0.6 s recoil after release; dust puff.
 
-**Audio:** creak on draw (pitch rises), twang + whoosh on release.
+**Audio:** creak on draw (pitch rises); release whoosh.
 
 **Checklist**
-- [ ] Rear-view framing with both posts visible (camera path exists; needs an on-device check)
-- [x] Yellow/white striped bands — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
-- [x] Ramp/trapezoid geometry between posts — `SlingshotMesh.buildRampData` (deck, rails, lip)
-- [x] Bands articulate with draw — `holdPoint(draw)` positions both bands; the launch angle
-  shapes the release vector, not the band geometry
-- [x] Rest sag, taut draw, recoil — two-segment bands sagging to `BAND_SAG`, 0.6 s recoil wobble
-- [x] Upgrade level visibly changes band thickness/length — `thicknessBoost` and `drawLength`
-- [x] Bands cast shadows — both segments in the shadow pass
+- [x] Exactly two poles and a sling — `SlingshotMesh` builds two cylinders and one elastic
+  band; there is no ramp or metalwork
+- [x] Poles just wider than the aeroplane — `POLE_X = 2.00` against a 1.78 m wing half-span
+- [x] One sling tied to both pole tips and hooked at the tail — `CRADLE_OFFSET`
+- [x] Yellow/white striped sling — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
+- [x] Sling articulates with draw — `holdPoint(draw)` moves the cradle back with the aircraft
+- [x] Rest sag, taut draw, recoil — two-segment sling sagging to `BAND_SAG`, 0.6 s recoil
+- [x] Upgrade level visibly changes sling thickness/length — `thicknessBoost` and `drawLength`
+- [x] Sling casts a shadow — every segment is in the shadow pass
+- [ ] Rear-view framing with both poles visible (camera path exists; needs an on-device check)
 
 **Acceptance:** from the launch camera a first-time player understands "pull back here".
 

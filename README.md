@@ -55,13 +55,17 @@ spin-blur disc. Geometry is split by material (canvas, rib, wood, metal, glazing
 propeller), so every stage changes visible structure rather than colour: wing halves,
 longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
 
-**Slingshot (`slingshot`)** — five upgrade categories and the reference rig: two plain wooden
-poles planted just wider than the wingspan, one yellow/cream striped elastic band running
-tip to tip through a small leather cradle, and nothing else — no ramp, braces or metalwork.
-The band sags when slack and pulls straight as the draw deepens; band thickness and draw
-length follow the upgrade levels, every band segment casts a shadow, and the release plays a
-recoil wobble, a dust puff and a camera impulse. Launch elevation (20°–55°) is stored in the
-profile.
+**Slingshot (`slingshot`)** — five upgrade categories and exactly the reference rig: two plain
+upright wooden poles standing just outside the wingtips, and **one** elastic sling tied to
+both pole tips and hooked onto the tail — no ramp, no braces, no metalwork. The sling sags
+when slack and pulls straight as the draw deepens; sling thickness and draw length follow the
+upgrade levels, every segment casts a shadow, and the release plays a recoil wobble, a dust
+puff and a camera impulse. Launch elevation (20°–55°) is stored in the profile.
+
+**Hangar (`world/HangarMesh`)** — the home screen sits inside a wooden hangar: plank floor,
+side and back walls, corner posts, a rafter every bay, roof panels with a wide sky opening
+over the aircraft, and crates against the back wall. It is drawn in the hangar and workshop
+views and hidden for the outdoor launch shot.
 
 **Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
 gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
@@ -70,7 +74,8 @@ gravity, stability terms, stall behaviour, ground contact with landing/crash res
 catalog and checklists in [`docs/DESIGN.md`](docs/DESIGN.md) §3:
 
 1. Splash / loading (brand + real load progress)
-2. Hangar home (currency pills, plaque, promo rail, chest/VIP/rocket, `TAP TO FLY`)
+2. Hangar home (3D hangar set, currency pills, plaque, promo rail, chest/VIP/rocket,
+   `TAP TO FLY`)
 3. Upgrade cards: SLINGSHOT / PLANE / INCOME with level pips and prices
 4. Launch setup (plane in the rig, bottom BACK)
 5. Aim gauge (segmented arc with a green perfect zone)

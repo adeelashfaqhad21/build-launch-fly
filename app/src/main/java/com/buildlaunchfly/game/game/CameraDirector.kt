@@ -87,14 +87,14 @@ class CameraDirector(private val camera: Camera) {
     }
 
     /**
-     * Rear view of the aircraft for the hangar and the aircraft workshop. The camera no
-     * longer drifts on its own: orbiting happens only when the player drags.
+     * Rear view of the aircraft inside the hangar. The camera sits directly behind on the
+     * centre line, at a low eye height, and only orbits when the player drags.
      */
     fun updateOrbitAircraft(center: Vec3, time: Float, dt: Float, radius: Float, yawOffset: Float) {
         val angle = yawOffset
         desiredPosition.set(
             center.x + sin(angle) * radius,
-            center.y + 2.6f,
+            center.y + 1.0f,
             center.z + cos(angle) * radius
         )
         desiredTarget.set(center.x, center.y - 0.15f, center.z)
