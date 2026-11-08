@@ -2,7 +2,7 @@
 
 A premium 3D aircraft-building, slingshot-launch and distance-adventure game for Android.
 Native Android application, Kotlin application layer, custom real-time 3D engine on
-OpenGL ES 3.0, and the complete landscape UI system specified in `design.md`.
+OpenGL ES 3.0, and the portrait UI system modelled on the reference plates.
 
 **Read first:**
 
@@ -64,9 +64,13 @@ gravity, stability terms, stall behaviour, ground contact with landing/crash res
 10. Pilot Career Profile (career totals, favourite realm, configuration)
 
 Plus a pause modal. Design tokens live in `gfx/DesignTokens.kt`; the UI is drawn at a
-640×360 dp design scale that stretches to any landscape ratio without distortion. The
+360×640 dp portrait design scale (height adapts to long phones) without distortion. The
 Rajdhani and Plus Jakarta Sans typefaces are bundled (`app/src/main/res/font`) and licensed
 under the SIL OFL — see `docs/licenses/`.
+
+**Orientation:** portrait. The master brief asked for landscape, but the reference plates
+(`Ref-1` … `Ref-7`) are portrait captures and take precedence — see
+[`docs/reference/README.md`](docs/reference/README.md).
 
 **Progression & audio** — coins from distance/performance, persistence in
 SharedPreferences JSON, world unlocks, achievements, four quality tiers, and procedural

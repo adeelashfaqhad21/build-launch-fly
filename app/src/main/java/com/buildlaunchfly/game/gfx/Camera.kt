@@ -10,7 +10,7 @@ class Camera {
     val position = Vec3(0f, 10f, 20f)
     val target = Vec3(0f, 0f, 0f)
 
-    var fovYDegrees = 58f
+    var fovYDegrees = 66f
     var aspect = 16f / 9f
     var near = 0.2f
     var far = 2400f

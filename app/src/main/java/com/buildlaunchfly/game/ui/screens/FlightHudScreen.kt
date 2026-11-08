@@ -11,7 +11,7 @@ import com.buildlaunchfly.game.ui.UiScreen
 import com.buildlaunchfly.game.ui.UiTextStyle
 import com.buildlaunchfly.game.world.WorldCatalog
 
-/** Screen 5 — In-flight gameplay HUD and launch HUD (design.md §6). */
+/** Screen 5 — Launch and in-flight HUD (portrait). */
 object FlightHudScreen {
 
     fun drawLaunch(f: UiFrame) {
@@ -26,7 +26,7 @@ object FlightHudScreen {
         f.label(
             world.displayName.uppercase(),
             w / 2f,
-            DesignTokens.SAFE_TOP + 20f,
+            DesignTokens.SAFE_TOP + 24f,
             UiTextStyle.HUD_LABEL,
             DesignTokens.TEXT_MUTED,
             Paint.Align.CENTER
@@ -38,13 +38,18 @@ object FlightHudScreen {
         f.label(
             "PULL BACK AND RELEASE",
             w / 2f,
-            h - DesignTokens.SAFE_BOTTOM - 52f,
+            h - DesignTokens.SAFE_BOTTOM - 74f,
             UiTextStyle.HUD_LABEL,
             DesignTokens.TEXT_PRIMARY,
             Paint.Align.CENTER
         )
 
-        val meter = f.rect((w - 260f) / 2f, h - DesignTokens.SAFE_BOTTOM - 40f, 260f, 10f)
+        val meter = f.rect(
+            DesignTokens.MARGIN_H,
+            h - DesignTokens.SAFE_BOTTOM - 58f,
+            w - DesignTokens.MARGIN_H * 2f,
+            12f
+        )
         f.progressBar(
             meter,
             pull,
@@ -54,7 +59,7 @@ object FlightHudScreen {
         f.label(
             "${UiFormat.percent(pull)}  \u2022  ${UiFormat.kmh(speedMs * 3.6f)}",
             w / 2f,
-            h - DesignTokens.SAFE_BOTTOM - 6f,
+            h - DesignTokens.SAFE_BOTTOM - 14f,
             UiTextStyle.BADGE,
             DesignTokens.TEXT_MUTED,
             Paint.Align.CENTER
@@ -65,24 +70,22 @@ object FlightHudScreen {
         val w = f.width
         val t = f.app.telemetry()
 
-        val panel = f.rect(w / 2f - 150f, 10f, 300f, 60f)
-        f.panel(panel, 12f)
-
-        column(f, panel.left + 50f, "DIST", UiFormat.metersInt(t.distanceMeters))
-        column(f, panel.centerX(), "ALT", UiFormat.metersInt(t.altitudeMeters))
-        column(f, panel.right - 50f, "SPD", "${t.airspeedKmh.toInt()}")
-
         f.iconButton(f.rect(DesignTokens.MARGIN_H, 10f, 36f, 36f), UiIcon.PAUSE) {
             f.nav.setPaused(true)
         }
-        f.label(UiFormat.time(t.flightTimeSeconds), DesignTokens.MARGIN_H + 44f, 34f, UiTextStyle.HUD_LABEL)
+        f.label(UiFormat.time(t.flightTimeSeconds), DesignTokens.MARGIN_H + 8f, 58f, UiTextStyle.BADGE)
 
-        drawGimbal(f, 86f, 200f, 44f, t.pitchDegrees, t.rollDegrees)
+        val panel = f.rect(DesignTokens.MARGIN_H + 44f, 10f, w - DesignTokens.MARGIN_H * 2f - 44f, 62f)
+        f.panel(panel, 12f)
 
-        val banner = f.rect(w / 2f - 150f, 78f, 300f, 22f)
+        column(f, panel.left + 46f, "DIST", UiFormat.metersInt(t.distanceMeters))
+        column(f, panel.centerX(), "ALT", UiFormat.metersInt(t.altitudeMeters))
+        column(f, panel.right - 46f, "SPD", "${t.airspeedKmh.toInt()}")
+
+        val banner = f.rect(DesignTokens.MARGIN_H, 80f, w - DesignTokens.MARGIN_H * 2f, 22f)
         if (t.stallWarning) {
             f.panel(banner, 8f, DesignTokens.withAlpha(DesignTokens.COLOR_HAZARD, 0.8f), DesignTokens.COLOR_HAZARD)
-            f.labelIn(banner, "STALL HAZARD \u2014 PITCH NOSE DOWN", UiTextStyle.BADGE, DesignTokens.TEXT_PRIMARY)
+            f.labelIn(banner, "STALL \u2014 PITCH NOSE DOWN", UiTextStyle.BADGE, DesignTokens.TEXT_PRIMARY)
         } else if (t.climbing && t.verticalSpeed > 5f) {
             f.panel(banner, 8f, DesignTokens.withAlpha(DesignTokens.COLOR_PRIMARY_AERO, 0.78f), DesignTokens.COLOR_PRIMARY_GLOW)
             val pulse = 0.65f + 0.35f * kotlin.math.sin(f.time * 5f)
@@ -93,12 +96,13 @@ object FlightHudScreen {
                 DesignTokens.withAlpha(DesignTokens.TEXT_PRIMARY, pulse)
             )
         }
+
+        drawGimbal(f, DesignTokens.MARGIN_H + 46f, 180f, 38f, t.pitchDegrees, t.rollDegrees)
     }
 
-
     private fun column(f: UiFrame, x: Float, caption: String, value: String) {
-        f.label(caption, x, 28f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
-        f.label(value, x, 52f, UiTextStyle.H1, DesignTokens.TEXT_PRIMARY, Paint.Align.CENTER)
+        f.label(caption, x, 30f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
+        f.label(value, x, 54f, UiTextStyle.H1, DesignTokens.TEXT_PRIMARY, Paint.Align.CENTER)
     }
 
     private fun drawGimbal(
@@ -118,7 +122,7 @@ object FlightHudScreen {
         f.canvas.clipPath(clip)
         f.canvas.rotate(-rollDegrees, cx, cy)
 
-        val pitchOffset = pitchDegrees.coerceIn(-45f, 45f) * 1.05f
+        val pitchOffset = pitchDegrees.coerceIn(-45f, 45f) * 0.9f
 
         f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.COLOR_SUCCESS, 0.85f)
         f.painter.stroke.strokeWidth = 1.5f
@@ -127,8 +131,8 @@ object FlightHudScreen {
         f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.TEXT_PRIMARY, 0.4f)
         f.painter.stroke.strokeWidth = 1f
         for (i in -3..3) {
-            val y = cy + pitchOffset + i * 13f
-            f.canvas.drawLine(cx - 14f, y, cx + 14f, y, f.painter.stroke)
+            val y = cy + pitchOffset + i * 12f
+            f.canvas.drawLine(cx - 12f, y, cx + 12f, y, f.painter.stroke)
         }
 
         f.canvas.restore()

@@ -2,7 +2,7 @@
 
 **Document:** `design.md`
 **Role:** Graphical Designer / UI/UX Designer / 3D Environment Visual Designer
-**Target Platform:** High-End Android (Landscape 16:9 Primary Composition: 1920×1080 px, Adaptive to 18:9, 19.5:9, 20:9)
+**Target Platform:** High-End Android (Portrait 1080×1920 px primary composition, Adaptive to 18:9, 19.5:9, 20:9 portrait)
 **Quality Benchmark:** AAA Mobile Visual Fidelity (Benchmark: PUBG Mobile / Call of Duty Mobile engine material shaders, atmospheric depth, and terrain fidelity) applied strictly to aviation, exploration, and realistic natural ecosystems without military or weapon motifs.
 
 This document is normative for visuals. Where it and an earlier document disagree about
@@ -30,7 +30,7 @@ landscape note.
   5. Functional rotating propeller (hub assembly with motion-blur shader support).
   6. Further visual aircraft upgrades (streamlined canopy, dihedral winglets, aerodynamic fairings).
 - **Kinetic Slingshot Visual System:** Heavy-duty launch frame, vulcanized tension elastics, cradle carriage, hydraulic recoil pylons, and trajectory angle guide.
-- **Complete Landscape UI/UX System (10 Dedicated Screens):** Main Menu, Aircraft Workshop, Slingshot Workshop, Environment Selection, Gameplay HUD, Flight Results, Upgrade & Reward Screens, Settings, Progress & Achievement Screens, Pilot Career Profile.
+- **Complete Portrait UI/UX System (10 Dedicated Screens):** Main Menu, Aircraft Workshop, Slingshot Workshop, Environment Selection, Gameplay HUD, Flight Results, Upgrade & Reward Screens, Settings, Progress & Achievement Screens, Pilot Career Profile.
 - **Design Tokens & Asset Architecture:** Reusable typography scale, color tokens, glassmorphism panel metrics, vector telemetry icons, 9-patch slice specs, and 3D bone rigging hierarchy.
 
 ### 1.2 Developer Boundary (Hand-Off Systems Handled by Android / Game Dev)
@@ -92,16 +92,22 @@ loaded by `ui/UiFonts.kt`. They are licensed under the SIL Open Font License; th
 texts are in `docs/licenses/`. Platform typefaces remain as a fallback if a font resource
 fails to load.
 
-### 2.3 Layout & Safe-Area Grids (16:9 Landscape Benchmark)
-- **Base Canvas:** `1920 × 1080 px` (Aspect Ratio 16:9). Implemented as a `640 × 360 dp`
-  design space (`density 3`), so every value in this document maps 1:1 to dp on device.
-- **Adaptive Horizontal Margins:** Left & Right padding `48dp` (accommodates Android punch-hole cameras, curved bezel corners, and gesture exclusion zones).
-- **Top Bar Safe Area:** `24dp` top offset clear of the Android status bar.
-- **Bottom Gesture Safe Area:** `16dp` bottom padding clear of the Android navigation bar.
-- **Minimum Touch Target:** `48 × 48dp` (all primary buttons designed at 52–64dp touch area).
-- **Adaptation:** height is fixed at 360dp; width expands with the device ratio (640dp at
-  16:9, 800dp at 20:9). Left content anchors left, right content anchors right, centre
+### 2.3 Layout & Safe-Area Grids
+- **Base Canvas:** portrait, per the authoritative reference plates (`Ref-1` … `Ref-7`).
+  Implemented as a `360 × 640 dp` design space (`density 3` equivalent), so values map 1:1
+  to dp on device.
+- **Adaptive Horizontal Margins:** Left & right padding `20dp` (accommodates punch-hole
+  cameras, curved bezel corners and gesture exclusion zones).
+- **Top Bar Safe Area:** `20dp` top offset clear of the Android status bar.
+- **Bottom Gesture Safe Area:** `16dp` bottom padding clear of the navigation bar.
+- **Minimum Touch Target:** `48 × 48dp` (primary buttons are 52–64dp tall).
+- **Adaptation:** width is fixed at 360dp; height expands with the device ratio (640dp at
+  16:9, ~800dp at 20:9). Top, bottom and edge content anchor to their margins; centre
   content centres. Nothing stretches.
+
+> **Orientation decision:** the master brief called for landscape, but the reference plates
+> are portrait phone captures and take precedence (see `docs/reference/README.md`). The game
+> therefore runs portrait, and this section supersedes the earlier landscape grid.
 
 ---
 
@@ -270,7 +276,7 @@ smoke puff at the cradle and a camera impulse shake.
 
 ---
 
-## 6. COMPLETE LANDSCAPE UI/UX DESIGN SYSTEM (Brief Section 9)
+## 6. COMPLETE PORTRAIT UI/UX DESIGN SYSTEM (Brief Section 9)
 
 ### Screen 1: Main Menu
 - **Top Header Bar:**
@@ -438,7 +444,7 @@ carousel binds to.
 |---|---|---|
 | **Fully Editable Files** (Sec 1, 10) | Verified | Design tokens in `gfx/DesignTokens.kt`, UI primitives in `ui/`, complete screen suite |
 | **Realistic Quality Benchmark** (Sec 2) | Verified | High-definition PBR material tokens, natural lighting, shadow treatments, atmospheric depth |
-| **Landscape 16:9 Android Format** (Sec 2, 9) | Verified | 640×360 dp design space scaling to 1920×1080, safe zones for punch-holes & gestures |
+| **Portrait reference layout** (Sec 2, 9) | Verified | 360×640 dp portrait design space, adaptive height, safe zones for punch-holes & gestures |
 | **Forest Ecosystem** (Sec 3.1) | Verified | Undulating slopes, multi-tier canopy, visible soil, haze, water body |
 | **Desert Ecosystem** (Sec 3.2) | Verified | Dunes with slipfaces, wadis, sparse flora, red rock, dust |
 | **Snow/Glacier Ecosystem** (Sec 3.3) | Verified | Jagged peaks, ice, frozen water, conifers, blowing spindrift |
@@ -448,5 +454,5 @@ carousel binds to.
 | **Sky, Sunlight, Clouds & Atmosphere** (Sec 6) | Verified | Distinct atmospheric properties, light scattering, cloud formations for all 5 realms |
 | **Aircraft Progressive Development** (Sec 8) | Verified | Exact 6-stage progression from wingless body to wings, tail, rotating propeller, upgrades |
 | **Kinetic Slingshot Workshop** (Sec 8) | Verified | Stretched elastics with amber→cyan tension tint, heavy launch frame, angle/elevation controls |
-| **Complete UI Screens Suite** (Sec 9) | Verified | All 10 mandatory landscape screens implemented with live data and tokens |
+| **Complete UI Screens Suite** (Sec 9) | Verified | All 10 mandatory portrait screens implemented with live data and tokens |
 | **Developer Hand-Off Clarity** (Sec 10, 11, 12) | Verified | Clean separation of design vs code; 3D locator conventions and Kotlin models |

@@ -1,39 +1,39 @@
-package com.buildlaunchfly.game.ui.screens
+package com.buildlaunchfly.game.ui
 
 import android.graphics.Paint
 import android.graphics.RectF
 import com.buildlaunchfly.game.gfx.DesignTokens
-import com.buildlaunchfly.game.ui.UiButtonStyle
-import com.buildlaunchfly.game.ui.UiFormat
-import com.buildlaunchfly.game.ui.UiFrame
-import com.buildlaunchfly.game.ui.UiIcon
-import com.buildlaunchfly.game.ui.UiIcons
-import com.buildlaunchfly.game.ui.UiScreen
-import com.buildlaunchfly.game.ui.UiTextStyle
 import com.buildlaunchfly.game.world.WorldCatalog
 import com.buildlaunchfly.game.world.WorldDefinition
 import com.buildlaunchfly.game.world.WorldId
 
-/** Screen 4 — Environment Selection carousel (design.md §6). */
+/** Screen 4 — Environment Selection, a portrait list of the five realms. */
 object WorldSelectScreen {
 
     fun draw(f: UiFrame) {
         val contentTop = f.header("ENVIRONMENT SELECTION")
         val worlds = WorldCatalog.all
-        val gap = 10f
-        val cardWidth = (f.width - DesignTokens.MARGIN_H * 2f - gap * 4f) / 5f
-        val cardHeight = 170f
+        val cardHeight = 78f
+        val gap = 8f
 
         worlds.forEachIndexed { index, definition ->
-            val x = DesignTokens.MARGIN_H + index * (cardWidth + gap)
-            val r = f.rect(x, contentTop + 14f, cardWidth, cardHeight)
-            drawCard(f, r, index, worlds, worlds[index])
+            val r = f.rect(
+                DesignTokens.MARGIN_H,
+                contentTop + 4f + index * (cardHeight + gap),
+                f.width - DesignTokens.MARGIN_H * 2f,
+                cardHeight
+            )
+            drawCard(f, r, index, worlds, definition)
         }
 
         val selected = worlds[f.nav.worldCursor.coerceIn(0, worlds.size - 1)]
         val unlocked = f.app.playerProfile.unlockedWorlds.contains(selected.id)
-        val buttonWidth = 240f
-        val button = f.rect((f.width - buttonWidth) / 2f, f.height - DesignTokens.SAFE_BOTTOM - 44f, buttonWidth, 44f)
+        val button = f.rect(
+            DesignTokens.MARGIN_H,
+            f.height - DesignTokens.SAFE_BOTTOM - 48f,
+            f.width - DesignTokens.MARGIN_H * 2f,
+            48f
+        )
 
         if (unlocked) {
             f.button(button, "LAUNCH IN THIS REALM", UiButtonStyle.PRIMARY) {
@@ -43,7 +43,7 @@ object WorldSelectScreen {
         } else {
             f.button(
                 r = button,
-                text = "LOCKED \u2014 REACH ${worlds[f.nav.worldCursor].unlockDistanceMeters.toInt()} m",
+                text = "LOCKED \u2014 REACH ${selected.unlockDistanceMeters.toInt()} m",
                 style = UiButtonStyle.SECONDARY,
                 enabled = false,
                 onClick = {}
@@ -72,56 +72,44 @@ object WorldSelectScreen {
             f.panelGlow(r, 12f, DesignTokens.withAlpha(DesignTokens.COLOR_PRIMARY_GLOW, 0.55f), 2f)
         }
 
-        f.badge(r.left + 10f, r.top + 10f, if (unlocked) "OPEN" else "LOCKED",
-            if (unlocked) DesignTokens.COLOR_SUCCESS else DesignTokens.COLOR_HAZARD)
-
-        var y = r.top + 34f
-        y = f.paragraph(
-            definition.displayName.uppercase(),
-            r.left + 10f,
-            y,
-            r.width() - 20f,
-            UiTextStyle.H2,
-            DesignTokens.TEXT_PRIMARY,
-            19f
-        )
-        y = f.paragraph(
-            weatherFor(definition.id),
-            r.left + 10f,
-            y + 6f,
-            r.width() - 20f,
-            UiTextStyle.BODY,
-            DesignTokens.TEXT_MUTED,
-            14f
+        f.badge(
+            r.right - 60f,
+            r.top + 9f,
+            if (unlocked) "OPEN" else "LOCKED",
+            if (unlocked) DesignTokens.COLOR_SUCCESS else DesignTokens.COLOR_HAZARD
         )
 
-        f.label("WIND", r.left + 10f, y + 10f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
-        f.label(windFor(definition.id), r.left + 10f, y + 24f, UiTextStyle.BODY, DesignTokens.TEXT_PRIMARY)
-
-        f.divider(r.left + 10f, r.right - 10f, r.bottom - 44f)
-        f.label("PERSONAL BEST", r.left + 10f, r.bottom - 26f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
         f.label(
-            UiFormat.meters(profile.bestForWorld(definition.id)),
+            truncate(f, definition.displayName.uppercase(), r.width() - 80f, UiTextStyle.H2),
+            r.left + 10f,
+            r.top + 26f,
+            UiTextStyle.H2,
+            DesignTokens.TEXT_PRIMARY
+        )
+        f.label(
+            truncate(f, weatherFor(definition.id), r.width() - 20f, UiTextStyle.BODY),
+            r.left + 10f,
+            r.top + 44f,
+            UiTextStyle.BODY,
+            DesignTokens.TEXT_MUTED
+        )
+
+        f.label("WIND ${windFor(definition.id)}", r.left + 10f, r.bottom - 10f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED)
+        f.label(
+            "BEST ${UiFormat.meters(profile.bestForWorld(definition.id))}",
             r.right - 10f,
-            r.bottom - 26f,
-            UiTextStyle.HUD_LABEL,
+            r.bottom - 10f,
+            UiTextStyle.BADGE,
             DesignTokens.COLOR_PRIMARY_GLOW,
             Paint.Align.RIGHT
         )
 
         if (!unlocked) {
             f.solid(r, 12f, DesignTokens.withAlpha(0x000000, 0.55f))
-            UiIcons.draw(
-                f.canvas,
-                f.painter,
-                UiIcon.LOCK,
-                RectF(r.centerX() - 14f, r.centerY() - 20f, r.centerX() + 14f, r.centerY() + 8f),
-                DesignTokens.TEXT_PRIMARY
-            )
             f.label(
                 "REACH ${definition.unlockDistanceMeters.toInt()} m",
                 r.centerX(),
-                r.centerY() + 28f,
+                r.centerY() + 4f,
                 UiTextStyle.BADGE,
                 DesignTokens.TEXT_PRIMARY,
                 Paint.Align.CENTER
@@ -129,6 +117,15 @@ object WorldSelectScreen {
         }
 
         f.hit(r, { f.nav.worldCursor = index.coerceIn(0, worlds.size - 1) })
+    }
+
+    private fun truncate(f: UiFrame, text: String, maxWidth: Float, style: UiTextStyle): String {
+        if (f.textWidth(text, style) <= maxWidth) return text
+        var result = text
+        while (result.length > 4 && f.textWidth("$result\u2026", style) > maxWidth) {
+            result = result.substring(0, result.length - 1)
+        }
+        return "$result\u2026"
     }
 
     private fun weatherFor(id: WorldId): String = when (id) {

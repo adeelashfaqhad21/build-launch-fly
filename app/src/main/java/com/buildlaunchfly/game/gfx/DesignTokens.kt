@@ -52,10 +52,12 @@ object DesignTokens {
     const val RADIUS_PILL = 26f
 
     // ---- Layout ----------------------------------------------------------
-    const val DESIGN_WIDTH = 640f
-    const val DESIGN_HEIGHT = 360f
-    const val MARGIN_H = 24f
-    const val SAFE_TOP = 24f
+    // Portrait design space, per the reference plates: 360dp wide, 640dp tall at 16:9
+    // and taller on long phones (the height is taken from the viewport at runtime).
+    const val DESIGN_WIDTH = 360f
+    const val DESIGN_HEIGHT = 640f
+    const val MARGIN_H = 20f
+    const val SAFE_TOP = 20f
     const val SAFE_BOTTOM = 16f
     const val TOUCH_MIN = 48f
 

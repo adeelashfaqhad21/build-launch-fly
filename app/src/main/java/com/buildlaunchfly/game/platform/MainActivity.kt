@@ -11,7 +11,7 @@ import com.buildlaunchfly.game.game.GameApp
 import com.buildlaunchfly.game.ui.GameOverlayView
 
 /**
- * Native Android entry point: landscape, fullscreen, immersive, screen kept awake.
+ * Native Android entry point: portrait, fullscreen, immersive, screen kept awake.
  *
  * The 3D world is rendered by [GameSurfaceView] (a SurfaceView) and the complete UI system
  * is drawn by [GameOverlayView] on top of it, so the HUD and screens composite over the
@@ -28,7 +28,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        // Portrait, to match the authoritative reference plates.
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setVolumeControlStream(AudioManager.STREAM_MUSIC)
 

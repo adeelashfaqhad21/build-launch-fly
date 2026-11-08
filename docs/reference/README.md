@@ -25,14 +25,12 @@ build and engineering constraints.
 2. `docs/DESIGN.md`
 3. `docs/MASTER_BRIEF.md`
 
-## Aspect note
+## Aspect and orientation decision
 
-All six stills are **portrait** (1284 × 2778), while `docs/MASTER_BRIEF.md` §9 and
-`docs/DESIGN.md` §2.3 mandate **landscape, 16:9-first**. Those two positions cannot both be
-literal. Until the references are re-captured in landscape (or the rule is changed), the
-working interpretation is: the references define the visual language — palette, materials,
-silhouettes, HUD content, camera framing, aircraft and slingshot forms — and it is adapted
-to the landscape canvas the brief requires.
+All six stills are **portrait** (1284 × 2778). The master brief originally asked for
+landscape, but the references take precedence and the game now runs **portrait**
+(`sensorPortrait` in the manifest, 360 dp design width). The UI has been re-laid out for
+portrait, and `docs/DESIGN.md` §2.3 and §6 record that this supersedes the landscape grid.
 
 ## What each plate is used for
 

@@ -24,9 +24,9 @@ import com.buildlaunchfly.game.ui.screens.WorldSelectScreen
 import com.buildlaunchfly.game.world.WorldCatalog
 
 /**
- * The whole landscape UI system from design.md §6, drawn as a transparent overlay above
+ * The whole portrait UI system from design.md §6, drawn as a transparent overlay above
  * the GL surface. One View, ten screens, immediate-mode drawing at dp scale so every
- * element stays crisp and adapts from 16:9 to 20:9.
+ * element stays crisp and adapts from 16:9 to 20:9 portrait phones.
  */
 class GameOverlayView(
     context: Context,

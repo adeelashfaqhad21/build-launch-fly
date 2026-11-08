@@ -14,7 +14,7 @@ import com.buildlaunchfly.game.ui.UiScreen
 import com.buildlaunchfly.game.ui.UiTextStyle
 import com.buildlaunchfly.game.world.WorldCatalog
 
-/** Screen 1 — Main Menu (design.md §6). */
+/** Screen 1 — Main Menu (portrait, per the reference plates). */
 object MenuScreen {
 
     fun draw(f: UiFrame) {
@@ -26,45 +26,51 @@ object MenuScreen {
         drawProfilePill(f)
         drawTopRightCluster(f)
 
-        f.label("BUILD \u2022 LAUNCH \u2022 FLY", DesignTokens.MARGIN_H, 136f, UiTextStyle.DISPLAY_HERO)
+        f.label("BUILD \u2022 LAUNCH \u2022 FLY", DesignTokens.MARGIN_H, 154f, UiTextStyle.DISPLAY_HERO)
         f.label(
             "READY ON THE PAD \u2014 ${world.displayName.uppercase()}",
             DesignTokens.MARGIN_H,
-            158f,
+            176f,
             UiTextStyle.BODY,
             DesignTokens.TEXT_MUTED
         )
 
-        drawHotspot(f, w * 0.55f + 60f, 152f, propellerTag(f))
-        drawHotspot(f, w * 0.46f - 40f, 200f, wingTag(f))
+        drawHotspot(f, w * 0.50f, 208f, propellerTag(f))
+        drawHotspot(f, w * 0.50f - 24f, 236f, wingTag(f))
 
-        val deckY = h - DesignTokens.SAFE_BOTTOM - 56f
-        var x = DesignTokens.MARGIN_H
-        navButton(f, f.rect(x, deckY, 96f, 56f), UiIcon.PLANE, "AIRCRAFT") {
-            f.nav.go(UiScreen.AIRCRAFT)
-        }
-        x += 96f + 8f
-        navButton(f, f.rect(x, deckY, 96f, 56f), UiIcon.SLINGSHOT, "SLINGSHOT") {
-            f.nav.go(UiScreen.SLINGSHOT)
-        }
-        x += 96f + 8f
-        navButton(f, f.rect(x, deckY, 96f, 56f), UiIcon.GLOBE, "REALMS") {
-            f.nav.go(UiScreen.WORLDS)
-        }
-
-        val cta = f.rect(w - DesignTokens.MARGIN_H - 216f, deckY, 216f, 56f)
+        val navY = h - DesignTokens.SAFE_BOTTOM - 56f
+        val cta = f.rect(DesignTokens.MARGIN_H, navY - 64f, w - DesignTokens.MARGIN_H * 2f, 56f)
         f.button(cta, "CHOOSE REALM & LAUNCH", UiButtonStyle.PRIMARY) {
             f.nav.go(UiScreen.WORLDS)
         }
+
+        val navWidth = (w - DesignTokens.MARGIN_H * 2f - 16f) / 3f
+        val step = navWidth + 8f
+        navButton(f, f.rect(DesignTokens.MARGIN_H, navY, navWidth, 56f), UiIcon.PLANE, "AIRCRAFT") {
+            f.nav.go(UiScreen.AIRCRAFT)
+        }
+        navButton(
+            f,
+            f.rect(DesignTokens.MARGIN_H + step, navY, navWidth, 56f),
+            UiIcon.SLINGSHOT,
+            "SLINGSHOT"
+        ) { f.nav.go(UiScreen.SLINGSHOT) }
+        navButton(
+            f,
+            f.rect(DesignTokens.MARGIN_H + step * 2f, navY, navWidth, 56f),
+            UiIcon.GLOBE,
+            "REALMS"
+        ) { f.nav.go(UiScreen.WORLDS) }
     }
 
     private fun drawProfilePill(f: UiFrame) {
+        val w = f.width
         val profile = f.app.playerProfile
-        val pill = f.rect(DesignTokens.MARGIN_H, DesignTokens.SAFE_TOP, 236f, 52f)
+        val pill = f.rect(DesignTokens.MARGIN_H, DesignTokens.SAFE_TOP, w - DesignTokens.MARGIN_H * 2f, 56f)
         f.panel(pill, 14f)
-        f.circle(pill.left + 26f, pill.centerY(), 17f, DesignTokens.COLOR_PRIMARY_AERO)
+        f.circle(pill.left + 26f, pill.centerY(), 18f, DesignTokens.COLOR_PRIMARY_AERO)
         f.labelIn(
-            f.rect(pill.left + 9f, pill.centerY() - 17f, 34f, 34f),
+            f.rect(pill.left + 8f, pill.centerY() - 18f, 36f, 36f),
             "CPT",
             UiTextStyle.BADGE,
             DesignTokens.TEXT_PRIMARY
@@ -78,18 +84,18 @@ object MenuScreen {
             DesignTokens.TEXT_MUTED
         )
         f.progressBar(
-            f.rect(pill.left + 52f, pill.bottom - 8f, 168f, 4f),
+            f.rect(pill.left + 52f, pill.bottom - 9f, pill.width() - 64f, 4f),
             profile.levelProgressFraction()
         )
     }
 
     private fun drawTopRightCluster(f: UiFrame) {
         val w = f.width
-        val top = DesignTokens.SAFE_TOP
+        val top = DesignTokens.SAFE_TOP + 64f
         val gear = f.rect(w - DesignTokens.MARGIN_H - 36f, top, 36f, 36f)
         val trophy = f.rect(gear.left - 8f - 36f, top, 36f, 36f)
         val user = f.rect(trophy.left - 8f - 36f, top, 36f, 36f)
-        val coins = f.rect(user.left - 10f - 118f, top, 118f, 36f)
+        val coins = f.rect(DesignTokens.MARGIN_H, top + 3f, 116f, 30f)
 
         f.iconButton(gear, UiIcon.GEAR) { f.nav.go(UiScreen.SETTINGS) }
         f.iconButton(trophy, UiIcon.TROPHY) { f.nav.go(UiScreen.ACHIEVEMENTS) }
@@ -100,14 +106,14 @@ object MenuScreen {
             f.canvas,
             f.painter,
             UiIcon.COIN,
-            RectF(coins.left + 5f, coins.centerY() - 10f, coins.left + 25f, coins.centerY() + 10f),
+            RectF(coins.left + 5f, coins.centerY() - 9f, coins.left + 23f, coins.centerY() + 9f),
             DesignTokens.COLOR_COIN_GOLD
         )
         f.label(
             UiFormat.coins(f.app.playerProfile.coins),
-            coins.right - 10f,
+            coins.right - 9f,
             coins.centerY() + 4f,
-            UiTextStyle.HUD_LABEL,
+            UiTextStyle.BADGE,
             DesignTokens.TEXT_PRIMARY,
             Paint.Align.RIGHT
         )
@@ -119,7 +125,7 @@ object MenuScreen {
             f.canvas,
             f.painter,
             icon,
-            RectF(r.centerX() - 10f, r.top + 6f, r.centerX() + 10f, r.top + 26f),
+            RectF(r.centerX() - 10f, r.top + 7f, r.centerX() + 10f, r.top + 27f),
             DesignTokens.TEXT_PRIMARY
         )
         f.label(caption, r.centerX(), r.bottom - 7f, UiTextStyle.BADGE, DesignTokens.TEXT_MUTED, Paint.Align.CENTER)
@@ -128,14 +134,15 @@ object MenuScreen {
 
     private fun drawHotspot(f: UiFrame, x: Float, y: Float, text: String) {
         val width = f.textWidth(text, UiTextStyle.BADGE) + 16f
-        val r = RectF(x, y, x + width, y + 18f)
+        val r = RectF(x.coerceAtMost(f.width - DesignTokens.MARGIN_H - width), y, 0f, y + 18f)
+        r.right = r.left + width
         f.solid(r, 9f, DesignTokens.withAlpha(DesignTokens.SURFACE_MODAL_BG, 0.82f))
         f.ring(r, 9f, DesignTokens.GLASS_BORDER)
         f.labelIn(r, text, UiTextStyle.BADGE, DesignTokens.COLOR_PRIMARY_GLOW)
 
         f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.COLOR_PRIMARY_GLOW, 0.5f)
         f.painter.stroke.strokeWidth = 1f
-        f.canvas.drawLine(r.left, r.bottom, r.left + 18f, r.bottom + 14f, f.painter.stroke)
+        f.canvas.drawLine(r.left, r.bottom, r.left + 16f, r.bottom + 12f, f.painter.stroke)
     }
 
     private fun propellerTag(f: UiFrame): String {

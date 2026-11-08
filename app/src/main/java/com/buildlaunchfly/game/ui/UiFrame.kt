@@ -324,39 +324,39 @@ class UiFrame(
         labelIn(r, text, UiTextStyle.BADGE, textColor)
     }
 
-    /** Standard screen header with back control, title and coin readout. Returns content top. */
+    /** Standard screen header: back control and coins on the first row, title below it. */
     fun header(title: String, showCoins: Boolean = true): Float {
-        val backRect = rect(DesignTokens.MARGIN_H, DesignTokens.SAFE_TOP, 36f, 40f)
+        val backRect = rect(DesignTokens.MARGIN_H, DesignTokens.SAFE_TOP, 36f, 36f)
         iconButton(backRect, UiIcon.BACK) { nav.back() }
 
-        label(
-            text = title.uppercase(),
-            x = DesignTokens.MARGIN_H + 48f,
-            y = DesignTokens.SAFE_TOP + 20f,
-            style = UiTextStyle.H1,
-            color = DesignTokens.TEXT_PRIMARY
-        )
-
         if (showCoins) {
-            val coinRect = rect(width - DesignTokens.MARGIN_H - 116f, DesignTokens.SAFE_TOP, 116f, 36f)
+            val coinRect = rect(width - DesignTokens.MARGIN_H - 96f, DesignTokens.SAFE_TOP + 3f, 96f, 30f)
             panel(coinRect, DesignTokens.RADIUS_PILL)
             UiIcons.draw(
                 canvas,
                 painter,
                 UiIcon.COIN,
-                RectF(coinRect.left + 6f, coinRect.centerY() - 10f, coinRect.left + 26f, coinRect.centerY() + 10f),
+                RectF(coinRect.left + 4f, coinRect.centerY() - 9f, coinRect.left + 22f, coinRect.centerY() + 9f),
                 DesignTokens.COLOR_COIN_GOLD
             )
             label(
                 UiFormat.coins(app.playerProfile.coins),
-                coinRect.right - 10f,
+                coinRect.right - 8f,
                 coinRect.centerY() + 4f,
-                UiTextStyle.HUD_LABEL,
+                UiTextStyle.BADGE,
                 DesignTokens.TEXT_PRIMARY,
                 Paint.Align.RIGHT
             )
         }
 
-        return DesignTokens.SAFE_TOP + 56f
+        label(
+            text = title.uppercase(),
+            x = DesignTokens.MARGIN_H,
+            y = DesignTokens.SAFE_TOP + 64f,
+            style = UiTextStyle.H1,
+            color = DesignTokens.TEXT_PRIMARY
+        )
+
+        return DesignTokens.SAFE_TOP + 74f
     }
 }

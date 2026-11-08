@@ -4,7 +4,7 @@
 
 ```
 MainActivity (android.app.Activity)
-  └── GameSurfaceView (android.opengl.GLSurfaceView, ES 3.0, landscape, immersive)
+  └── GameSurfaceView (android.opengl.GLSurfaceView, ES 3.0, portrait, immersive)
         └── GameRenderer (GLSurfaceView.Renderer)
               └── GameApp            ← engine owner, built on the GL thread
                     ├── SceneRenderer        (gfx)   passes, programs, uniforms
@@ -120,7 +120,7 @@ MainActivity (FrameLayout)
 - `ui/UiIcons.kt` — resolution-independent vector telemetry icons.
 - `ui/GameOverlayView.kt` — `UiNav` implementation: screen routing, touch, slider drags,
   workshop orbit drags, pause modal. One `UiFrame` per frame in a 640×360dp design space
-  that adapts to any landscape ratio.
+  that adapts to any portrait ratio.
 - `ui/screens/` — menu, aircraft workshop, slingshot lab, environment select, flight HUD,
   results, reward, settings, achievements, career profile, pause.
 
