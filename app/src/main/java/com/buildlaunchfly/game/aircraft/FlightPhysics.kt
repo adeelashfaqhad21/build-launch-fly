@@ -169,7 +169,6 @@ class FlightPhysics {
 
         // Integrate accelerations.
         accel.set(0f, -9.81f, 0f)
-        accel.y -= altitudeCeilingBrake
         accel.addScaled(forward, thrustAccel)
         accel.addScaled(up, liftAccel)
         if (speed > 1e-4f) {
