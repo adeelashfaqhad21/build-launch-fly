@@ -19,12 +19,14 @@ object SlingshotLayout {
 }
 
 /**
- * Static slingshot frame plus two elastic bands drawn as unit cylinders whose model matrix
- * is rebuilt from the current draw position every frame.
+ * Static slingshot frame, the dark trapezoidal launch ramp between the posts, and two
+ * yellow/cream striped elastic bands drawn as unit cylinders whose model matrix is rebuilt
+ * from the current draw position every frame.
  */
 class SlingshotMesh(textures: TextureFactory) {
 
     val frameMesh: Mesh
+    val rampMesh: Mesh
     val bandMesh: Mesh
 
     val frameMaterial = Material(
@@ -35,10 +37,20 @@ class SlingshotMesh(textures: TextureFactory) {
         uvScale = 2.2f
     )
 
+    /** Dark graphite ramp deck, per DESIGN §3.6. */
+    val rampMaterial = Material(
+        albedo = textures.metal,
+        tint = Vec3(0.34f, 0.30f, 0.27f),
+        roughness = 0.92f,
+        metallic = 0f,
+        uvScale = 2f
+    )
+
+    /** Yellow/cream warning-striped elastics; the texture carries the two colours. */
     val bandMaterial = Material(
-        albedo = textures.rubber,
-        tint = Vec3(0.85f, 0.30f, 0.28f),
-        roughness = 0.55f,
+        albedo = textures.hazard,
+        tint = Vec3(1f, 1f, 1f),
+        roughness = 0.72f,
         metallic = 0f,
         uvScale = 1f
     )
@@ -47,11 +59,11 @@ class SlingshotMesh(textures: TextureFactory) {
     private val tempRight = Vec3()
     private val tempBack = Vec3()
     private val tempEye = Vec3()
-    private val bandMatrixLeft = Mat4()
-    private val bandMatrixRight = Mat4()
+    private val tempSag = Vec3()
 
     init {
         frameMesh = Mesh("slingshotFrame", buildFrameData())
+        rampMesh = Mesh("slingshotRamp", buildRampData())
         bandMesh = Mesh("slingshotBand", buildBandData())
     }
 
@@ -89,10 +101,29 @@ class SlingshotMesh(textures: TextureFactory) {
         return b.build()
     }
 
+    /** Dark trapezoidal deck sloping down toward -Z, with rails and a front lip. */
+    private fun buildRampData(): MeshData {
+        val b = MeshBuilder()
+
+        b.pushTrs(0f, 0.52f, -0.18f, -0.24f, 0f, 0f, 1f)
+        b.addBox(0f, 0f, 0f, 0.90f, 0.06f, 0.95f, 2f)
+        b.pop()
+
+        for (side in intArrayOf(-1, 1)) {
+            b.pushTrs(side * 0.84f, 0.60f, -0.18f, -0.24f, 0f, 0f, 1f)
+            b.addBox(0f, 0f, 0f, 0.05f, 0.10f, 0.95f, 2f)
+            b.pop()
+        }
+
+        b.addBox(0f, 0.22f, -1.12f, 0.86f, 0.20f, 0.05f, 2f)
+
+        return b.build()
+    }
+
     /** Unit cylinder from y=0 to y=1, radius 1, so a model matrix can stretch it. */
     private fun buildBandData(): MeshData {
         val b = MeshBuilder()
-        b.addCylinder(0f, 0.5f, 0f, 0.045f, 0.045f, 1f, 6, false, false, 1f)
+        b.addCylinder(0f, 0.5f, 0f, 0.07f, 0.07f, 1f, 8, false, false, BAND_STRIPE_TILES)
         return b.build()
     }
 
@@ -131,21 +162,42 @@ class SlingshotMesh(textures: TextureFactory) {
         return out
     }
 
-    /** Left band transform for the current draw offset. */
-    fun leftBandMatrix(pull: Float, out: Mat4): Mat4 {
+    /** Left band as two segments hung from a sagging midpoint, so slack reads as slack. */
+    fun leftBandMatrices(draw: Float, sag: Float, outA: Mat4, outB: Mat4) {
         val thickness = 1f + thicknessBoost
-        return bandMatrix(SlingshotLayout.LEFT_PRONG, holdPoint(pull), thickness, out)
+        val from = SlingshotLayout.LEFT_PRONG
+        val to = holdPoint(draw)
+        sagPoint(from, to, sag, tempSag)
+        bandMatrix(from, tempSag, thickness, outA)
+        bandMatrix(tempSag, to, thickness, outB)
     }
 
-    fun rightBandMatrix(pull: Float, out: Mat4): Mat4 {
+    fun rightBandMatrices(draw: Float, sag: Float, outA: Mat4, outB: Mat4) {
         val thickness = 1f + thicknessBoost
-        return bandMatrix(SlingshotLayout.RIGHT_PRONG, holdPoint(pull), thickness, out)
+        val from = SlingshotLayout.RIGHT_PRONG
+        val to = holdPoint(draw)
+        sagPoint(from, to, sag, tempSag)
+        bandMatrix(from, tempSag, thickness, outA)
+        bandMatrix(tempSag, to, thickness, outB)
+    }
+
+    /** Chord midpoint between prong and cradle, dropped by [sag] metres. */
+    fun sagPoint(from: Vec3, to: Vec3, sag: Float, out: Vec3): Vec3 {
+        out.set(
+            (from.x + to.x) * 0.5f,
+            (from.y + to.y) * 0.5f - sag.coerceAtLeast(0f),
+            (from.z + to.z) * 0.5f
+        )
+        return out
     }
 
     var thicknessBoost: Float = 0f
 
+    /** Rendered draw length at full stretch; the frame upgrades change this. */
+    var drawLength: Float = DRAW_LENGTH
+
     fun holdPoint(pull: Float): Vec3 {
-        val d = pull.coerceIn(0f, 1f) * DRAW_LENGTH
+        val d = pull.coerceIn(0f, 1f) * drawLength
         return tempEye.set(
             SlingshotLayout.HOLD_POINT.x,
             SlingshotLayout.HOLD_POINT.y - d * 0.12f,
@@ -155,11 +207,19 @@ class SlingshotMesh(textures: TextureFactory) {
 
     fun dispose() {
         frameMesh.dispose()
+        rampMesh.dispose()
         bandMesh.dispose()
     }
 
     companion object {
         const val DRAW_LENGTH = 2.1f
+
+        /** How far the bands hang below their chord when fully slack. */
+        const val BAND_SAG = 0.17f
+
+        /** Yellow/cream stripe repeats along a band; the texture carries four per tile. */
+        private const val BAND_STRIPE_TILES = 3f
+
         private val WORLD_UP = Vec3(0f, 1f, 0f)
 
         fun distanceBand(a: Vec3, b: Vec3): Float {

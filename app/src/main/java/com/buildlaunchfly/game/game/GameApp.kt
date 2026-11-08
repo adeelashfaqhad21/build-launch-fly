@@ -87,8 +87,11 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val propellerModel = Mat4()
     private val slingshotModel = Mat4()
     private val bandLocal = Mat4()
+    private val bandLocalB = Mat4()
     private val leftBand = Mat4()
+    private val leftBandB = Mat4()
     private val rightBand = Mat4()
+    private val rightBandB = Mat4()
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
     private val focusPoint = Vec3()
@@ -97,9 +100,10 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val particleColorSnow = Vec3(1f, 1f, 1f)
     private val particleColorDust = Vec3(0.95f, 0.84f, 0.66f)
     private val particleColorSmoke = Vec3(0.94f, 0.95f, 0.97f)
-    private val bandTintAmber = Vec3(0.96f, 0.62f, 0.11f)
-    private val bandTintCyan = Vec3(0.22f, 0.74f, 0.97f)
     private val bandTintScratch = Vec3(1f, 1f, 1f)
+
+    /** Countdown for the one-shot first-flight "pull back" hint on the launch screen. */
+    private var launchHintTimer = HINT_DURATION
 
     /** True while a UI modal is up; freezes simulation but keeps rendering. */
     @Volatile
@@ -254,6 +258,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     fun requestEnterLaunch() {
         post(Runnable {
             returnToLaunch()
+            launchHintTimer = HINT_DURATION
             cameraMode = CameraMode.LAUNCH
         })
     }
@@ -433,6 +438,9 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     fun pullAmount(): Float = pull
 
+    /** Fade for the one-shot launch hint: 1 right after entering the rig, 0 once shown. */
+    fun launchHintAlpha(): Float = (launchHintTimer / HINT_DURATION).coerceIn(0f, 1f)
+
     // ---- simulation -------------------------------------------------------
 
     fun update(dtSeconds: Float) {
@@ -452,6 +460,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         slingRecoilTimer = (slingRecoilTimer - dt).coerceAtLeast(0f)
         launchPuffTimer = (launchPuffTimer - dt).coerceAtLeast(0f)
         perfectFlashTimer = (perfectFlashTimer - dt).coerceAtLeast(0f)
+        if (state == GameState.SEATED && pull < 0.05f) {
+            launchHintTimer = (launchHintTimer - dt).coerceAtLeast(0f)
+        }
         sceneRenderer.env.time = time
 
         input.consumeDrag(dragScratch)
@@ -543,6 +554,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         state = GameState.FLIGHT
         flightTime = 0f
         pull = 0f
+        launchHintTimer = 0f
         maxAltitudeThisFlight = 0f
         lastLaunchStretch = stretch
         slingRecoilStretch = stretch.coerceIn(0f, 1f)
@@ -621,6 +633,22 @@ class GameApp(private val context: Context, private val input: InputState) {
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
+        if (showSling) {
+            rig.drawLength = sling.drawLengthMeters()
+            rig.thicknessBoost = slingStateBandBoost()
+
+            // Each band is two segments hung from a sagging midpoint: slack bands droop,
+            // a full draw pulls them dead straight.
+            val sag = SlingshotMesh.BAND_SAG * (1f - slingDraw)
+            rig.leftBandMatrices(slingDraw, sag, bandLocal, bandLocalB)
+            leftBand.setProduct(slingshotModel, bandLocal)
+            leftBandB.setProduct(slingshotModel, bandLocalB)
+            rig.rightBandMatrices(slingDraw, sag, bandLocal, bandLocalB)
+            rightBand.setProduct(slingshotModel, bandLocal)
+            rightBandB.setProduct(slingshotModel, bandLocalB)
+            applyBandTension(rig, slingDraw)
+        }
+
         if (state == GameState.SEATED) {
             val hold = rig.holdPoint(pull)
             aircraftModel.setTrs(
@@ -646,7 +674,14 @@ class GameApp(private val context: Context, private val input: InputState) {
         aircraftMesh.woodMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
         aircraftMesh.metalMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
         aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
-        if (showSling) sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+        if (showSling) {
+            sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+            sceneRenderer.shadowMesh(rig.rampMesh, slingshotModel)
+            sceneRenderer.shadowMesh(rig.bandMesh, leftBand)
+            sceneRenderer.shadowMesh(rig.bandMesh, leftBandB)
+            sceneRenderer.shadowMesh(rig.bandMesh, rightBand)
+            sceneRenderer.shadowMesh(rig.bandMesh, rightBandB)
+        }
         sceneRenderer.shadowInstanced(currentScene.treeTrunks)
         sceneRenderer.shadowInstanced(currentScene.rocks)
         sceneRenderer.endShadowPass()
@@ -683,16 +718,11 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (showSling) {
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-
-            rig.thicknessBoost = slingStateBandBoost()
-            applyBandTint(rig, slingDraw)
-            rig.leftBandMatrix(slingDraw, bandLocal)
-            leftBand.setProduct(slingshotModel, bandLocal)
+            sceneRenderer.drawMesh(rig.rampMesh, rig.rampMaterial, slingshotModel)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBand)
-
-            rig.rightBandMatrix(slingDraw, bandLocal)
-            rightBand.setProduct(slingshotModel, bandLocal)
+            sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, leftBandB)
             sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBand)
+            sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, rightBandB)
         }
 
         aircraftMesh.canvasMesh?.let {
@@ -756,13 +786,13 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private fun slingStateBandBoost(): Float = (sling.bandThickness() - 1f).coerceIn(0f, 1f)
 
-    /** Amber at rest → neon cyan at full draw, exactly as specified for the draw state. */
-    private fun applyBandTint(rig: SlingshotMesh, stretch: Float) {
-        val t = stretch.coerceIn(0f, 1f)
-        bandTintScratch.set(bandTintAmber)
-        bandTintScratch.x += (bandTintCyan.x - bandTintAmber.x) * t
-        bandTintScratch.y += (bandTintCyan.y - bandTintAmber.y) * t
-        bandTintScratch.z += (bandTintCyan.z - bandTintAmber.z) * t
+    /**
+     * The bands keep their yellow/cream stripes; tension only lifts them from the shade of
+     * slack rubber to full brightness.
+     */
+    private fun applyBandTension(rig: SlingshotMesh, stretch: Float) {
+        val bright = 0.90f + 0.10f * stretch.coerceIn(0f, 1f)
+        bandTintScratch.set(bright, bright, bright)
         rig.bandMaterial.tint.set(bandTintScratch)
     }
 
@@ -787,6 +817,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         private const val TAG = "BLF-GAME"
         private const val SLING_RECOIL_DURATION = 0.6f
         private const val PUFF_DURATION = 0.85f
+        private const val HINT_DURATION = 3f
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
     }
 }

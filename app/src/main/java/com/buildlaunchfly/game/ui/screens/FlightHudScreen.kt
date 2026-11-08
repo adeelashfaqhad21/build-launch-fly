@@ -5,13 +5,10 @@ import android.graphics.Path
 import android.graphics.RectF
 import com.buildlaunchfly.game.gfx.DesignTokens
 import com.buildlaunchfly.game.ui.UiButtonStyle
-import com.buildlaunchfly.game.ui.UiFormat
 import com.buildlaunchfly.game.ui.UiFrame
 import com.buildlaunchfly.game.ui.UiIcon
-import com.buildlaunchfly.game.ui.UiIcons
 import com.buildlaunchfly.game.ui.UiScreen
 import com.buildlaunchfly.game.ui.UiTextStyle
-import com.buildlaunchfly.game.world.WorldCatalog
 
 /** Screen 3/5 — Launch setup (Ref-3/4) and in-flight HUD (Ref-5/6). */
 object FlightHudScreen {
@@ -19,32 +16,19 @@ object FlightHudScreen {
     fun drawLaunch(f: UiFrame) {
         val w = f.width
         val h = f.height
-        val world = WorldCatalog.byId(f.app.playerProfile.selectedWorld)
-
-        f.label(
-            world.displayName.uppercase(),
-            w / 2f,
-            DesignTokens.SAFE_TOP + 24f,
-            UiTextStyle.HUD_LABEL,
-            DesignTokens.WHITE,
-            Paint.Align.CENTER,
-            outline = true
-        )
 
         val pull = f.app.pullAmount()
-        drawPullGauge(f, w / 2f, h * 0.62f, minOf(w - 80f, 260f), pull)
 
-        // First flight only: the plates show no permanent copy on this screen.
-        if (pull < 0.05f && f.app.playerProfile.flights == 0) {
-            f.label(
-                "HOLD TO PULL",
-                w / 2f,
-                h * 0.62f + 56f,
-                UiTextStyle.HUD_LABEL,
-                DesignTokens.WHITE,
-                Paint.Align.CENTER,
-                outline = true
-            )
+        // Ref-3 shows the rig bare: the tension gauge only appears once the player draws.
+        if (pull > 0.02f) {
+            drawPullGauge(f, w / 2f, h * 0.62f, minOf(w - 80f, 260f), pull)
+        }
+
+        // First visit only: a ghost arrow that fades out after a few seconds.
+        val hint = f.app.launchHintAlpha()
+        if (hint > 0.01f && pull < 0.05f) {
+            val fade = hint * (0.7f + 0.3f * kotlin.math.abs(kotlin.math.sin(f.time * 3.4f)))
+            drawPullHint(f, w / 2f, h * 0.62f + 26f, fade)
         }
 
         val back = f.rect(w / 2f - 60f, h - DesignTokens.SAFE_BOTTOM - 44f, 120f, 36f)
@@ -88,6 +72,25 @@ object FlightHudScreen {
     }
 
     // ---- launch gauge -----------------------------------------------------
+
+    private fun drawPullHint(f: UiFrame, cx: Float, y: Float, alpha: Float) {
+        f.painter.stroke.color = DesignTokens.withAlpha(DesignTokens.WHITE, alpha)
+        f.painter.stroke.strokeWidth = 4f
+        val path = Path()
+        path.moveTo(cx - 13f, y - 14f)
+        path.lineTo(cx, y - 2f)
+        path.lineTo(cx + 13f, y - 14f)
+        f.canvas.drawPath(path, f.painter.stroke)
+
+        f.label(
+            "PULL BACK",
+            cx,
+            y + 18f,
+            UiTextStyle.HUD_LABEL,
+            DesignTokens.withAlpha(DesignTokens.NAVY, alpha),
+            Paint.Align.CENTER
+        )
+    }
 
     private fun drawPullGauge(f: UiFrame, cx: Float, cy: Float, width: Float, pull: Float) {
         val radius = width / 2f

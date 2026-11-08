@@ -18,6 +18,7 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
     val white: Texture2D
     val metal: Texture2D
     val rubber: Texture2D
+    val hazard: Texture2D
     val bark: Texture2D
     val leaf: Texture2D
     val waterNormals: Texture2D
@@ -39,6 +40,7 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
 
         metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
         rubber = register(Texture2D.create("rubber", texSize, texSize, rubberTexture(texSize)))
+        hazard = register(Texture2D.create("hazard", texSize, texSize, hazardTexture(texSize)))
         bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
         leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
@@ -154,6 +156,26 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         val grain = Noise.fbm2(u * 44f, v * 44f, 3, 2f, 0.5f, seed + 227)
         val lum = 0.16f + grain * 0.05f
         rgb(lum, lum * 0.98f, lum * 1.02f)
+    }
+
+    /**
+     * Two-colour warning stripes for the slingshot elastics: yellow `#FFD52B` alternating
+     * with cream `#F5F2E8` across the band. The stripe seam is a shade darker, and a drifting
+     * noise term keeps the tube from reading as flat paint.
+     */
+    private fun hazardTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
+        val drift = Noise.value2(u * 3f, v * 3f, seed + 311) * 0.03f
+        val raw = v * 4f + drift
+        val phase = raw - kotlin.math.floor(raw)
+        val grain = Noise.value2(u * 34f, v * 34f, seed + 317)
+        val seam = if (phase < 0.03f || kotlin.math.abs(phase - 0.5f) < 0.03f) 0.74f else 1f
+        val shade = (0.94f + grain * 0.06f) * seam
+
+        if (phase < 0.5f) {
+            rgb(1.00f * shade, 0.835f * shade, 0.169f * shade)
+        } else {
+            rgb(0.961f * shade, 0.949f * shade, 0.910f * shade)
+        }
     }
 
     private fun barkTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->

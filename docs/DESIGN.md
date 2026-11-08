@@ -366,13 +366,14 @@ button plate.
 **Audio:** creak on draw (pitch rises), twang + whoosh on release.
 
 **Checklist**
-- [ ] Rear-view framing with both posts visible
-- [ ] Yellow/white striped bands (currently single-colour)
-- [ ] Ramp/trapezoid geometry between posts
-- [ ] Bands articulate with draw and launch angle
-- [ ] Rest sag, taut draw, recoil
-- [ ] Upgrade level visibly changes band thickness/length
-- [ ] Bands cast shadows
+- [ ] Rear-view framing with both posts visible (camera path exists; needs an on-device check)
+- [x] Yellow/white striped bands — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
+- [x] Ramp/trapezoid geometry between posts — `SlingshotMesh.buildRampData` (deck, rails, lip)
+- [x] Bands articulate with draw — `holdPoint(draw)` positions both bands; the launch angle
+  shapes the release vector, not the band geometry
+- [x] Rest sag, taut draw, recoil — two-segment bands sagging to `BAND_SAG`, 0.6 s recoil wobble
+- [x] Upgrade level visibly changes band thickness/length — `thicknessBoost` and `drawLength`
+- [x] Bands cast shadows — both segments in the shadow pass
 
 **Acceptance:** from the launch camera a first-time player understands "pull back here".
 
@@ -397,11 +398,11 @@ after 3 s), returning (no hint).
 **Audio:** wind ambience; button pop.
 
 **Checklist**
-- [ ] Launch screen uses the ref layout (single BACK at the bottom)
-- [ ] BACK returns to hangar
-- [ ] First-run drag hint
-- [ ] No telemetry on this screen
-- [ ] Realm-appropriate environment behind
+- [x] Launch screen uses the ref layout (single BACK at the bottom)
+- [x] BACK returns to hangar
+- [x] First-run drag hint — ghost chevron + `PULL BACK`, 3 s fade (`GameApp.launchHintAlpha`)
+- [x] No telemetry on this screen — the tension gauge only appears while drawing
+- [x] Realm-appropriate environment behind
 
 ---
 

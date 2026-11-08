@@ -48,10 +48,12 @@ spin-blur disc. Geometry is split by material (canvas, rib, wood, metal, glazing
 propeller), so every stage changes visible structure rather than colour: wing halves,
 longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
 
-**Slingshot (`slingshot`)** — five upgrade categories, launch-speed model, visible bands
-stretched from both prongs to the cradle, tinted amber → neon cyan with draw tension,
-launch elevation arc (20°–55°) stored in the profile, and a camera impulse shake on
-release.
+**Slingshot (`slingshot`)** — five upgrade categories, launch-speed model, and the Ref-3 rig:
+two wooden posts with a dark trapezoidal ramp between them, and yellow/cream striped elastic
+bands that sag when slack and pull straight as the draw deepens. Band thickness and draw
+length follow the upgrade levels, both band segments cast shadows, and the release plays a
+recoil wobble, a dust puff and a camera impulse. Launch elevation (20°–55°) is stored in the
+profile.
 
 **Flight (`aircraft/FlightPhysics`)** — angle-of-attack lift, quadratic drag, thrust,
 gravity, stability terms, stall behaviour, ground contact with landing/crash resolution.
