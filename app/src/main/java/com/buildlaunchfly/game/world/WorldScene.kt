@@ -190,8 +190,13 @@ class WorldScene(
             val canopyData = buildCanopyData(plantStyle, species)
             val trunkMesh = Mesh("treeTrunk$species", trunkData)
             val canopyMesh = Mesh("treeCanopy$species", canopyData)
-            val trunks = InstancedMesh("treeTrunks$species", trunkData, set.count)
-            trunks.setInstances(set.matrices, set.count)
+            val trunks = if (showsTrunk(plantStyle, species)) {
+                InstancedMesh("treeTrunks$species", trunkData, set.count).also {
+                    it.setInstances(set.matrices, set.count)
+                }
+            } else {
+                InstancedMesh("treeTrunks$species", trunkData, 1)
+            }
             val canopies = InstancedMesh("treeCanopies$species", canopyData, set.count)
             canopies.setInstances(set.matrices, set.count)
             treeBuilder.add(
@@ -313,6 +318,13 @@ class WorldScene(
 
     // ---- geometry ---------------------------------------------------------
 
+    /** Palms and cacti carry their own stems; only the plain trees use the shared trunk mesh. */
+    private fun showsTrunk(style: PlantStyle, species: Int): Boolean = when (style) {
+        PlantStyle.DESERT -> species == 1
+        PlantStyle.COAST -> species != 0
+        else -> true
+    }
+
     /**
      * Builds one mesh + instance set per species, skipping empty sets and indexing the
      * per-species material list.
@@ -370,12 +382,11 @@ class WorldScene(
         val builder = MeshBuilder()
         when (style) {
             PlantStyle.DESERT -> when (species) {
-                1 -> {
-                    // Bare, wind-worn desert tree.
-                    builder.addCylinder(0f, 0.55f, 0f, 0.11f, 0.07f, 1.10f, 7, false, true, 1.2f)
-                    builder.addRod(0f, 0.72f, 0f, -0.42f, 1.02f, 0.18f, 0.045f, 6)
-                    builder.addRod(0f, 0.86f, 0f, 0.38f, 1.14f, -0.12f, 0.04f, 6)
-                    builder.addRod(0f, 0.60f, 0f, 0.30f, 0.82f, 0.24f, 0.035f, 6)
+               1 -> {
+                    // Bare, wind-worn desert tree; the shared trunk carries it.
+                    builder.addRod(0f, 0.62f, 0f, -0.42f, 1.02f, 0.18f, 0.045f, 6)
+                    builder.addRod(0f, 0.78f, 0f, 0.38f, 1.12f, -0.12f, 0.04f, 6)
+                    builder.addRod(0f, 0.55f, 0f, 0.30f, 0.82f, 0.24f, 0.035f, 6)
                 }
                 2 -> {
                     // Low desert scrub.
