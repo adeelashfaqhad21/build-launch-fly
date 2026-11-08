@@ -93,9 +93,8 @@ that currently cost two draw calls.
 
   Each model is 240–2,300 faces; counts are 5–10 instances per model, so the near
   ring stays in the low hundreds of thousands of triangles at HIGH/ULTRA.
-- The pack's 4K bark/trunk maps (19.9 MB NormalTree bark, 20.4 MB PalmTree trunk) are **not**
-  shipped — bark is drawn with the game's procedurally generated texture, which is a few
-  hundred kilobytes and matches the aircraft's timber.
+- The pack's 4K bark/trunk maps are **not** shipped; the matching glTF JPEGs (321–991 KB) are
+  used instead, so trunks carry the pack's own bark detail at a fraction of the size.
 - `gfx/ObjLoader` parses OBJ at load time: triangulates Blender's n-gon faces, splits the
   geometry into the bark and foliage material groups, flips the OBJ V coordinate to match the
   decoded PNG orientation, and normalises both groups with one shared transform (1 unit tall,

@@ -362,33 +362,34 @@ class WorldScene(
 
     // ---- hand-authored near-field props -----------------------------------
 
-    /** One asset file plus how many to place and how tall it grows, in metres. */
+    /** One asset file plus how many to place, how tall it grows, and its bark map. */
     private class HeroSpec(
         val file: String,
         val texture: String,
         val count: Int,
         val height: Float,
-        val seedOffset: Int
+        val seedOffset: Int,
+        val bark: String = ""
     )
 
     private fun heroTreeSpecs(): List<HeroSpec> = when (plantStyle) {
         PlantStyle.FOREST -> listOf(
-            HeroSpec("BirchTree_1", "BirchTree_Leaves.png", 8, 7.0f, 1),
-            HeroSpec("BirchTree_2", "BirchTree_Leaves.png", 7, 6.5f, 21),
-            HeroSpec("MapleTree_1", "MapleTree_Leaves.png", 7, 7.5f, 2),
-            HeroSpec("MapleTree_2", "MapleTree_Leaves.png", 6, 8.0f, 22),
-            HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25)
+            HeroSpec("BirchTree_1", "BirchTree_Leaves.png", 8, 7.0f, 1, "BirchTree_Bark.jpg"),
+            HeroSpec("BirchTree_2", "BirchTree_Leaves.png", 7, 6.5f, 21, "BirchTree_Bark.jpg"),
+            HeroSpec("MapleTree_1", "MapleTree_Leaves.png", 7, 7.5f, 2, "MapleTree_Bark.jpg"),
+            HeroSpec("MapleTree_2", "MapleTree_Leaves.png", 6, 8.0f, 22, "MapleTree_Bark.jpg"),
+            HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25, "NormalTree_Bark.jpg")
         )
         PlantStyle.ALPINE -> listOf(
-            HeroSpec("PineTree_1", "PineTree_Leaves.png", 10, 7.5f, 3),
-            HeroSpec("PineTree_2", "PineTree_Leaves.png", 8, 6.8f, 23),
-            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26)
+            HeroSpec("PineTree_1", "PineTree_Leaves.png", 10, 7.5f, 3, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_2", "PineTree_Leaves.png", 8, 6.8f, 23, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26, "PineTree_Bark.jpg")
         )
         PlantStyle.COAST -> listOf(
-            HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 6, 8.5f, 4),
-            HeroSpec("PalmTree_2", "PalmTree_Leaves.png", 6, 7.5f, 24),
-            HeroSpec("PalmTree_3", "PalmTree_Leaves.png", 5, 9.0f, 33),
-            HeroSpec("PalmTree_4", "PalmTree_Leaves.png", 5, 7.0f, 34)
+            HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 6, 8.5f, 4, "PalmTree_Trunk.jpg"),
+            HeroSpec("PalmTree_2", "PalmTree_Leaves.png", 6, 7.5f, 24, "PalmTree_Trunk.jpg"),
+            HeroSpec("PalmTree_3", "PalmTree_Leaves.png", 5, 9.0f, 33, "PalmTree_Trunk.jpg"),
+            HeroSpec("PalmTree_4", "PalmTree_Leaves.png", 5, 7.0f, 34, "PalmTree_Trunk.jpg")
         )
         PlantStyle.DESERT -> emptyList()
     }
@@ -424,9 +425,9 @@ class WorldScene(
                 plants.add(HeroSpec("Grass_Small", "Grass.png", 22, 0.5f, 51))
             }
         }
-        plants.add(HeroSpec("Rock_1", "Rocks.png", 18, 2.0f, 18))
-        plants.add(HeroSpec("Rock_2", "Rocks.png", 12, 1.6f, 29))
-        plants.add(HeroSpec("Rock_3", "Rocks.png", 10, 2.4f, 52))
+        plants.add(HeroSpec("Rock_1", "Rocks.jpg", 18, 2.0f, 18))
+        plants.add(HeroSpec("Rock_2", "Rocks.jpg", 12, 1.6f, 29))
+        plants.add(HeroSpec("Rock_3", "Rocks.jpg", 10, 2.4f, 52))
         return plants
     }
 
@@ -436,7 +437,7 @@ class WorldScene(
         outTrees: MutableList<TreePart>,
         outPlants: MutableList<InstancedPart>
     ) {
-        val trunkMaterial = Material(
+        val fallbackTrunkMaterial = Material(
             albedo = textures.bark,
             tint = Vec3(0.72f, 0.56f, 0.40f),
             roughness = 0.90f,
@@ -450,6 +451,20 @@ class WorldScene(
             val foliageData = model.foliage ?: continue
             val foliageTexture =
                 AssetTextures.load(assets, "quaternius/${spec.texture}") ?: continue
+            val barkTexture =
+                if (spec.bark.isEmpty()) null
+                else AssetTextures.load(assets, "quaternius/${spec.bark}")
+            val trunkMaterial = if (barkTexture == null) {
+                fallbackTrunkMaterial
+            } else {
+                Material(
+                    albedo = barkTexture,
+                    tint = Vec3(1f, 1f, 1f),
+                    roughness = 0.92f,
+                    metallic = 0f,
+                    uvScale = 1f
+                )
+            }
 
             val set = heroScatter(spec.count, spec.seedOffset, spec.height)
             if (set.count == 0) continue
@@ -499,6 +514,18 @@ class WorldScene(
 
         // The desert has no leafy trees in this pack; its dead trees are bark-only models.
         if (plantStyle == PlantStyle.DESERT) {
+            val deadBark = AssetTextures.load(assets, "quaternius/NormalTree_Bark.jpg")
+            val deadMaterial = if (deadBark == null) {
+                fallbackTrunkMaterial
+            } else {
+                Material(
+                    albedo = deadBark,
+                    tint = Vec3(0.92f, 0.88f, 0.82f),
+                    roughness = 0.94f,
+                    metallic = 0f,
+                    uvScale = 1f
+                )
+            }
             for (spec in listOf(
                 HeroSpec("DeadTree_1", "", 9, 5.5f, 31),
                 HeroSpec("DeadTree_2", "", 7, 6.5f, 32),
@@ -512,7 +539,7 @@ class WorldScene(
                 val mesh = Mesh("heroProp${spec.file}", data)
                 val instanced = InstancedMesh("heroProps${spec.file}", data, set.count)
                 instanced.setInstances(set.matrices, set.count)
-                outPlants.add(InstancedPart(mesh, instanced, trunkMaterial))
+                outPlants.add(InstancedPart(mesh, instanced, deadMaterial))
             }
         }
     }
