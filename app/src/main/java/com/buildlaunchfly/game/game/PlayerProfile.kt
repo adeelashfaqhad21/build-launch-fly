@@ -209,6 +209,13 @@ class PlayerProfile {
 
     companion object {
 
+        /**
+         * Development switch: every realm stays open so each environment can be tested.
+         * Flip to false to restore the distance-gated progression, which is already
+         * implemented in [refreshUnlocks].
+         */
+        const val ALL_WORLDS_UNLOCKED = true
+
         private const val CHEST_COOLDOWN_MS = 5L * 60L * 1000L
 
         fun fromJson(text: String?): PlayerProfile {
@@ -298,15 +305,6 @@ class PlayerProfile {
         settings.masterVolume = other.masterVolume
         settings.engineVolume = other.engineVolume
         settings.ambienceVolume = other.ambienceVolume
-    }
-
-    companion object {
-        /**
-         * Development switch: every realm stays open so each environment can be tested.
-         * Flip to false to restore the distance-gated progression, which is already
-         * implemented in [refreshUnlocks].
-         */
-        const val ALL_WORLDS_UNLOCKED = true
     }
 }
 

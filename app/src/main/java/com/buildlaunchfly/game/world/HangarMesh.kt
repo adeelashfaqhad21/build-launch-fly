@@ -116,7 +116,6 @@ class HangarMesh(textures: TextureFactory) {
 
     private fun buildRoofData(): MeshData {
         val b = MeshBuilder()
-        val pitch = PITCH
 
         // Two gable panels running the whole length, hinged at the ridge and overhanging the
         // walls. The panel centre sits half a panel out from the ridge along the slope.

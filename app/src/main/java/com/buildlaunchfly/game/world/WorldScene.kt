@@ -46,7 +46,7 @@ class TreePart(
 class WorldScene(
     val definition: WorldDefinition,
     textures: TextureFactory,
-    detailLevel: Int = 2,
+    private val detailLevel: Int = 2,
     private val assets: AssetManager? = null
 ) {
 
