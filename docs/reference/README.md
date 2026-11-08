@@ -18,6 +18,27 @@ documents fill in what the references do not show.
 
 `Ref.zip` is a local duplicate of the stills and is git-ignored.
 
+## External live reference (not verified)
+
+- **YouTube Short:** <https://youtube.com/shorts/H_qQZOHR04k>
+- Page title: *"Epic Plane Evolution - Vintage Plane Level Completed (Minecraft)"* by
+  `@harictenname`, 43 s.
+- **Status: not inspected.** Our browser could not play it: the Shorts page stayed black
+  after tapping unmute, and the no-cookie embed returned YouTube *error 153*. Nothing in
+  `BRIEF.md` or `DESIGN.md` is derived from this clip.
+
+To make it usable, supply one of:
+
+1. A clip **under 20 MB** committed into this folder (the browser can open raw repo media up
+   to that size — the 39 MB `Ref-7.mp4` is too large).
+2. Three to five screenshots of the hangar and the launch-setup frames, saved here like the
+   `Ref-*` plates.
+3. A short written description of what animates in the hangar and how the pull-back reads on
+   screen.
+
+The title does confirm one thing the stills did not: the game has a **level-complete flow**,
+which the derived Results component in `docs/DESIGN.md` §3.13 covers.
+
 ## Inspected contents (Ref-1 … Ref-6)
 
 | Plate | Screen | Key elements |

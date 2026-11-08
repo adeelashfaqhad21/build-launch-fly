@@ -45,6 +45,10 @@ decays, and the vertical track measures progress toward a target distance.
 
 Shown in references: splash, hangar home, launch setup, aim state, flight HUD (good),
 flight HUD (low speed).
+A shared live clip (<https://youtube.com/shorts/H_qQZOHR04k>, *"Vintage Plane Level
+Completed"*) was provided but could not be played in our browser (Shorts stayed black;
+embed returned error 153), so it is **not** reflected in this brief. Its title does confirm a
+**level-complete** flow, which the derived results screen covers.
 Derived (required by the product, not shown in refs): results, settings, achievements /
 career, shop, rewards.
 
