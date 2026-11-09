@@ -39,3 +39,7 @@ docs/reference/*.zip
 # Unpacked third-party kits: the models actually used are copied into app/src/main/assets
 assets-source/kenney_nature-kit/
 assets-source/kenney_castle-kit/
+
+
+# Unpacked plane sources: the airframe used is copied into app/src/main/assets/aircraft
+assets-source/Planes\ /*/

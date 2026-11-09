@@ -1,5 +1,6 @@
 package com.buildlaunchfly.game.aircraft
 
+import android.content.res.AssetManager
 import com.buildlaunchfly.game.gfx.Material
 import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
@@ -21,7 +22,10 @@ import com.buildlaunchfly.game.math.Vec3
  * The geometry is split across meshes by material, so every surface keeps a flat, matte
  * look and the whole aircraft costs a handful of draw calls.
  */
-class AircraftMesh(private val textures: TextureFactory) {
+class AircraftMesh(
+    private val textures: TextureFactory,
+    private val assets: AssetManager? = null
+) {
 
     var canvasMesh: Mesh? = null
         private set
@@ -37,6 +41,20 @@ class AircraftMesh(private val textures: TextureFactory) {
         private set
     var propellerBlurMesh: Mesh? = null
         private set
+
+    /** One material group of the imported airframe, with the colour it is drawn in. */
+    class ImportedPart(val mesh: Mesh, val material: Material)
+
+    /**
+     * The imported biplane ("samolet", CC BY 4.0), split by its flat material colours. When
+     * it loads it replaces the procedural body; the procedural meshes stay built so a missing
+     * asset can never leave the hangar empty.
+     */
+    var importedParts: List<ImportedPart> = emptyList()
+        private set
+
+    /** True when the imported airframe loaded and should be drawn instead of the built one. */
+    val hasImportedModel: Boolean get() = importedParts.isNotEmpty()
 
     /** Tan doped canvas, flat-shaded (roughness 0.92, no metallic). */
     val canvasMaterial = Material(
@@ -123,6 +141,8 @@ class AircraftMesh(private val textures: TextureFactory) {
             propellerMesh = Mesh("aircraftPropeller", buildPropellerData(build))
             propellerBlurMesh = Mesh("aircraftPropellerBlur", buildPropellerBlurData())
         }
+
+        loadImportedModel()
     }
 
     fun dispose() {
@@ -138,6 +158,8 @@ class AircraftMesh(private val textures: TextureFactory) {
         canopyMesh?.dispose()
         propellerMesh?.dispose()
         propellerBlurMesh?.dispose()
+        for (part in importedParts) part.mesh.dispose()
+        importedParts = emptyList()
         canvasMesh = null
         ribMesh = null
         woodMesh = null
@@ -145,6 +167,38 @@ class AircraftMesh(private val textures: TextureFactory) {
         canopyMesh = null
         propellerMesh = null
         propellerBlurMesh = null
+    }
+
+    /**
+     * Loads the imported biplane once. It is a single welded mesh with seven flat materials,
+     * so it is split by material and each part keeps its own colour. The source is already
+     * Y-up with its nose on -Z, which is this rig's forward axis; the loader only scales it to
+     * [IMPORTED_SPAN] and centres it on the rig's origin.
+     */
+    private fun loadImportedModel() {
+        if (importedParts.isNotEmpty()) return
+
+        val manager = assets ?: return
+        val parts = AircraftModelLoader.load(
+            manager,
+            "aircraft/samolet/model.obj",
+            "aircraft/samolet/materials.mtl",
+            IMPORTED_SPAN
+        )
+        if (parts.isEmpty()) return
+
+        importedParts = parts.mapIndexed { index, part ->
+            ImportedPart(
+                Mesh("aircraftImported$index", part.data),
+                Material(
+                    albedo = textures.white,
+                    tint = part.color,
+                    roughness = 0.72f,
+                    metallic = 0f,
+                    uvScale = 1f
+                )
+            )
+        }
     }
 
     // ---- fabric surfaces --------------------------------------------------
@@ -351,6 +405,8 @@ class AircraftMesh(private val textures: TextureFactory) {
     private fun stabiliserHalf(tier: Int): Float = 0.70f + if (tier >= 2) 0.08f else 0f
 
     private companion object {
+        /** Wingspan the imported airframe is scaled to, matching the built one. */
+        const val IMPORTED_SPAN = 3.56f
         const val UPPER_WING_Y = 0.62f
         const val LOWER_WING_Y = -0.34f
         const val WING_Z = -0.08f

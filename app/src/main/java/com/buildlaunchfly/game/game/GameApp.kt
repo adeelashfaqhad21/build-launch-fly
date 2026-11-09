@@ -172,7 +172,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         renderer = sceneRenderer
         loadProgressValue = 0.45f
 
-        aircraft = AircraftMesh(textureFactory).also { it.updateFor(build) }
+        aircraft = AircraftMesh(textureFactory, context.assets).also { it.updateFor(build) }
         slingMesh = SlingshotMesh(textureFactory)
         hangar = HangarMesh(textureFactory)
         loadProgressValue = 0.55f
@@ -716,10 +716,16 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val shadowFocus = if (state == GameState.SEATED) seatPosition else physics.position
         sceneRenderer.beginShadowPass(shadowFocus, quality.shadowRadius)
-        aircraftMesh.canvasMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
-        aircraftMesh.woodMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
-        aircraftMesh.metalMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
-        aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
+        if (aircraftMesh.hasImportedModel) {
+            for (part in aircraftMesh.importedParts) {
+                sceneRenderer.shadowMesh(part.mesh, aircraftModel)
+            }
+        } else {
+            aircraftMesh.canvasMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
+            aircraftMesh.woodMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
+            aircraftMesh.metalMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
+            aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
+        }
         if (showSling) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
             for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
@@ -830,23 +836,31 @@ class GameApp(private val context: Context, private val input: InputState) {
             for (band in bandWorld) sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, band)
         }
 
-        aircraftMesh.canvasMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.canvasMaterial, aircraftModel)
-        }
-        aircraftMesh.ribMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.ribMaterial, aircraftModel)
-        }
-        aircraftMesh.woodMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.woodMaterial, aircraftModel)
-        }
-        aircraftMesh.metalMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.metalMaterial, aircraftModel)
-        }
-        aircraftMesh.canopyMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.canopyMaterial, aircraftModel)
-        }
-        aircraftMesh.propellerMesh?.let {
-            sceneRenderer.drawMesh(it, aircraftMesh.propellerMaterial, propellerModel)
+        if (aircraftMesh.hasImportedModel) {
+            // The imported biplane is one welded mesh with its own propeller and airframe,
+            // so it replaces the built body, propeller included.
+            for (part in aircraftMesh.importedParts) {
+                sceneRenderer.drawMesh(part.mesh, part.material, aircraftModel)
+            }
+        } else {
+            aircraftMesh.canvasMesh?.let {
+                sceneRenderer.drawMesh(it, aircraftMesh.canvasMaterial, aircraftModel)
+            }
+            aircraftMesh.ribMesh?.let {
+                sceneRenderer.drawMesh(it, aircraftMesh.ribMaterial, aircraftModel)
+            }
+            aircraftMesh.woodMesh?.let {
+                sceneRenderer.drawMesh(it, aircraftMesh.woodMaterial, aircraftModel)
+            }
+            aircraftMesh.metalMesh?.let {
+                sceneRenderer.drawMesh(it, aircraftMesh.metalMaterial, aircraftModel)
+            }
+            aircraftMesh.canopyMesh?.let {
+                sceneRenderer.drawMesh(it, aircraftMesh.canopyMaterial, aircraftModel)
+            }
+            aircraftMesh.propellerMesh?.let {
+                sceneRenderer.drawMesh(it, aircraftMesh.propellerMaterial, propellerModel)
+            }
         }
         aircraftMesh.propellerBlurMesh?.let { blur ->
             val rpmFraction = (physics.propellerRpm / 2200f).coerceIn(0f, 1f)

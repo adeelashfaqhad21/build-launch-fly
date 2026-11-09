@@ -73,13 +73,15 @@ tinted by each group's own colour, exactly like the animals and ships.
 so every environment can be tested; the distance-gated progression is retained behind that
 switch for the release pass.
 
-**Aircraft (`aircraft`)** — procedural vintage biplane per
-[`docs/DESIGN.md`](docs/DESIGN.md) §3.14: tan doped canvas upper/lower wings with
-orange-brown rib decals, a narrow timber lattice fuselage, cabane and interplane struts,
-X-braced wires, a dark cockpit opening, two wheels and a green two-blade propeller with a
-spin-blur disc. Geometry is split by material (canvas, rib, wood, metal, glazing,
-propeller), so every stage changes visible structure rather than colour: wing halves,
-longer Mk II spans, tail end-plates and the engine block each arrive as separate pieces.
+**Aircraft (`aircraft`)** — the flying biplane is the imported **samolet** model (CC BY 4.0,
+`assets/aircraft/samolet/model.obj` + `materials.mtl`), not generated geometry. It is one welded
+mesh with seven flat material colours and no texture, so `aircraft/AircraftModelLoader` splits
+it by material and `AircraftMesh` draws each part with the shared white map tinted by its own
+colour; the procedural airframe (flying-wing box biplane with canvas, rib, timber, metal and
+glazing materials) is still built and drawn only if the OBJ cannot be read, so a missing asset
+can never leave the hangar empty. Because the imported model has no separate wing, tail or
+propeller objects, build stages change paint, the engine and the tail rather than the whole
+wing geometry.
 
 **Slingshot (`slingshot`)** — five upgrade categories and the rig the brief asks for, and
 nothing else: **two wide squared timber posts**, one on each side, and **one central elastic
@@ -254,7 +256,8 @@ Why the two APKs behaved differently before:
   loaded from the shipped kit archive. Licence record in
   `docs/licenses/LowPolyAircraftKit-CC-BY-4.0.txt`.
 - **"samolet" by vrlab development** — <https://poly.pizza/m/6OgsLgd7vKM>, licensed
-  **CC BY 4.0**. The vintage biplane, shipped as `assets/aircraft/biplane.zip`. Licence
-  record in `docs/licenses/PolyPizza-Aircraft-CC-BY-4.0.txt`.
+  **CC BY 4.0**. The vintage biplane the game flies, shipped as
+  `assets/aircraft/samolet/`. Licence record in
+  `docs/licenses/PolyPizza-Aircraft-CC-BY-4.0.txt`.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the engine and UI architecture.
