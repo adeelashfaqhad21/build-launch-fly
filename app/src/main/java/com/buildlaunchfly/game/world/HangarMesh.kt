@@ -310,7 +310,7 @@ class HangarMesh(
 
         // Wooden edge curbs run the full 48 m length on both sides of the asphalt.
         for (side in intArrayOf(-1, 1)) {
-            val x = side * (halfWidth - RAMP_CURB_WIDTH * 0.5f)
+            val x = side * (halfWidth + RAMP_CURB_WIDTH * 0.5f)
             b.addRod(
                 x, rampElevation(0f) + 0.16f, RAMP_START_Z,
                 x, rampElevation(1f) + 0.16f, RAMP_END_Z,
