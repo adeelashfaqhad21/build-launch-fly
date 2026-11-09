@@ -54,6 +54,9 @@ assets-source/ambientcg/
 # Downloaded model sources already copied into app/src/main/assets
 assets-source/parrot-light.glb
 
+# Screenshots from a device run: kept on disk, not in the repository
+assets-source/screenshots/
+
 
 # Unpacked plane sources: the airframe used is copied into app/src/main/assets/aircraft
 assets-source/Planes\ /*/
