@@ -62,15 +62,17 @@ class CameraDirector(private val camera: Camera) {
             dirY = velocity.y / speed
             dirZ = velocity.z / speed
         }
+        // Keep the aircraft large and the terrain readable, matching the low rear-chase
+        // framing in DESIGN.md: roughly 3–4 m behind, with a modest downward view.
         desiredPosition.set(
-            aircraftPosition.x - dirX * 15.5f,
-            aircraftPosition.y - dirY * 15.5f + 5.8f,
-            aircraftPosition.z - dirZ * 15.5f
+            aircraftPosition.x - dirX * FLIGHT_CAMERA_DISTANCE,
+            aircraftPosition.y - dirY * FLIGHT_CAMERA_DISTANCE + FLIGHT_CAMERA_HEIGHT,
+            aircraftPosition.z - dirZ * FLIGHT_CAMERA_DISTANCE
         )
         desiredTarget.set(
-            aircraftPosition.x + dirX * 7f,
-            aircraftPosition.y + 0.8f,
-            aircraftPosition.z + dirZ * 7f
+            aircraftPosition.x + dirX * FLIGHT_TARGET_LEAD,
+            aircraftPosition.y + FLIGHT_TARGET_HEIGHT,
+            aircraftPosition.z + dirZ * FLIGHT_TARGET_LEAD
         )
         follow(dt, 4.0f)
     }
@@ -147,5 +149,11 @@ class CameraDirector(private val camera: Camera) {
 
         /** Fixed rear-side oblique of the hangar view (Ref-2), not an animation. */
         const val HANGAR_BASE_ANGLE = -0.30f
+
+        /** Low chase framing: the original 15.5 m offset made the aircraft and terrain tiny. */
+        const val FLIGHT_CAMERA_DISTANCE = 4.0f
+        const val FLIGHT_CAMERA_HEIGHT = 1.7f
+        const val FLIGHT_TARGET_LEAD = 2.4f
+        const val FLIGHT_TARGET_HEIGHT = 0.15f
     }
 }

@@ -1598,13 +1598,11 @@ class WorldScene(
 
         while (placed < count && attempts < maxAttempts) {
             attempts++
-            val angle = rng.nextFloat() * M.TWO_PI
-            // Spread imported silhouettes beyond the immediate pad so the player sees
-            // realm-specific assets during the opening flight, not only on the runway.
-            // The inner exclusion still protects the hangar and launch corridor.
-            val radius = 28f + rng.nextFloat() * 300f
-            val x = kotlin.math.cos(angle) * radius
-            val z = -60f + kotlin.math.sin(angle) * radius
+            // The aircraft initially flies along -Z. Distribute imported species in a
+            // broad forward corridor instead of a circular ring that wastes most instances
+            // beside or behind the launch path.
+            val x = (rng.nextFloat() * 2f - 1f) * 105f
+            val z = -36f - rng.nextFloat() * 360f
             if (x * x + z * z < 26f * 26f) continue
 
             val h = terrain.height(x, z)
