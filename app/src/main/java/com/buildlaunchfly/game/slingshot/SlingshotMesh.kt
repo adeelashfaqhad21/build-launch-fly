@@ -33,7 +33,7 @@ object SlingshotLayout {
     const val HOLD_Z = 0.0f
 
     /** Two wide posts just outside the imported aircraft's 3.56 m wingspan. */
-    const val POLE_X = 4.0f
+    const val POLE_X = 4.2f
 
     /** Visible height above the pad; the 2.4 m timber is planted 0.8 m into the ground. */
     const val POLE_HEIGHT = 1.60f
