@@ -36,6 +36,9 @@ Engine, gameplay and the full screen set are implemented.
   Textures toggle). The terrain ground layers have been replaced with imported Poly Haven
   CC0 photos (grass, rock, sand, snow, soil) loaded from `assets/terrain`; the generated
   versions remain as a fallback so a missing or renamed art file can never break a world.
+  The slingshot band, the propeller blur disc and the birds read imported rubber and
+  painted-metal maps the same way. Only `leaf` (procedural canopies) and `waterNormals`
+  (water shader) are still generated.
 
 **Worlds (`world`)** — five ecosystems with distinct terrain shaping, palettes,
 atmosphere, water level, vegetation, wildlife and weather: forest, desert, snow/glacier,
@@ -252,8 +255,12 @@ Why the two APKs behaved differently before:
   [Furniture Kit](https://kenney.nl/assets/furniture-kit) —
   `docs/licenses/Kenney-NatureKit-CC0.txt`, `docs/licenses/Kenney-CastleKit-CC0.txt`,
   `docs/licenses/Kenney-FurnitureKit-CC0.txt`.
-- **Poly Haven** (CC0): the ten ground/terrain and wood/bark diffuse maps in
+- **Poly Haven** (CC0): the thirteen ground/terrain and wood/bark diffuse maps in
   `assets/terrain` — `docs/licenses/PolyHaven-CC0.txt`.
+- **ambientCG** (CC0): the rubber and painted-metal colour maps in `assets/terrain`
+  ([Rubber 004](https://ambientcg.com/a/Rubber004),
+  [Painted Metal 016](https://ambientcg.com/a/PaintedMetal016)) —
+  `docs/licenses/AmbientCG-CC0.txt`.
 - **"Low-Poly Aircraft Kit Free" by heyheythere** —
   <https://heyheythere.itch.io/low-poly-aircraft-kit-free>, licensed **CC BY 4.0**
   (<https://creativecommons.org/licenses/by/4.0/>). Used: the windsock and traffic cone,

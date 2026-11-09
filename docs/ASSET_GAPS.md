@@ -18,13 +18,16 @@ list that has to be filled before the generated geometry can be deleted.
 | Kenney Castle Kit | 7 models + `colormap.png` in `models/castle` | CC0 |
 | heyheythere Low-Poly Aircraft Kit | 1 archive, 2 props read out of it (windsock, cone) | CC BY 4.0 |
 | Poly Haven ground set | 13 diffuse maps (1K JPG) in `terrain` | CC0 |
+| ambientCG painted surfaces | 2 colour maps (`rubber`, `hazard`) in `terrain` | CC0 |
 
 Poly Pizza's `samolet` biplane is **downloaded and shipped but not loaded by any code** —
 see §1.
 
 Terrain now uses imported diffuse maps for grass, rock, sand, snow, soil, forest floor,
-beach sand, cracked dry, cliff rock, gravel, planks, bark and metal; the generated versions
-remain only as a fallback so a missing file can never break a world.
+beach sand, cracked dry, cliff rock, gravel, planks, bark and metal. The slingshot's
+warning-striped band reads the imported `hazard` map, and the propeller blur disc and the
+birds read `rubber`. The generated versions remain only as a fallback so a missing file can
+never break a world.
 
 ---
 
@@ -107,14 +110,16 @@ Needed: 2–3 low-poly or billboard tree cards per biome so the far scatter can 
 
 ## 8. Textures still generated (`gfx/TextureFactory.kt`)
 
-Only four remain, plus the 1×1 white:
+Two remain, plus the 1×1 `white`:
 
 | Texture | Used by | Needed |
 |---|---|---|
-| `hazard` | launch pad banding | a real painted-hazard strip |
 | `leaf` | procedural canopies | replaced when §7 lands |
-| `rubber` | band, propeller blur | a real rubber/elastic map |
 | `waterNormals` | water shader | a real water normal map (Poly Haven has tiling water normals, CC0) |
+
+`hazard` and `rubber` are now imported: `assets/terrain/rubber.jpg` and
+`assets/terrain/hazard.jpg` come from ambientCG Rubber 004 and Painted Metal 016 (CC0,
+`docs/licenses/AmbientCG-CC0.txt`) and are preferred over the generated maps at load time.
 
 Normal and roughness maps for the 13 ground diffuse maps would also sharpen them, but the
 shader samples one map per surface today.
