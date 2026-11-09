@@ -89,9 +89,9 @@ class CameraDirector(private val camera: Camera) {
     }
 
     /**
-     * Rear-side view of the aircraft inside the hangar, matching Ref-2: close, slightly
-     * elevated, on a fixed oblique so the plank wall fills one edge and the open side shows
-     * daylight. It only turns when the player drags.
+     * Wide rear-side view of the aircraft and full slingshot assembly inside the hangar.
+     * The 8.4 m post span must remain in frame; the 26 m shed depth keeps this wider orbit
+     * inside the structure. The view only turns when the player drags.
      */
     fun updateOrbitAircraft(center: Vec3, time: Float, dt: Float, radius: Float, yawOffset: Float) {
         val angle = HANGAR_BASE_ANGLE + yawOffset
