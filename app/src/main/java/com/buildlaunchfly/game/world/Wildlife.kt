@@ -76,7 +76,7 @@ object Wildlife {
             val rng = kotlin.random.Random(seed + 601)
             for (i in 0 until count) {
                 angle[i] = rng.nextFloat() * 6.2831855f
-                radius[i] = 12f + rng.nextFloat() * 70f
+                radius[i] = 12f + rng.nextFloat() * 58f
                 speed[i] = (0.05f + rng.nextFloat() * 0.12f) * (if (rng.nextBoolean()) 1f else -1f)
                 scale[i] = 0.8f + rng.nextFloat() * 0.7f
                 phase[i] = rng.nextFloat() * 6.2831855f
