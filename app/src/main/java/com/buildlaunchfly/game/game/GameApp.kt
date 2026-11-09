@@ -855,7 +855,10 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         if (showHangar || showLaunchHangar) {
             hangar?.let { set ->
-                sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
+                sceneRenderer.shadowMesh(
+                    if (showHangar) set.wallMesh else set.launchWallMesh,
+                    slingshotModel
+                )
                 if (showHangar) sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
@@ -943,7 +946,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             // omitted here: the camera is inside the shed and the roof panels otherwise
             // dominate the view or appear to intersect the aircraft during pull-back.
             hangar?.let { set ->
-                sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.launchWallMesh, set.wallMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
