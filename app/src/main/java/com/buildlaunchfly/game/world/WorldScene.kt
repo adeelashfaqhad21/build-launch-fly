@@ -523,21 +523,21 @@ class WorldScene(
                 plants.add(HeroSpec("Flower_1_Clump", "Flowers.png", 34, 0.7f, 12))
                 plants.add(HeroSpec("Flower_2_Clump", "Flowers.png", 26, 0.6f, 28))
                 plants.add(HeroSpec("Flower_3_Clump", "Flowers.png", 26, 0.65f, 42))
-                plants.add(HeroSpec("Grass_Large", "Grass.png", 40, 1.0f, 13))
-                plants.add(HeroSpec("Grass_Small", "Grass.png", 40, 0.6f, 43))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 88, 1.0f, 13))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 96, 0.6f, 43))
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 26, 0.9f, 44))
             }
             PlantStyle.ALPINE -> {
                 plants.add(HeroSpec("Bush", "Bush_Leaves.png", 28, 1.2f, 14))
                 plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 24, 0.8f, 45))
-                plants.add(HeroSpec("Grass_Small", "Grass.png", 30, 0.6f, 46))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 72, 0.6f, 46))
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 18, 0.7f, 47))
             }
             PlantStyle.COAST -> {
                 plants.add(HeroSpec("Bush_Large", "Bush_Leaves.png", 24, 2.0f, 16))
                 plants.add(HeroSpec("Bush_Flowers", "Bush_Leaves.png", 22, 1.4f, 48))
-                plants.add(HeroSpec("Grass_Large", "Grass.png", 34, 1.3f, 17))
-                plants.add(HeroSpec("Grass_Small", "Grass.png", 30, 0.7f, 49))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 76, 1.3f, 17))
+                plants.add(HeroSpec("Grass_Small", "Grass.png", 72, 0.7f, 49))
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 20, 0.8f, 50))
             }
             PlantStyle.DESERT -> {
@@ -1577,15 +1577,15 @@ class WorldScene(
     /** Props per species, scaled by the graphics setting rather than switched off entirely. */
     private fun heroCount(base: Int): Int {
         val factor = when {
-            detailLevel <= 0 -> 0.35f
-            detailLevel == 1 -> 0.7f
-            detailLevel == 2 -> 1f
-            else -> 1.35f
+            detailLevel <= 0 -> 0.45f
+            detailLevel == 1 -> 0.85f
+            detailLevel == 2 -> 1.25f
+            else -> 1.55f
         }
         return (base * factor).toInt().coerceAtLeast(0)
     }
 
-    /** Places [count] props in a ring around the launch area, avoiding pad and water. */
+    /** Distributes imported species through the launch approach and first flight region. */
     private fun heroScatter(count: Int, seedOffset: Int, height: Float): InstanceSet {
         if (count <= 0) return InstanceSet.EMPTY
         val out = FloatArray(count * 16)
@@ -1599,9 +1599,10 @@ class WorldScene(
         while (placed < count && attempts < maxAttempts) {
             attempts++
             val angle = rng.nextFloat() * M.TWO_PI
-            // 18–140 m: close enough to dress the hangar approach, far enough to line the
-            // first half of every flight with trees, bushes and rocks to steer around.
-            val radius = 18f + rng.nextFloat() * 122f
+            // Spread imported silhouettes beyond the immediate pad so the player sees
+            // realm-specific assets during the opening flight, not only on the runway.
+            // The inner exclusion still protects the hangar and launch corridor.
+            val radius = 28f + rng.nextFloat() * 300f
             val x = kotlin.math.cos(angle) * radius
             val z = -60f + kotlin.math.sin(angle) * radius
             if (x * x + z * z < 26f * 26f) continue
