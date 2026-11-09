@@ -112,7 +112,7 @@ class SlingshotMesh(textures: TextureFactory) {
         val b = MeshBuilder()
         for (side in intArrayOf(-1, 1)) {
             b.pushTrs(
-                side * SlingshotLayout.POLE_X, 0f, 0f,
+                side * SlingshotLayout.POLE_X, 0f, SlingshotLayout.POST_Z,
                 0f, 0f, -side * SlingshotLayout.POLE_SPLAY,
                 1f
             )

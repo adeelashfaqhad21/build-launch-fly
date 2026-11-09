@@ -364,7 +364,8 @@ Each post is planted, not floating: a foot block, a wide squared shaft and a cha
 Both posts splay slightly outward so the band clears the wings.
 
 **Layout in world space:** the imported aircraft spans 3.56 m. Posts sit just outside the wing
-tips at x ±2.05 m, with a 0.34 m square section, 2.65 m tall and a 0.045 rad outward splay.
+tips at x ±2.05 m and z = 2.65 m (0.35 m ahead of the aircraft), with a 0.34 m square section,
+2.65 m tall and a 0.045 rad outward splay.
 The continuous flat webbing is 0.28 m wide and 0.07 m thick before the upgrade multiplier;
 the tow point is 0.12 m below the aircraft origin and 0.30 m behind it. The aircraft origin is
 0.85 m above the pad, putting the wheels on the ground. The launch camera is directly behind
