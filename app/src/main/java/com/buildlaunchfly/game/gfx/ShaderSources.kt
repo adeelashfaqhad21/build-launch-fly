@@ -205,9 +205,11 @@ void main() {
     vec3 n = normalize(vNormal);
     float upness = clamp(n.y, 0.0, 1.0);
 
+    // Every layer is a photo map, so the ratios below hold them at believable world scales
+    // (about 10 m for A) rather than the fine noise scale the generated maps were drawn at.
     vec3 a = texture(uTexA, vUv).rgb * uTintA;
-    vec3 b = texture(uTexB, vUv * 0.37).rgb * uTintB;
-    vec3 c = texture(uTexC, vUv * 2.13).rgb * uTintC;
+    vec3 b = texture(uTexB, vUv * 0.50).rgb * uTintB;
+    vec3 c = texture(uTexC, vUv * 0.35).rgb * uTintC;
 
     float rockMask = 1.0 - smoothstep(uRockThreshold - 0.24, uRockThreshold, upness);
     vec3 albedo = mix(a, b, rockMask);
@@ -221,11 +223,13 @@ void main() {
         valueNoise(vWorldPos.xz * 0.081) * 0.38;
     float soilMask = smoothstep(uSoilStart, uSoilEnd, patch);
     soilMask *= (1.0 - rockMask) * (1.0 - highMask);
-    vec3 d = texture(uTexD, vUv * 1.7).rgb * vec3(1.05, 0.98, 0.92);
-    albedo = mix(albedo, d, soilMask * 0.92);
+    vec3 d = texture(uTexD, vUv * 0.70).rgb;
+    albedo = mix(albedo, d, soilMask * 0.85);
 
-    float detail = texture(uTexC, vUv * 0.07).r;
-    albedo *= 0.92 + detail * 0.16;
+    // Broad, low-frequency variation taken from the base map itself, instead of a separate
+    // multi-metre sample of one photo's red channel, which read as dirty blotches.
+    float detail = texture(uTexA, vUv * 0.12).r;
+    albedo *= 0.94 + detail * 0.12;
 
     vec3 v = normalize(uCameraPos - vWorldPos);
     vec3 color = shadeSurface(albedo, n, v, vWorldPos, 0.9, 0.0, 0.0);

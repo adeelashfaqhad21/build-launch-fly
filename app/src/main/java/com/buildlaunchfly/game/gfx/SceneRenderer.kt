@@ -155,7 +155,10 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         env.apply(terrainProgram, cam)
         terrainProgram.set("uModel", identity)
         terrainProgram.set("uNormalMat", identity)
-        terrainProgram.set("uUvScale", 1f)
+        // TerrainMesh writes one UV unit per 8 m of ground; this maps that to a ~10 m
+        // texture tile, which is the scale the imported photo maps were shot at. The old
+        // value of 1 tiled them every 8 m and made the ground shimmer like gravel.
+        terrainProgram.set("uUvScale", TERRAIN_UV_SCALE)
 
         textureA.bind(0)
         terrainProgram.set("uTexA", 0)
@@ -166,9 +169,12 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         soil.bind(4)
         terrainProgram.set("uTexD", 4)
 
-        terrainProgram.set("uTintA", tintA)
-        terrainProgram.set("uTintB", tintB)
-        terrainProgram.set("uTintC", tintC)
+        // The imported maps are photographs and already carry the ground's real colour, so
+        // the realm tints are allowed a hint of the design palette instead of re-grading
+        // them: a strong tint over a photo reads as dirt, not as the realm's soil.
+        terrainProgram.set("uTintA", muted(tintA))
+        terrainProgram.set("uTintB", muted(tintB))
+        terrainProgram.set("uTintC", muted(tintC))
         terrainProgram.set("uRockThreshold", rockThreshold)
         terrainProgram.set("uSnowLine", snowLine)
         terrainProgram.set("uSoilStart", soilStart)
@@ -180,6 +186,13 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0 + EnvUniforms.SHADOW_TEXTURE_UNIT)
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, shadowMap.depthTexture)
     }
+
+    /** Pulls a design tint [TINT_NEUTRALISE] of the way back to white for photographic maps. */
+    private fun muted(tint: Vec3): Vec3 = Vec3(
+        tint.x + (1f - tint.x) * TINT_NEUTRALISE,
+        tint.y + (1f - tint.y) * TINT_NEUTRALISE,
+        tint.z + (1f - tint.z) * TINT_NEUTRALISE
+    )
 
     fun drawWater(
         mesh: Mesh,
@@ -209,5 +222,16 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         water.dispose()
         particles.dispose()
         shadowMap.dispose()
+    }
+
+    companion object {
+        /**
+         * Texture tiling in UV units. TerrainMesh writes one UV unit per 8 m of ground, so
+         * 0.75 is roughly one 10.7 m photo tile — the scale the imported maps were shot at.
+         */
+        const val TERRAIN_UV_SCALE = 0.75f
+
+        /** How far a realm tint is pulled back toward white for the photographic maps. */
+        const val TINT_NEUTRALISE = 0.8f
     }
 }
