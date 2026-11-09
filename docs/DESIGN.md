@@ -237,8 +237,10 @@ on tap.
   exposed rafters, ties and purlins, a heavy timber door frame at the open front, a plank floor,
   and the working-shed clutter (hay bales, crates, a barrel, a bench and stool, a lamp hanging
   from the ridge)
-- [x] **Launch ramp** — six metres of deck rising one metre directly in front of the open end
-  (`buildRampData`); the lip adds a small upward push to the launch (`LAUNCH_RAMP_BOOST`)
+- [x] **Launch ramp** — a narrow timber kicker on the shed floor, along the launch axis
+  (`buildRampData`): it begins 5–6 ft (1.7 m) ahead of the tow point, runs 10–11 ft (3.2 m) in
+  all, and its last 3–4 ft (1.1 m) climb to the lip; the lip adds a small upward push to the
+  launch (`LAUNCH_RAMP_BOOST`)
 - [x] Hero scale — interior 10.6 m wide and 21 m long, walls 6.4 m, ridge 8.55 m, so the
   1.5× aircraft and the 4.85 m slingshot fit inside with room to read
 - [x] Plane idles with the reference's ±2 cm bob (`SlingshotMesh.idleBob`)

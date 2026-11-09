@@ -10,6 +10,7 @@ import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
+import com.buildlaunchfly.game.slingshot.SlingshotLayout
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -47,7 +48,7 @@ class HangarMesh(
     /** Hanging lamp and its shade. */
     val metalMesh: Mesh
 
-    /** Short upward ramp in front of the open end: the launch run-out. */
+    /** Narrow timber kicker on the shed floor ahead of the tow point: the launch run-out. */
     val rampMesh: Mesh
 
     /** Kenney Furniture Kit props standing inside the shed, one entry per material group. */
@@ -227,48 +228,74 @@ class HangarMesh(
     }
 
     /**
-     * The short launch ramp: about six metres of deck rising one metre, directly in front of
-     * the open end so the aircraft runs out of the shed and up the slope.
+     * The launch ramp: a narrow timber kicker standing on the shed floor, running the way the
+     * aircraft launches rather than across it.
+     *
+     * Its leading edge sits 5–6 ft (1.7 m) ahead of the tow point, its whole run is 10–11 ft
+     * (3.2 m), and its last 3–4 ft (1.1 m) climbs to the launching lip, so the aircraft rolls
+     * forward on the flat, up the incline and off the end. The leading edge is a low chamfer
+     * board, not a step, and the incline is carried on two timber trestles, so it reads as a
+     * built ramp from every camera angle.
      */
     private fun buildRampData(): MeshData {
         val b = MeshBuilder()
 
-        val startZ = -HALF_LENGTH + 0.2f
-        val endZ = startZ - RAMP_LENGTH
-        val run = startZ - endZ
-        val rise = RAMP_RISE
-        val slope = atan2(rise, run)
-        val deckLength = sqrt(run * run + rise * rise)
-        val midZ = (startZ + endZ) * 0.5f
-        val midY = rise * 0.5f
+        val slope = atan2(RAMP_RISE, RAMP_LIFT)
+        val deckLen = sqrt(RAMP_LIFT * RAMP_LIFT + RAMP_RISE * RAMP_RISE)
+        val halfLen = deckLen * 0.5f
+        val halfThick = RAMP_THICKNESS * 0.5f
+        // Centre height that puts the *top* face of the tilted board on the lip line: 0.10 m at
+        // the knee and 0.42 m at the end.
+        val inclineY = RAMP_DECK_TOP + halfLen * sin(slope) - halfThick * cos(slope)
 
-        // The deck itself: one board tilted up along its own +Z. A positive X rotation lifts
-        // the far (-Z) end, which is the direction the aircraft launches.
-        b.pushTrs(0f, midY, midZ, slope, 0f, 0f, 1f)
-        b.addBox(0f, 0f, 0f, RAMP_HALF, 0.14f, deckLength * 0.5f, 3.0f)
+        // ---- flat run: a deck board from the end of the chamfer to the knee ----
+        val flatMidZ = (RAMP_DECK_START_Z + RAMP_KNEE_Z) * 0.5f
+        val flatHalfZ = (RAMP_DECK_START_Z - RAMP_KNEE_Z) * 0.5f
+        b.addBox(0f, RAMP_DECK_TOP - halfThick, flatMidZ, RAMP_HALF, halfThick, flatHalfZ, 3.2f)
+
+        // ---- lead-in: a chamfer board from the floor up to the deck, so the wheels roll on ----
+        val leadSlope = atan2(RAMP_DECK_TOP, RAMP_LEAD_IN)
+        val leadLen = sqrt(RAMP_LEAD_IN * RAMP_LEAD_IN + RAMP_DECK_TOP * RAMP_DECK_TOP)
+        val leadHalfLen = leadLen * 0.5f
+        val leadHalfThick = RAMP_THICKNESS * 0.35f
+        val leadY = RAMP_DECK_TOP - leadHalfLen * sin(leadSlope) - leadHalfThick * cos(leadSlope)
+        b.pushTrs(
+            0f, leadY, RAMP_START_Z - RAMP_LEAD_IN * 0.5f,
+            leadSlope, 0f, 0f, 1f
+        )
+        b.addBox(0f, 0f, 0f, RAMP_HALF, leadHalfThick, leadHalfLen, 3.2f)
         b.pop()
 
-        // A second, deeper board under the deck gives the ramp a solid timber thickness.
-        b.pushTrs(0f, midY - 0.42f, midZ, slope, 0f, 0f, 1f)
-        b.addBox(0f, 0f, 0f, RAMP_HALF - 0.1f, 0.28f, deckLength * 0.46f, 2.6f)
+        // ---- take-off section: the inclined board rising off the knee to the lip ----
+        b.pushTrs(0f, inclineY, (RAMP_KNEE_Z + RAMP_END_Z) * 0.5f, slope, 0f, 0f, 1f)
+        b.addBox(0f, 0f, 0f, RAMP_HALF, halfThick, halfLen, 3.2f)
         b.pop()
 
-        // Cross beams stepping down to the ground under the slope.
-        val steps = 4
-        for (i in 0 until steps) {
-            val t = (i + 0.5f) / steps
-            val z = startZ + (endZ - startZ) * t
-            val height = rise * t
-            b.addBox(0f, height * 0.5f, z, RAMP_HALF - 0.2f, height * 0.5f, 0.11f, 2.4f)
+        // ---- two trestles carrying the incline ----
+        for (index in 1..2) {
+            val t = index / 3f
+            val z = RAMP_KNEE_Z + (RAMP_END_Z - RAMP_KNEE_Z) * t
+            val height = RAMP_DECK_TOP + RAMP_RISE * t - RAMP_THICKNESS
+            if (height <= 0f) continue
+            b.addBox(0f, height * 0.5f, z, RAMP_HALF - 0.08f, height * 0.5f, 0.07f, 2.6f)
         }
 
-        // Low kerb rails down both edges, so the ramp reads as a built structure.
+        // ---- the front of the ramp, closed down to the floor under the lip ----
+        val faceHeight = RAMP_DECK_TOP + RAMP_RISE - RAMP_THICKNESS
+        b.addBox(
+            0f, faceHeight * 0.5f, RAMP_END_Z + 0.06f,
+            RAMP_HALF - 0.06f, faceHeight * 0.5f, 0.06f, 2.6f
+        )
+
+        // ---- low kerb rails down both edges, so the ramp reads as a built structure ----
         for (side in intArrayOf(-1, 1)) {
+            val x = side * (RAMP_HALF - 0.07f)
+            b.addBox(x, RAMP_DECK_TOP + 0.08f, flatMidZ, 0.06f, 0.08f, flatHalfZ, 2.4f)
             b.pushTrs(
-                side * (RAMP_HALF - 0.12f), midY + 0.18f, midZ,
+                x, inclineY + (halfThick + 0.08f) * cos(slope), (RAMP_KNEE_Z + RAMP_END_Z) * 0.5f,
                 slope, 0f, 0f, 1f
             )
-            b.addBox(0f, 0f, 0f, 0.10f, 0.16f, deckLength * 0.5f, 2.4f)
+            b.addBox(0f, 0f, 0f, 0.06f, 0.08f, halfLen, 2.4f)
             b.pop()
         }
 
@@ -301,10 +328,40 @@ class HangarMesh(
         const val PANEL_HALF = 3.10f
         const val TIE_Y = 6.30f
 
-        /** Launch ramp: six metres of run, one metre of rise. */
-        const val RAMP_LENGTH = 6.0f
-        const val RAMP_RISE = 1.0f
-        const val RAMP_HALF = 3.40f
+        /**
+         * Launch ramp, measured from the tow point rather than from the shed: it starts 5–6 ft
+         * ahead of the aircraft (1.7 m), runs 10–11 ft in all (3.2 m), and its last 3–4 ft
+         * (1.1 m) climb to the lip. It is a narrow wheel track, not a deck: a ramp wider than
+         * it is long reads as a platform lying across the launch instead of a ramp along it.
+         */
+        private const val RAMP_GAP = 1.70f
+        private const val RAMP_LENGTH = 3.20f
+        private const val RAMP_LIFT = 1.10f
+        private const val RAMP_HALF = 0.75f
+
+        /** Height of the flat deck above the shed floor. */
+        private const val RAMP_DECK_TOP = 0.10f
+
+        /** Rise of the take-off section above the flat deck. */
+        private const val RAMP_RISE = 0.32f
+
+        /** Thickness of a deck board. */
+        private const val RAMP_THICKNESS = 0.10f
+
+        /** Length of the chamfer that meets the shed floor. */
+        private const val RAMP_LEAD_IN = 0.35f
+
+        /** Z the ramp's leading edge begins at: ahead of the tow point, forward being -Z. */
+        private val RAMP_START_Z = SlingshotLayout.HOLD_Z - RAMP_GAP
+
+        /** Z of the launching lip. The whole run, chamfer included, is [RAMP_LENGTH] long. */
+        private val RAMP_END_Z = RAMP_START_Z - RAMP_LENGTH
+
+        /** Z where the chamfer reaches deck height. */
+        private val RAMP_DECK_START_Z = RAMP_START_Z - RAMP_LEAD_IN
+
+        /** Z where the flat run hands over to the take-off section. */
+        private val RAMP_KNEE_Z = RAMP_END_Z + RAMP_LIFT
 
         /** One imported prop: model name, world height, plan position and heading. */
         private class PropSpec(

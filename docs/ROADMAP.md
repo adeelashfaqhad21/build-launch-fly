@@ -126,6 +126,7 @@ Priority is about what the player meets, not about effort.
 | 23 | The aircraft flies far above everything, so no tree or building is ever in the way. | The stick asked for up to **20° of angle of attack** against a wing that stalls at 16°, so a pull sat past the lift peak: the aircraft climbed until it stalled, then fell. The request is now clamped inside the working curve (`ALPHA_LIMIT = 0.96 × ALPHA_STALL`), trim is the efficient glide attitude, and pitch authority grows with airspeed (`speed / 18`, capped at 1.5×). |
 | 24 | Once it is nose-down it will not climb again, however fast it is going. | Same cause: at full pull the deep stall produced drag instead of lift. With the request inside the curve, a dive at speed builds the most lift the wing has (`q·S·CL/max`) and the flight path arcs back up; the nose follows because `MAX_PITCH` was raised to 1.50 rad so the attitude is never clipped below what the pull asks for. |
 | 25 | Trees and buildings are decoration: nothing tests them. | `world/ObstacleField` files every tree instance (crown height and width read from its own matrix), every building and every kit prop as an upright cylinder in a 32 m grid. `GameApp.updateFlight` asks it once a frame with a 1.5 m aircraft disc and calls `FlightPhysics.impact()` on a hit. Trees are kept 55 m clear of the launch pad so a take-off cannot end in a trunk. |
+| 26 | The ramp still reads as sideways: it was a 6.8 m-wide deck at the shed door, 13 m ahead of the aircraft, so it was wider than it was long and laid across the launch instead of along it. | `HangarMesh.buildRampData` is rebuilt as a narrow timber kicker on the launch axis: 1.5 m wide, its leading edge 1.7 m (5–6 ft) ahead of the tow point, 3.2 m (10–11 ft) long overall, with the last 1.1 m (3–4 ft) climbing 0.32 m to the lip behind a chamfer lead-in and two trestles. It is placed from `SlingshotLayout.HOLD_Z`, so the aircraft, the rig and the ramp cannot drift apart. |
 
 ## 4. Asset catalog
 
@@ -254,8 +255,11 @@ on its final commit.
   the whole flyable world, farmsteads and towers scattered in every realm.
 - **e532d57**, **383cf59** — the launch stands inside the shed, the release ribbon is gone,
   a retry resets to the aim camera, and the aircraft waits on the hangar floor ahead of the
-  ramp.
-- **this commit** — flight feel and obstacles: the stick's angle-of-attack request is clamped
+  open front.
+- **b8aeb3f** — flight feel and obstacles: the stick's angle-of-attack request is clamped
   inside the lift curve so a dive can be pulled out of at speed, pitch authority follows
   airspeed, and every tree, building and prop is now a solid cylinder the flight model tests
   each frame.
+- **this commit** — the launch ramp rebuilt on the launch axis: a 1.5 m-wide timber kicker
+  starting 1.7 m ahead of the tow point, 3.2 m long, whose last 1.1 m climbs to the lip; the
+  old 6.8 m-wide deck across the shed door is gone.
