@@ -4,6 +4,7 @@ import android.content.res.AssetManager
 import com.buildlaunchfly.game.gfx.AnimalLoader
 import com.buildlaunchfly.game.gfx.AssetTextures
 import com.buildlaunchfly.game.gfx.Camera
+import com.buildlaunchfly.game.gfx.GlbLoader
 import com.buildlaunchfly.game.gfx.InstancedMesh
 import com.buildlaunchfly.game.gfx.InstanceSet
 import com.buildlaunchfly.game.gfx.Material
@@ -334,10 +335,12 @@ class WorldScene(
             definition.seed
         )
 
-        // An imported bird model (BufferGeometry JSON, such as emnh/rts-models) wins when it is
-        // in the APK; the procedural flock stays as the fallback so the sky is never empty.
+        // The imported parrot (glTF binary) is the flock when it is in the APK; the older
+        // BufferGeometry JSON and the procedural triangles stay as fallbacks so the sky is
+        // never empty if an art file is missing.
         val importedBird = if (assets != null) {
-            RtsModelLoader.load(assets, "birds/bird.json", BIRD_HEIGHT)
+            GlbLoader.load(assets, "birds/parrot.glb", BIRD_HEIGHT)
+                ?: RtsModelLoader.load(assets, "birds/bird.json", BIRD_HEIGHT)
         } else {
             null
         }

@@ -77,12 +77,11 @@ imported slingshot exists in any pack in use.
 Birds are procedural triangles (`WorldScene.buildBirdData`), and so is the fallback animal
 mesh (`buildAnimalData`) used when a pack model is missing.
 
-Needed: one low-poly bird. `gfx/RtsModelLoader` now reads the BufferGeometry JSON format used
-by `emnh/rts-models` (`3d/*.json`) and the sky prefers `assets/birds/bird.json` when it is
-shipped; the procedural flock is the fallback. That repository itself contains no bird — its
-models are a dragon, ant, horse, tanks and aircraft — so a bird still has to come from
-elsewhere (the CC0 OpenGameArt "Bird" by gonzalfj is `.blend` only and needs an OBJ/GLB
-export first).
+Needed: one low-poly bird. **Wired:** `gfx/GlbLoader` reads the glTF binary the owner supplied
+(`assets/birds/parrot.glb`) and the flock uses it; `gfx/RtsModelLoader` handles the older
+BufferGeometry JSON, and the procedural triangles remain as the fallback. Use
+`assets/birds/bird.json` for a JSON model or replace `parrot.glb` with the final bird once its
+licence is settled (see `docs/licenses/parrot-bird-UNCONFIRMED.txt`).
 
 ## 5. Realm-specific buildings — partly covered
 
