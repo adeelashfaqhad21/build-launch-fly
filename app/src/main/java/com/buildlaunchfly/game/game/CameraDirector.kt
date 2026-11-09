@@ -82,6 +82,7 @@ class CameraDirector(private val camera: Camera) {
     }
 
     fun updateResults(focus: Vec3, time: Float, dt: Float) {
+        camera.fovYDegrees = 66f
         val angle = time * 0.32f
         desiredPosition.set(
             focus.x + cos(angle) * 19f,
@@ -98,6 +99,7 @@ class CameraDirector(private val camera: Camera) {
      * inside the structure. The view only turns when the player drags.
      */
     fun updateOrbitAircraft(center: Vec3, time: Float, dt: Float, radius: Float, yawOffset: Float) {
+        camera.fovYDegrees = 66f
         val angle = HANGAR_BASE_ANGLE + yawOffset
         desiredPosition.set(
             center.x + sin(angle) * radius,
@@ -110,6 +112,7 @@ class CameraDirector(private val camera: Camera) {
 
     /** Side view of the launching rig (slingshot lab); orbit is driven by drag only. */
     fun updateOrbitSlingshot(pad: Vec3, time: Float, dt: Float, yawOffset: Float) {
+        camera.fovYDegrees = 66f
         val angle = 0.35f + yawOffset
         val radius = 9.5f
         desiredPosition.set(
