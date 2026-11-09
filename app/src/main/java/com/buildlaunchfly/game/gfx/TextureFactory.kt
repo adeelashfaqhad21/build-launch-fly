@@ -1,5 +1,6 @@
 package com.buildlaunchfly.game.gfx
 
+import android.content.res.AssetManager
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
 
@@ -13,7 +14,11 @@ enum class SurfaceKind { GRASS, ROCK, SAND, SNOW, ICE }
  *
  * [size] is driven by the "High-Resolution Textures" setting.
  */
-class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE) {
+class TextureFactory(
+    private val seed: Int = 1337,
+    private val size: Int = SIZE,
+    private val assets: AssetManager? = null
+) {
 
     val white: Texture2D
     val metal: Texture2D
@@ -34,10 +39,20 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
             Texture2D.create("white", 1, 1, ByteArray(4) { 255.toByte() }, mipmaps = false, repeat = false)
         )
 
-        surfaces[SurfaceKind.GRASS] = register(Texture2D.create("grass", texSize, texSize, grassTexture(texSize)))
-        surfaces[SurfaceKind.ROCK] = register(Texture2D.create("rock", texSize, texSize, rockTexture(texSize)))
-        surfaces[SurfaceKind.SAND] = register(Texture2D.create("sand", texSize, texSize, sandTexture(texSize)))
-        surfaces[SurfaceKind.SNOW] = register(Texture2D.create("snow", texSize, texSize, snowTexture(texSize)))
+        // Imported Poly Haven ground sets when they ship with the APK; the generated
+        // versions remain as a fallback so a missing file never breaks a world.
+        surfaces[SurfaceKind.GRASS] = register(
+            imported("grass") ?: Texture2D.create("grass", texSize, texSize, grassTexture(texSize))
+        )
+        surfaces[SurfaceKind.ROCK] = register(
+            imported("rock") ?: Texture2D.create("rock", texSize, texSize, rockTexture(texSize))
+        )
+        surfaces[SurfaceKind.SAND] = register(
+            imported("sand") ?: Texture2D.create("sand", texSize, texSize, sandTexture(texSize))
+        )
+        surfaces[SurfaceKind.SNOW] = register(
+            imported("snow") ?: Texture2D.create("snow", texSize, texSize, snowTexture(texSize))
+        )
         surfaces[SurfaceKind.ICE] = register(Texture2D.create("ice", texSize, texSize, iceTexture(texSize)))
 
         metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
@@ -45,7 +60,9 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
         hazard = register(Texture2D.create("hazard", texSize, texSize, hazardTexture(texSize)))
         bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
         leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
-        soil = register(Texture2D.create("soil", texSize, texSize, soilTexture(texSize)))
+        soil = register(
+            imported("soil") ?: Texture2D.create("soil", texSize, texSize, soilTexture(texSize))
+        )
         planks = register(Texture2D.create("planks", texSize, texSize, plankTexture(texSize)))
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
     }
@@ -53,6 +70,15 @@ class TextureFactory(private val seed: Int = 1337, private val size: Int = SIZE)
     private fun register(texture: Texture2D): Texture2D {
         all.add(texture)
         return texture
+    }
+
+    /**
+     * Loads an imported diffuse map from `assets/terrain/<name>.jpg`. It is downscaled on
+     * decode, so a 1K Poly Haven set costs the same texture memory as the generated one.
+     */
+    private fun imported(name: String): Texture2D? {
+        val manager = assets ?: return null
+        return AssetTextures.load(manager, "terrain/$name.jpg", maxSize = 512)
     }
 
     fun surface(kind: SurfaceKind): Texture2D = surfaces[kind] ?: white

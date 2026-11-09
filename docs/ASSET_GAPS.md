@@ -69,24 +69,16 @@ Needed:
 
 No imported slingshot exists in the current packs.
 
-## 4. Terrain and ground textures
+## 4. Terrain and ground textures — **partly imported**
 
-Generated in `gfx/TextureFactory.kt` (300 lines: grass, rock, sand, snow, ice, soil, bark,
-leaf, metal, rubber, hazard, planks, water normals).
+`app/src/main/assets/terrain/` now ships five Poly Haven CC0 diffuse maps (1K JPG):
+`grass.jpg` (Aerial Grass Rock), `rock.jpg` (Gray Rocks), `sand.jpg` (Gravelly Sand),
+`snow.jpg` (Snow 02) and `soil.jpg` (Brown Mud Dry). `TextureFactory` loads them and keeps
+the generated versions only as a fallback — see `docs/licenses/PolyHaven-CC0.txt`.
 
-Needed seamless tileable PBR sets (albedo + normal + roughness):
-
-- grass meadow, dry grass, forest floor;
-- rock/cliff, gravel, scree;
-- sand, dune sand;
-- snow, ice;
-- packed earth/soil, mud;
-- wood planks (hangar), bark (posts), painted metal;
-- water normal map.
-
-Suggested sources: Poly Haven (CC0) surface sets, ambientCG (CC0), or Quaternius' texture
-packs. Poly Haven was previously rejected on style, but for terrain it is the most realistic
-option and the plates' terrain is semi-stylised, so a low-contrast CC0 set is the fit.
+Still needed (for the generated ones that remain in `gfx/TextureFactory.kt`): a proper ice
+map, a wood-plank set for the hangar, bark for the posts, painted metal, and the water
+normal map. Normal/roughness maps for the five above would also sharpen them.
 
 ## 5. Vegetation still generated
 
