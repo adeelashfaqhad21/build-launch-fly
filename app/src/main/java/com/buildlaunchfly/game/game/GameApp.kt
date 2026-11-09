@@ -931,7 +931,6 @@ class GameApp(private val context: Context, private val input: InputState) {
             // dominate the view or appear to intersect the aircraft during pull-back.
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
