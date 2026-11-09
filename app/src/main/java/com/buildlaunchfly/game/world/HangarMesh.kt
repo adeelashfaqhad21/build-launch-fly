@@ -336,6 +336,18 @@ class HangarMesh(
         return b.build()
     }
 
+    /**
+     * Ground height of the launch deck in hangar-local coordinates. Returns null outside
+     * the asphalt footprint so the normal terrain remains authoritative there.
+     */
+    fun rampHeightAt(localX: Float, localZ: Float): Float? {
+        if (kotlin.math.abs(localX) > RAMP_WIDTH * 0.5f) return null
+        if (localZ > RAMP_START_Z || localZ < RAMP_END_Z) return null
+        val t = ((RAMP_START_Z - localZ) / (RAMP_START_Z - RAMP_END_Z))
+            .coerceIn(0f, 1f)
+        return rampElevation(t)
+    }
+
     private fun rampElevation(t: Float): Float {
         val u = t.coerceIn(0f, 1f)
         return RAMP_ELEVATION *
