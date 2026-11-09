@@ -1,6 +1,7 @@
 package com.buildlaunchfly.game.world
 
 import android.content.res.AssetManager
+import android.util.Log
 import com.buildlaunchfly.game.gfx.AnimalLoader
 import com.buildlaunchfly.game.gfx.AssetTextures
 import com.buildlaunchfly.game.gfx.Camera
@@ -354,7 +355,7 @@ class WorldScene(
         birdsMesh = InstancedMesh("birds", importedBird ?: buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))
         animalParts = if (assets != null) {
-            buildAnimalParts(assets, textures, animalCount)
+            safeParts("animals") { buildAnimalParts(assets, textures, animalCount) }
         } else {
             emptyList()
         }
@@ -366,9 +367,9 @@ class WorldScene(
         }
 
         structures = if (assets != null) {
-            buildStructures(assets, textures) +
-                buildKitDressing(assets) +
-                buildFieldBoundaries(assets, textures)
+            safeParts("buildings") { buildStructures(assets, textures) } +
+                safeParts("kit dressing") { buildKitDressing(assets) } +
+                safeParts("field boundaries") { buildFieldBoundaries(assets, textures) }
         } else {
             emptyList()
         }
@@ -1117,6 +1118,19 @@ class WorldScene(
     }
 
     /**
+     * Runs one asset-building step and turns any failure into an empty list. A model that
+     * cannot be read costs its own dressing, not the whole world — and, since the world is
+     * built on the GL thread, not the app.
+     */
+    private inline fun safeParts(label: String, build: () -> List<InstancedPart>): List<InstancedPart> =
+        try {
+            build()
+        } catch (error: Throwable) {
+            Log.e(TAG, "Skipping $label", error)
+            emptyList()
+        }
+
+    /**
      * One run of modular fencing along the ground: from ([startX], [startZ]) to
      * ([endX], [endZ]). Runs sit off to the sides of the corridor, so they mark a field
      * boundary and frame the launch without standing in the flight line.
@@ -1793,6 +1807,8 @@ class WorldScene(
     }
 
     private companion object {
+        const val TAG = "BLF-WORLD"
+
         /** Height the imported castle tower is scaled to, in metres. */
         const val TOWER_HEIGHT = 15f
 

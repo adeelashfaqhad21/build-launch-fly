@@ -67,5 +67,27 @@ object SplashScreen {
             DesignTokens.INK,
             Paint.Align.CENTER
         )
+
+        // If the engine could not be built, say so here rather than leaving a stuck spinner:
+        // on a device we cannot attach a debugger to, this line is the whole bug report.
+        f.app.startupError()?.let { message ->
+            f.label(
+                "STARTUP FAILED",
+                cx,
+                cy + radius + 58f,
+                UiTextStyle.HUD_LABEL,
+                DesignTokens.RED,
+                Paint.Align.CENTER,
+                outline = true
+            )
+            f.label(
+                message.take(72),
+                cx,
+                cy + radius + 78f,
+                UiTextStyle.BADGE,
+                DesignTokens.INK,
+                Paint.Align.CENTER
+            )
+        }
     }
 }

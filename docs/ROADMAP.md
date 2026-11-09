@@ -87,6 +87,7 @@ Priority is about what the player meets, not about effort.
 | 1 | The build broke at `0f9aefd` (five Kotlin errors) and stayed broken for one commit. | Fixed in `8d1a306`. Keep the rule: a push that leaves CI red is reverted or fixed in the next commit, immediately. |
 | 2 | Nothing was ever verified running while six commits' worth of visuals were written. | Accept that CI proves compilation only. Any visual claim is written as "by inspection" until a device or screenshot pass exists. |
 | 3 | `Ref-7.mp4` (39.2 MB) has never been opened. | Treat as unavailable. Do not infer its contents. |
+| 3b | **Installed build dies on the splash screen after a few seconds** (first on-device report, `9d811c8`). Everything built since `1870682` was never run, so the fault is somewhere in the new startup path: the 12.2 MB `parrot.glb` parse, the herd / kit / fence loaders, or an out-of-memory kill. | Fixed defensively first so the app cannot die silently: engine build is wrapped in `Throwable` (the splash shows the failure), each asset group in `WorldScene` is guarded, and `GlbLoader` refuses blobs over 4 MB so the parrot no longer holds ~12 MB plus boxed lists on the heap. The exact cause is confirmed by the message the splash now prints. |
 
 **P1 — next, high value**
 
@@ -219,5 +220,9 @@ on its final commit.
   Nature `fence_simple` sections, spaced by the model's own width-to-height ratio.
 - **c94649d** — Phase 1 closed with a decision on `leaf`; unused fence corner removed.
 - **88424c3** — Phase 2: the desert becomes a mining outpost and gains a skyline.
-- **this commit** — the bird reader is chosen from the files actually in the APK, so the
-  missing `bird.json` no longer logs a load failure.
+- **845d44c** — the bird reader is chosen from the files actually in the APK, so the missing
+  `bird.json` no longer logs a load failure.
+- **9d811c8** — bird lookup written null-safe so it cannot fail to compile.
+- **this commit** — startup cannot die silently: `GameApp` catches the engine build and the
+  splash prints the failure; `WorldScene` guards each asset group; `GlbLoader` refuses any
+  blob over 4 MB (the parrot is 12.2 MB).

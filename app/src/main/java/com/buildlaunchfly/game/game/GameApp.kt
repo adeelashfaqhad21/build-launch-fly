@@ -65,6 +65,13 @@ class GameApp(private val context: Context, private val input: InputState) {
     private var state = GameState.SEATED
     private var initialized = false
 
+    /**
+     * Set when building the GL resources threw. The splash shows it instead of the app dying
+     * silently on a device we cannot debug: the loading screen stays up with the failure on it.
+     */
+    @Volatile
+    private var startupError: String? = null
+
     /** 0..1 start-up progress, shown by the splash screen while the engine warms up. */
     @Volatile
     private var loadProgressValue = 0f
@@ -140,6 +147,9 @@ class GameApp(private val context: Context, private val input: InputState) {
     val lastFlightAltitude: Float get() = lastFlightMaxAltitude
     val isInitialized: Boolean get() = initialized
 
+    /** Non-null when the engine could not be built; shown on the splash screen. */
+    fun startupError(): String? = startupError
+
     // ---- lifecycle --------------------------------------------------------
 
     fun onContextCreated() {
@@ -155,7 +165,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         camera.setViewport(viewportWidth, viewportHeight)
         if (!initialized) {
             createResources(viewportWidth, viewportHeight)
-            initialized = true
+            // Stay uninitialised when the build failed, so the splash keeps showing why.
+            initialized = startupError == null
         } else {
             renderer?.resize(viewportWidth, viewportHeight)
         }
@@ -163,7 +174,22 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     // ---- setup ------------------------------------------------------------
 
+    /**
+     * Builds every GL resource. If anything throws, the failure is reported on the splash
+     * screen and [initialized] stays false, so [update] and [render] keep returning early
+     * instead of the process dying without a trace.
+     */
     private fun createResources(width: Int, height: Int) {
+        try {
+            buildResources(width, height)
+        } catch (error: Throwable) {
+            Log.e(TAG, "Startup failed", error)
+            startupError = error.javaClass.simpleName + ": " + (error.message ?: "no detail")
+            initialized = false
+        }
+    }
+
+    private fun buildResources(width: Int, height: Int) {
         val textureSize = if (settings.highResTextures) TextureFactory.SIZE else 128
         val textureFactory = TextureFactory(seed = 1337, size = textureSize, assets = context.assets)
         textures = textureFactory
@@ -225,12 +251,19 @@ class GameApp(private val context: Context, private val input: InputState) {
         val definition = WorldCatalog.byId(id)
 
         scene?.dispose()
-        val newScene = WorldScene(
-            definition,
-            textureFactory,
-            quality.detailLevel,
-            context.assets
-        )
+        scene = null
+        val newScene = try {
+            WorldScene(
+                definition,
+                textureFactory,
+                quality.detailLevel,
+                context.assets
+            )
+        } catch (error: Throwable) {
+            Log.e(TAG, "Could not build the ${definition.id} world", error)
+            startupError = "${definition.id}: " + (error.message ?: error.javaClass.simpleName)
+            return
+        }
         scene = newScene
 
         applyEnvironment(definition, sceneRenderer)

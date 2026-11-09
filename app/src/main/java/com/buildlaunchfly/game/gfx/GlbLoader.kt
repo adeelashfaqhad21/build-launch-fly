@@ -22,9 +22,26 @@ object GlbLoader {
     private const val CHUNK_JSON = 0x4E4F534A
     private const val CHUNK_BIN = 0x004E4942
 
+    /**
+     * Largest binary the loader will read. The whole blob is held in memory while it is
+     * parsed into boxed lists, so a multi-megabyte file can exhaust a phone's heap before the
+     * first frame. Anything larger is skipped and the caller falls back.
+     */
+    private const val MAX_BYTES = 4 * 1024 * 1024
+
     fun load(assets: AssetManager, path: String, heightMetres: Float): MeshData? = try {
-        val bytes = assets.open(path).use { it.readBytes() }
-        parse(bytes, path, heightMetres)
+        assets.open(path).use { stream ->
+            val size = stream.available()
+            if (size > MAX_BYTES) {
+                Log.w(
+                    TAG,
+                    "Skipping $path: $size bytes is more than the startup budget of $MAX_BYTES"
+                )
+                null
+            } else {
+                parse(stream.readBytes(), path, heightMetres)
+            }
+        }
     } catch (error: Throwable) {
         Log.e(TAG, "Failed to load $path", error)
         null
