@@ -345,7 +345,7 @@ class WorldScene(
         )
         animals = Wildlife.GroundAnimals(
             animalCount,
-            Vec3(0f, terrain.padHeight, -90f),
+            Vec3(0f, terrain.padHeight, -180f),
             definition.seed
         )
 
@@ -1553,7 +1553,7 @@ class WorldScene(
                 if (parts.isNotEmpty()) {
                     val group = Wildlife.GroundAnimals(
                         count,
-                        Vec3(0f, terrain.padHeight, -90f),
+                        Vec3(0f, terrain.padHeight, -180f),
                         definition.seed + 331 + seedOffset
                     )
                     val meshes = ArrayList<InstancedPart>(parts.size)
