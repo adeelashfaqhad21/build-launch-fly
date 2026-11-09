@@ -38,6 +38,9 @@ class HangarMesh(
     /** Plank wall, open-side posts and the front door frame. */
     val wallMesh: Mesh
 
+    /** Launch-view wall variant without the rear wall behind the moving chase camera. */
+    val launchWallMesh: Mesh
+
     /** Gable panels, ridge, rafters, ties and purlins. */
     val roofMesh: Mesh
 
@@ -99,7 +102,8 @@ class HangarMesh(
     )
 
     init {
-        wallMesh = Mesh("hangarWall", buildWallData())
+        wallMesh = Mesh("hangarWall", buildWallData(includeBackWall = true))
+        launchWallMesh = Mesh("hangarLaunchWall", buildWallData(includeBackWall = false))
         roofMesh = Mesh("hangarRoof", buildRoofData())
         floorMesh = Mesh("hangarFloor", buildFloorData())
         metalMesh = Mesh("hangarMetal", buildMetalData())
@@ -107,14 +111,19 @@ class HangarMesh(
         props = buildProps(assets)
     }
 
-    private fun buildWallData(): MeshData {
+    private fun buildWallData(includeBackWall: Boolean): MeshData {
         val b = MeshBuilder()
 
         // Plank wall down the left side.
         b.addBox(-HALF_WIDTH, WALL_HEIGHT * 0.5f, 0f, 0.16f, WALL_HEIGHT * 0.5f, HALF_LENGTH, 3.2f)
 
-        // Back wall closing the far end.
-        b.addBox(0f, WALL_HEIGHT * 0.5f, HALF_LENGTH, HALF_WIDTH + 0.16f, WALL_HEIGHT * 0.5f, 0.16f, 3.2f)
+        // The launch camera follows the aircraft toward the rear during pull-back.
+        // Keep the rear wall for inspection view, but omit it from the launch-view variant
+        // so it cannot sit between the camera and the aircraft/slingshot composition.
+        if (includeBackWall) {
+            b.addBox(0f, WALL_HEIGHT * 0.5f, HALF_LENGTH,
+                HALF_WIDTH + 0.16f, WALL_HEIGHT * 0.5f, 0.16f, 3.2f)
+        }
 
         // Vertical studs on the inside face of the left wall.
         var z = -HALF_LENGTH + 1.4f
@@ -373,6 +382,7 @@ class HangarMesh(
 
     fun dispose() {
         wallMesh.dispose()
+        launchWallMesh.dispose()
         roofMesh.dispose()
         floorMesh.dispose()
         metalMesh.dispose()
