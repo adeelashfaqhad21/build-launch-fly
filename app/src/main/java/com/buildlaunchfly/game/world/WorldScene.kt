@@ -1780,16 +1780,6 @@ class WorldScene(
                 2 -> { builder.addEllipsoid(0f, 0.96f, 0f, 0.34f, 0.82f, 0.34f, 7, 10); builder.addEllipsoid(0.12f, 1.40f, 0.05f, 0.20f, 0.35f, 0.20f, 5, 8) }
                 else -> { builder.addSphere(0f, 0.92f, 0f, 0.48f, 6, 9); builder.addSphere(0.20f, 0.78f, 0.12f, 0.30f, 5, 8) }
             }
-            PlantStyle.GLACIER -> when (species) {
-                0 -> { builder.addCone(0f, 0f, 0f, 0.36f, 0.48f, 8, 1.2f); builder.addCone(0f, 0.24f, 0f, 0.22f, 0.34f, 7, 1.2f) }
-                1 -> { builder.addEllipsoid(0f, 0.14f, 0f, 0.48f, 0.16f, 0.40f, 5, 8) }
-                else -> { builder.addSphere(0f, 0.18f, 0f, 0.28f, 4, 7) }
-            }
-            PlantStyle.HIGHLAND -> when (species) {
-                0 -> { builder.addSphere(0f, 0.30f, 0f, 0.38f, 5, 9); builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8) }
-                1 -> { builder.addEllipsoid(0f, 0.20f, 0f, 0.58f, 0.24f, 0.46f, 5, 9); builder.addEllipsoid(0.34f, 0.16f, 0.16f, 0.34f, 0.18f, 0.30f, 4, 8) }
-                else -> { builder.addCone(0f, 0f, 0f, 0.32f, 0.54f, 8, 1.2f); builder.addCone(0.18f, 0f, 0.10f, 0.22f, 0.42f, 7, 1.2f) }
-            }
             PlantStyle.FOREST -> when (species) {
                 1 -> {
                     builder.addCone(0f, 0.26f, 0f, 0.54f, 0.95f, 9, 1.5f)
