@@ -77,11 +77,12 @@ imported slingshot exists in any pack in use.
 Birds are procedural triangles (`WorldScene.buildBirdData`), and so is the fallback animal
 mesh (`buildAnimalData`) used when a pack model is missing.
 
-Needed: one low-poly bird (a few flap poses, or glTF animation). The Quaternius animal pack's
-`Alpaca`, `Bull`, `Fox`, `Horse_White`, `ShibaInu` and `Wolf` are now shipped in
-`assets/animals/` beside the original five, and every realm grazes two or three species:
-deer/fox/dog (forest), donkey/white horse (desert), husky/wolf (snow), cattle/alpaca (coast),
-stag/bull (mountains).
+Needed: one low-poly bird. `gfx/RtsModelLoader` now reads the BufferGeometry JSON format used
+by `emnh/rts-models` (`3d/*.json`) and the sky prefers `assets/birds/bird.json` when it is
+shipped; the procedural flock is the fallback. That repository itself contains no bird — its
+models are a dragon, ant, horse, tanks and aircraft — so a bird still has to come from
+elsewhere (the CC0 OpenGameArt "Bird" by gonzalfj is `.blend` only and needs an OBJ/GLB
+export first).
 
 ## 5. Realm-specific buildings — partly covered
 

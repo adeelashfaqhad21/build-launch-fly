@@ -13,6 +13,7 @@ import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.ObjLoader
 import com.buildlaunchfly.game.gfx.ParticleRenderer
 import com.buildlaunchfly.game.gfx.PropLoader
+import com.buildlaunchfly.game.gfx.RtsModelLoader
 import com.buildlaunchfly.game.gfx.ZipKit
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
@@ -333,7 +334,14 @@ class WorldScene(
             definition.seed
         )
 
-        birdsMesh = InstancedMesh("birds", buildBirdData(), birdCount.coerceAtLeast(1))
+        // An imported bird model (BufferGeometry JSON, such as emnh/rts-models) wins when it is
+        // in the APK; the procedural flock stays as the fallback so the sky is never empty.
+        val importedBird = if (assets != null) {
+            RtsModelLoader.load(assets, "birds/bird.json", BIRD_HEIGHT)
+        } else {
+            null
+        }
+        birdsMesh = InstancedMesh("birds", importedBird ?: buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))
         animalParts = if (assets != null) {
             buildAnimalParts(assets, textures, animalCount)
@@ -1657,5 +1665,8 @@ class WorldScene(
     private companion object {
         /** Height the imported castle tower is scaled to, in metres. */
         const val TOWER_HEIGHT = 15f
+
+        /** Height an imported bird model is scaled to, in metres. */
+        const val BIRD_HEIGHT = 0.9f
     }
 }
