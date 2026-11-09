@@ -24,7 +24,7 @@ import com.buildlaunchfly.game.math.Vec3
 import kotlin.random.Random
 
 /** Which plant family a realm grows; the same scatter rules, different silhouettes. */
-private enum class PlantStyle { FOREST, DESERT, ALPINE, COAST }
+private enum class PlantStyle { FOREST, DESERT, GLACIER, HIGHLAND, COAST }
 
 /** One instanced mesh with the material it is drawn with. */
 class InstancedPart(
@@ -64,7 +64,8 @@ class WorldScene(
     /** Realm-specific plant family: cacti and dead trees in the desert, palms on the coast. */
     private val plantStyle: PlantStyle = when (definition.id) {
         WorldId.DESERT -> PlantStyle.DESERT
-        WorldId.SNOW, WorldId.MOUNTAIN -> PlantStyle.ALPINE
+        WorldId.SNOW -> PlantStyle.GLACIER
+        WorldId.MOUNTAIN -> PlantStyle.HIGHLAND
         WorldId.OCEAN -> PlantStyle.COAST
         WorldId.FOREST -> PlantStyle.FOREST
     }
@@ -498,11 +499,16 @@ class WorldScene(
             HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25, "NormalTree_Bark.jpg"),
             HeroSpec("NormalTree_5", "NormalTree_Leaves.png", 5, 9.0f, 58, "NormalTree_Bark.jpg")
         )
-        PlantStyle.ALPINE -> listOf(
-            HeroSpec("PineTree_1", "PineTree_Leaves.png", 10, 7.5f, 3, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_2", "PineTree_Leaves.png", 8, 6.8f, 23, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_3", "PineTree_Leaves.png", 7, 8.2f, 26, "PineTree_Bark.jpg"),
-            HeroSpec("PineTree_5", "PineTree_Leaves.png", 6, 9.4f, 59, "PineTree_Bark.jpg")
+        PlantStyle.GLACIER -> listOf(
+            HeroSpec("PineTree_1", "PineTree_Leaves.png", 7, 7.5f, 3, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_3", "PineTree_Leaves.png", 5, 8.2f, 26, "PineTree_Bark.jpg"),
+            HeroSpec("PineTree_4", "PineTree_Leaves.png", 4, 7.8f, 59, "PineTree_Bark.jpg")
+        )
+        PlantStyle.HIGHLAND -> listOf(
+            HeroSpec("PineTree_2", "PineTree_Leaves.png", 5, 7.0f, 23, "PineTree_Bark.jpg"),
+            HeroSpec("BirchTree_3", "BirchTree_Leaves.png", 7, 7.2f, 63, "BirchTree_Bark.jpg"),
+            HeroSpec("MapleTree_3", "MapleTree_Leaves_BW.png", 6, 7.8f, 64, "MapleTree_Bark.jpg"),
+            HeroSpec("NormalTree_2", "NormalTree_Leaves.png", 5, 8.0f, 65, "NormalTree_Bark.jpg")
         )
         PlantStyle.COAST -> listOf(
             HeroSpec("PalmTree_1", "PalmTree_Leaves.png", 6, 8.5f, 4, "PalmTree_Trunk.jpg"),
@@ -527,12 +533,28 @@ class WorldScene(
                 plants.add(HeroSpec("Grass_Large", "Grass.png", 88, 1.0f, 13))
                 plants.add(HeroSpec("Grass_Small", "Grass.png", 96, 0.6f, 43))
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 26, 0.9f, 44))
+                plants.add(HeroSpec("Bush_Large_Flowers", "Bush_Leaves.png", 44, 2.4f, 79))
+                plants.add(HeroSpec("Bush_Small_Flowers", "Bush_Leaves.png", 38, 1.35f, 80))
+                plants.add(HeroSpec("Flower_4_Clump", "Flowers.png", 32, 0.8f, 81))
+                plants.add(HeroSpec("Flower_5_Clump", "Flowers.png", 30, 0.75f, 82))
+                plants.add(HeroSpec("Flower_1", "Flowers.png", 22, 0.9f, 86))
+                plants.add(HeroSpec("Flower_2", "Flowers.png", 20, 0.8f, 87))
+                plants.add(HeroSpec("Plant_Flowers", "Flowers.png", 26, 1.0f, 88))
             }
-            PlantStyle.ALPINE -> {
-                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 28, 1.2f, 14))
-                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 24, 0.8f, 45))
-                plants.add(HeroSpec("Grass_Small", "Grass.png", 72, 0.6f, 46))
-                plants.add(HeroSpec("Plant_1", "Flowers.png", 18, 0.7f, 47))
+            PlantStyle.GLACIER -> {
+                plants.add(HeroSpec("Bush_Small", "Bush_Leaves.png", 16, 0.65f, 14))
+                plants.add(HeroSpec("Plant_1", "Flowers.png", 8, 0.45f, 47))
+                plants.add(HeroSpec("Rock_1", "Rocks.jpg", 24, 2.2f, 66))
+            }
+            PlantStyle.HIGHLAND -> {
+                plants.add(HeroSpec("Bush", "Bush_Leaves.png", 38, 1.5f, 67))
+                plants.add(HeroSpec("Bush_Large", "Bush_Leaves.png", 24, 2.1f, 68))
+                plants.add(HeroSpec("Bush_Large_Flowers", "Bush_Leaves.png", 20, 2.4f, 69))
+                plants.add(HeroSpec("Bush_Small_Flowers", "Bush_Leaves.png", 24, 1.2f, 70))
+                plants.add(HeroSpec("Grass_Large", "Grass.png", 64, 1.1f, 71))
+                plants.add(HeroSpec("Flower_4_Clump", "Flowers.png", 22, 0.75f, 72))
+                plants.add(HeroSpec("Flower_5_Clump", "Flowers.png", 22, 0.75f, 73))
+                plants.add(HeroSpec("Plant_2", "Flowers.png", 18, 0.9f, 74))
             }
             PlantStyle.COAST -> {
                 plants.add(HeroSpec("Bush_Large", "Bush_Leaves.png", 24, 2.0f, 16))
@@ -540,6 +562,13 @@ class WorldScene(
                 plants.add(HeroSpec("Grass_Large", "Grass.png", 76, 1.3f, 17))
                 plants.add(HeroSpec("Grass_Small", "Grass.png", 72, 0.7f, 49))
                 plants.add(HeroSpec("Plant_1", "Flowers.png", 20, 0.8f, 50))
+                plants.add(HeroSpec("Bush_Large_Flowers", "Bush_Leaves.png", 30, 2.3f, 75))
+                plants.add(HeroSpec("Bush_Small_Flowers", "Bush_Leaves.png", 26, 1.25f, 76))
+                plants.add(HeroSpec("Flower_4_Clump", "Flowers.png", 26, 0.8f, 77))
+                plants.add(HeroSpec("Flower_5_Clump", "Flowers.png", 24, 0.75f, 78))
+                plants.add(HeroSpec("Flower_1", "Flowers.png", 18, 0.85f, 83))
+                plants.add(HeroSpec("Flower_2", "Flowers.png", 18, 0.8f, 84))
+                plants.add(HeroSpec("Plant_Flowers", "Flowers.png", 20, 1.0f, 85))
             }
             PlantStyle.DESERT -> {
                 plants.add(HeroSpec("Grass_Small", "Grass.png", 22, 0.5f, 51))
@@ -690,10 +719,15 @@ class WorldScene(
             KenneySpec("plant_bushLarge", 1.6f, 14, 112),
             KenneySpec("grass_large", 0.9f, 18, 113)
         )
-        PlantStyle.ALPINE -> listOf(
-            KenneySpec("rock_largeA", 1.4f, 14, 121),
-            KenneySpec("plant_bushSmall", 0.8f, 12, 122),
-            KenneySpec("grass_large", 0.7f, 12, 123)
+        PlantStyle.GLACIER -> listOf(
+            KenneySpec("rock_largeA", 1.4f, 22, 121),
+            KenneySpec("plant_bushSmall", 0.55f, 6, 122)
+        )
+        PlantStyle.HIGHLAND -> listOf(
+            KenneySpec("rock_largeA", 1.4f, 18, 124),
+            KenneySpec("plant_bush", 1.2f, 18, 125),
+            KenneySpec("plant_bushLarge", 1.7f, 18, 126),
+            KenneySpec("grass_large", 1.1f, 24, 127)
         )
         PlantStyle.FOREST -> listOf(
             KenneySpec("plant_bush", 1.2f, 14, 131),
@@ -1665,11 +1699,13 @@ class WorldScene(
     private fun buildWaterData(): MeshData {
         val y = definition.waterLevel
         val builder = MeshBuilder()
+        // The Sapphire Coast sea is east of the raised coastal headland.
+        val westEdge = if (definition.id == WorldId.OCEAN) 145f else -3600f
         builder.addQuad(
-            Vec3(-3600f, y, 1600f),
+            Vec3(westEdge, y, 1600f),
             Vec3(5200f, y, 1600f),
             Vec3(5200f, y, -5200f),
-            Vec3(-3600f, y, -5200f),
+            Vec3(westEdge, y, -5200f),
             uvScale = 1f
         )
         return builder.build()
@@ -1734,7 +1770,7 @@ class WorldScene(
                     builder.addEllipsoid(0.09f, 1.52f, 0.05f, 0.20f, 0.42f, 0.20f, 5, 8, 1.4f)
                 }
             }
-            PlantStyle.ALPINE -> when (species) {
+            PlantStyle.GLACIER, PlantStyle.HIGHLAND -> when (species) {
                 0 -> {
                     builder.addCone(0f, 0.30f, 0f, 0.46f, 1.05f, 8, 1.5f)
                     builder.addCone(0f, 0.86f, 0f, 0.34f, 0.90f, 8, 1.5f)
@@ -1750,6 +1786,26 @@ class WorldScene(
                     builder.addCone(0f, 0f, 0f, 0.62f, 0.85f, 9, 1.5f)
                     builder.addSphere(0f, 0.88f, 0f, 0.30f, 5, 8, 1.3f)
                 }
+            }
+            PlantStyle.GLACIER -> when (species) {
+                0 -> { builder.addCone(0f, 0.22f, 0f, 0.44f, 1.02f, 8, 1.5f); builder.addCone(0f, 0.78f, 0f, 0.27f, 0.72f, 7, 1.5f) }
+                1 -> { builder.addCone(0f, 0.18f, 0f, 0.58f, 0.82f, 8, 1.5f); builder.addCone(0f, 0.58f, 0f, 0.34f, 0.55f, 7, 1.5f) }
+                else -> { builder.addSphere(0f, 0.34f, 0f, 0.48f, 5, 8); builder.addSphere(0.22f, 0.22f, 0.08f, 0.26f, 4, 7) }
+            }
+            PlantStyle.HIGHLAND -> when (species) {
+                1 -> { builder.addCone(0f, 0.26f, 0f, 0.54f, 0.95f, 9, 1.5f); builder.addCone(0f, 0.70f, 0f, 0.41f, 0.80f, 9, 1.5f) }
+                2 -> { builder.addEllipsoid(0f, 0.96f, 0f, 0.34f, 0.82f, 0.34f, 7, 10); builder.addEllipsoid(0.12f, 1.40f, 0.05f, 0.20f, 0.35f, 0.20f, 5, 8) }
+                else -> { builder.addSphere(0f, 0.92f, 0f, 0.48f, 6, 9); builder.addSphere(0.20f, 0.78f, 0.12f, 0.30f, 5, 8) }
+            }
+            PlantStyle.GLACIER -> when (species) {
+                0 -> { builder.addCone(0f, 0f, 0f, 0.36f, 0.48f, 8, 1.2f); builder.addCone(0f, 0.24f, 0f, 0.22f, 0.34f, 7, 1.2f) }
+                1 -> { builder.addEllipsoid(0f, 0.14f, 0f, 0.48f, 0.16f, 0.40f, 5, 8) }
+                else -> { builder.addSphere(0f, 0.18f, 0f, 0.28f, 4, 7) }
+            }
+            PlantStyle.HIGHLAND -> when (species) {
+                0 -> { builder.addSphere(0f, 0.30f, 0f, 0.38f, 5, 9); builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8) }
+                1 -> { builder.addEllipsoid(0f, 0.20f, 0f, 0.58f, 0.24f, 0.46f, 5, 9); builder.addEllipsoid(0.34f, 0.16f, 0.16f, 0.34f, 0.18f, 0.30f, 4, 8) }
+                else -> { builder.addCone(0f, 0f, 0f, 0.32f, 0.54f, 8, 1.2f); builder.addCone(0.18f, 0f, 0.10f, 0.22f, 0.42f, 7, 1.2f) }
             }
             PlantStyle.FOREST -> when (species) {
                 1 -> {
@@ -1810,7 +1866,7 @@ class WorldScene(
                     builder.addSphere(0.22f, 0.24f, 0.10f, 0.26f, 4, 8, 1.2f)
                 }
             }
-            PlantStyle.ALPINE -> when (species) {
+            PlantStyle.GLACIER, PlantStyle.HIGHLAND -> when (species) {
                 0 -> {
                     builder.addCone(0f, 0f, 0f, 0.42f, 0.55f, 8, 1.2f)
                     builder.addCone(0f, 0.30f, 0f, 0.26f, 0.40f, 7, 1.2f)

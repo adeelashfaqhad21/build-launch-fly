@@ -33,12 +33,16 @@ class WaterRenderer {
         normals.bind(0)
         program.set("uNormals", 0)
 
+        // Keep the surface visible when the camera passes below it during a water landing.
+        val cullingEnabled = GLES30.glIsEnabled(GLES30.GL_CULL_FACE)
+        GLES30.glDisable(GLES30.GL_CULL_FACE)
         GLES30.glEnable(GLES30.GL_BLEND)
         GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
         GLES30.glDepthMask(false)
         mesh.draw()
         GLES30.glDepthMask(true)
         GLES30.glDisable(GLES30.GL_BLEND)
+        if (cullingEnabled) GLES30.glEnable(GLES30.GL_CULL_FACE)
     }
 
     fun dispose() {

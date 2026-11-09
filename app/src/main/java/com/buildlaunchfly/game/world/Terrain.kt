@@ -32,6 +32,13 @@ class Terrain(val definition: WorldDefinition) {
             h += Noise.fbm2(x * 0.0032f, z * 0.0062f, 3, 2f, 0.55f, s + 53) * definition.duneStrength
         }
 
+        // Sapphire Coast: raise the western headland and roll the eastern terrain down
+        // through a broad beach/shelf into the sea. The sea mesh covers only the eastern side.
+        if (definition.id == WorldId.OCEAN) {
+            val shoreline = M.smoothStep(90f, 240f, x)
+            h = M.lerp(h + 12f, definition.waterLevel - 30f, shoreline)
+        }
+
         // Shallow valley along the launch corridor.
         val corridor = kotlin.math.exp((-(x * x) / (260f * 260f)).toDouble()).toFloat()
         h -= corridor * 6f
