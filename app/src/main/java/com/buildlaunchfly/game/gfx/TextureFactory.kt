@@ -5,7 +5,7 @@ import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
 
 /** The surface classes a world can be built from. */
-enum class SurfaceKind { GRASS, ROCK, SAND, SNOW, ICE }
+enum class SurfaceKind { GRASS, ROCK, SAND, SNOW, ICE, FOREST_FLOOR, BEACH, CRACKED, CLIFF, GRAVEL }
 
 /**
  * Generates every texture the game needs at load time. Nothing is shipped as a binary
@@ -54,6 +54,23 @@ class TextureFactory(
             imported("snow") ?: Texture2D.create("snow", texSize, texSize, snowTexture(texSize))
         )
         surfaces[SurfaceKind.ICE] = register(Texture2D.create("ice", texSize, texSize, iceTexture(texSize)))
+
+        // Realm-specific ground layers, all imported; each falls back to a generated map.
+        surfaces[SurfaceKind.FOREST_FLOOR] = register(
+            imported("forest_floor") ?: Texture2D.create("forestFloor", texSize, texSize, soilTexture(texSize))
+        )
+        surfaces[SurfaceKind.BEACH] = register(
+            imported("beach_sand") ?: Texture2D.create("beach", texSize, texSize, sandTexture(texSize))
+        )
+        surfaces[SurfaceKind.CRACKED] = register(
+            imported("cracked_dry") ?: Texture2D.create("cracked", texSize, texSize, sandTexture(texSize))
+        )
+        surfaces[SurfaceKind.CLIFF] = register(
+            imported("cliff_rock") ?: Texture2D.create("cliff", texSize, texSize, rockTexture(texSize))
+        )
+        surfaces[SurfaceKind.GRAVEL] = register(
+            imported("gravel") ?: Texture2D.create("gravel", texSize, texSize, rockTexture(texSize))
+        )
 
         metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
         rubber = register(Texture2D.create("rubber", texSize, texSize, rubberTexture(texSize)))

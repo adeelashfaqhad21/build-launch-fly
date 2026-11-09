@@ -9,10 +9,15 @@ is allowed. Attribution is given here and in the README as a courtesy.
 
 Assets included in this build (1K JPG diffuse maps, under app/src/main/assets/terrain/):
 
-  grass.jpg  <- "Aerial Grass Rock"  https://polyhaven.com/a/aerial_grass_rock
-  rock.jpg   <- "Gray Rocks"         https://polyhaven.com/a/gray_rocks
-  sand.jpg   <- "Gravelly Sand"      https://polyhaven.com/a/gravelly_sand
-  snow.jpg   <- "Snow 02"            https://polyhaven.com/a/snow_02
-  soil.jpg   <- "Brown Mud Dry"      https://polyhaven.com/a/brown_mud_dry
+  grass.jpg        <- "Aerial Grass Rock"    https://polyhaven.com/a/aerial_grass_rock
+  rock.jpg         <- "Gray Rocks"           https://polyhaven.com/a/gray_rocks
+  sand.jpg         <- "Gravelly Sand"        https://polyhaven.com/a/gravelly_sand
+  snow.jpg         <- "Snow 02"              https://polyhaven.com/a/snow_02
+  soil.jpg         <- "Brown Mud Dry"        https://polyhaven.com/a/brown_mud_dry
+  forest_floor.jpg <- "Forest Ground 01"     https://polyhaven.com/a/forrest_ground_01
+  beach_sand.jpg   <- "Coast Sand 01"        https://polyhaven.com/a/coast_sand_01
+  cracked_dry.jpg  <- "Dry Ground 01"        https://polyhaven.com/a/dry_ground_01
+  cliff_rock.jpg   <- "Aerial Rocks 02"      https://polyhaven.com/a/aerial_rocks_02
+  gravel.jpg       <- "Floor Pebbles 01"     https://polyhaven.com/a/floor_pebbles_01
 
 The files are downscaled on load (max 512 px) and uploaded mip-mapped.
