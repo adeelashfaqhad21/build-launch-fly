@@ -39,18 +39,22 @@ class CameraDirector(private val camera: Camera) {
      * on the aircraft. Drawing brings the camera about a quarter closer, as specified.
      */
     fun updateSeated(padPosition: Vec3, aircraftPosition: Vec3, pull: Float, dt: Float) {
-        val distance = SEATED_DISTANCE - pull.coerceIn(0f, 1f) * SEATED_DISTANCE * 0.25f
+        // Keep the camera behind the *live aircraft*, not behind the fixed pad origin.
+        // The target sits between the aircraft and the post plane so the full aircraft,
+        // both 8.4 m-spaced posts and the complete elastic remain in one composition.
+        val distance = SEATED_DISTANCE
         desiredPosition.set(
             aircraftPosition.x,
-            padPosition.y + SEATED_HEIGHT,
-            padPosition.z + distance
+            aircraftPosition.y + SEATED_CAMERA_HEIGHT,
+            aircraftPosition.z + distance
         )
         desiredTarget.set(
             aircraftPosition.x,
-            aircraftPosition.y - 0.25f,
-            aircraftPosition.z - 1.1f
+            padPosition.y + SEATED_TARGET_HEIGHT,
+            (aircraftPosition.z + padPosition.z) * 0.5f - 0.25f
         )
-        follow(dt, 4.5f)
+        camera.fovYDegrees = SEATED_FOV
+        follow(dt, 5.5f)
     }
 
     fun updateFlight(aircraftPosition: Vec3, velocity: Vec3, speed: Float, dt: Float) {
@@ -145,7 +149,10 @@ class CameraDirector(private val camera: Camera) {
          * back wall during the pull.
          */
         const val SEATED_HEIGHT = 2.6f
-        const val SEATED_DISTANCE = 5.5f
+        const val SEATED_DISTANCE = 6.5f
+        const val SEATED_CAMERA_HEIGHT = 1.0f
+        const val SEATED_TARGET_HEIGHT = 1.1f
+        const val SEATED_FOV = 58f
 
         /** Fixed rear-side oblique of the hangar view (Ref-2), not an animation. */
         const val HANGAR_BASE_ANGLE = -0.30f
