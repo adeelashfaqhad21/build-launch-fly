@@ -507,6 +507,16 @@ class GameApp(private val context: Context, private val input: InputState) {
     // ---- simulation -------------------------------------------------------
 
     fun update(dtSeconds: Float) {
+        if (!initialized || startupError != null) return
+        try {
+            updateFrame(dtSeconds)
+        } catch (error: Throwable) {
+            Log.e(TAG, "Update failed", error)
+            startupError = "update: " + (error.message ?: error.javaClass.simpleName)
+        }
+    }
+
+    private fun updateFrame(dtSeconds: Float) {
         if (!initialized) return
 
         // Queued UI actions may rebuild scenes or textures, so they run before any
@@ -697,6 +707,16 @@ class GameApp(private val context: Context, private val input: InputState) {
     // ---- rendering --------------------------------------------------------
 
     fun render() {
+        if (!initialized || startupError != null) return
+        try {
+            renderFrame()
+        } catch (error: Throwable) {
+            Log.e(TAG, "Render failed", error)
+            startupError = "render: " + (error.message ?: error.javaClass.simpleName)
+        }
+    }
+
+    private fun renderFrame() {
         if (!initialized) return
         val sceneRenderer = renderer ?: return
         val currentScene = scene ?: return

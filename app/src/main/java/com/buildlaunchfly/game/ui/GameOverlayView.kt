@@ -118,7 +118,7 @@ class GameOverlayView(
         canvas.save()
         canvas.scale(density, density)
 
-        if (!app.isInitialized) {
+        if (!app.isInitialized || app.startupError() != null) {
             lastHits.clear()
             SplashScreen.draw(frame)
             canvas.restore()
