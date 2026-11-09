@@ -337,12 +337,18 @@ class WorldScene(
 
         // The imported parrot (glTF binary) is the flock when it is in the APK; the older
         // BufferGeometry JSON and the procedural triangles stay as fallbacks so the sky is
-        // never empty if an art file is missing.
-        val importedBird = if (assets != null) {
-            GlbLoader.load(assets, "birds/parrot.glb", BIRD_HEIGHT)
-                ?: RtsModelLoader.load(assets, "birds/bird.json", BIRD_HEIGHT)
-        } else {
-            null
+        // never empty if an art file is missing. Which reader runs is decided by what the
+        // APK actually carries, so neither path logs a failure for a file that was never
+        // shipped.
+        val assetManager = assets
+        val birdFiles = assetManager?.list("birds")?.toSet().orEmpty()
+        val importedBird = when {
+            assetManager == null -> null
+            "parrot.glb" in birdFiles ->
+                GlbLoader.load(assetManager, "birds/parrot.glb", BIRD_HEIGHT)
+            "bird.json" in birdFiles ->
+                RtsModelLoader.load(assetManager, "birds/bird.json", BIRD_HEIGHT)
+            else -> null
         }
         birdsMesh = InstancedMesh("birds", importedBird ?: buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))

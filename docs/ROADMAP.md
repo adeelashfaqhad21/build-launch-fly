@@ -93,7 +93,7 @@ Priority is about what the player meets, not about effort.
 | # | Issue | Decision |
 |---|---|---|
 | 4 | `birds/parrot.glb` has no documented licence; 12.2 MB for a distant flock. | Keep it (a licence note exists saying *unconfirmed*), but it is the first thing replaced if a small documented bird is found. Do not let it grow the release APK further. |
-| 5 | `birds/bird.json` is a supported path with no file behind it. | Keep the code path (it costs nothing and the loader is tested by it), but stop calling it a shipped fallback in the docs. |
+| 5 | `birds/bird.json` is a supported path with no file behind it. | **Done** — `WorldScene` now picks the reader from what `assets/birds/` actually contains, so neither path logs a failure for a file that was never shipped. |
 | 6 | `leaf` and `waterNormals` are still generated. | `leaf` **stays generated**: the imported leaf maps in `quaternius/` are alpha cut-out cards for cross-plane canopies, so as an opaque albedo on closed geometry they would show the card, not foliage. It is the one tile that reads correctly as a tiling colour. `waterNormals` needs a real normal map or a shader without one — no download in use has one. |
 | 7 | The 140–400 m vegetation ring is procedural. | Keep until billboard cards exist; the imported trees are 5 200–35 000-line OBJs and cannot be instanced at that distance. |
 | 8 | The forest calls a Shiba Inu a "dog" in the code. | Rename the species label; the model is a Shiba and the realm should say so. |
@@ -218,4 +218,6 @@ on its final commit.
 - **645d7b9** — Phase 2: field boundaries for forest, desert and highland from the Kenney
   Nature `fence_simple` sections, spaced by the model's own width-to-height ratio.
 - **c94649d** — Phase 1 closed with a decision on `leaf`; unused fence corner removed.
-- **this commit** — Phase 2: the desert becomes a mining outpost and gains a skyline.
+- **88424c3** — Phase 2: the desert becomes a mining outpost and gains a skyline.
+- **this commit** — the bird reader is chosen from the files actually in the APK, so the
+  missing `bird.json` no longer logs a load failure.
