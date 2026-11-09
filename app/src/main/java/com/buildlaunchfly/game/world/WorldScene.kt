@@ -827,6 +827,60 @@ class WorldScene(
                 )))
             }
         }
+        // Distant landmarks: the player can steer anywhere, so each realm needs buildings out
+        // in the world, not only around the launch pad.
+        when (definition.id) {
+            WorldId.FOREST -> {
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 9f, listOf(
+                    Triple(-520f, -640f, 0.6f),
+                    Triple(610f, -420f, -1.2f),
+                    Triple(-360f, 300f, 2.1f)
+                )))
+                specs.add(StructureSpec("Windmill_FirstAge", 15f, listOf(
+                    Triple(760f, -880f, 0.4f)
+                )))
+                specs.add(StructureSpec("WatchTower_FirstAge_Level2", 14f, listOf(
+                    Triple(-860f, -300f, 0.9f)
+                )))
+            }
+            WorldId.DESERT -> {
+                specs.add(StructureSpec("WatchTower_FirstAge_Level2", 12f, listOf(
+                    Triple(-560f, -700f, 0.3f),
+                    Triple(640f, -520f, -0.8f)
+                )))
+                specs.add(StructureSpec("Mine", 10f, listOf(
+                    Triple(-820f, -260f, 1.4f)
+                )))
+            }
+            WorldId.SNOW -> {
+                specs.add(StructureSpec("TowerHouse_FirstAge", 16f, listOf(
+                    Triple(-540f, -680f, 0.6f),
+                    Triple(680f, -460f, -1.3f)
+                )))
+                specs.add(StructureSpec("Windmill_FirstAge", 14f, listOf(
+                    Triple(-260f, 340f, 1.1f)
+                )))
+            }
+            WorldId.OCEAN -> {
+                specs.add(StructureSpec("Dock_FirstAge", 4f, listOf(
+                    Triple(-620f, -720f, 1.6f),
+                    Triple(700f, -520f, -1.5f)
+                )))
+                specs.add(StructureSpec("WatchTower_FirstAge_Level2", 13f, listOf(
+                    Triple(420f, 260f, 0.2f)
+                )))
+            }
+            WorldId.MOUNTAIN -> {
+                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 9f, listOf(
+                    Triple(-600f, -700f, 0.5f),
+                    Triple(640f, -540f, -1.1f)
+                )))
+                specs.add(StructureSpec("Windmill_FirstAge", 15f, listOf(
+                    Triple(-240f, 320f, 1.8f)
+                )))
+            }
+        }
+
         // Crates and barrels dress every realm's launch area.
         specs.add(StructureSpec("Crate", 1.2f, listOf(
             Triple(11f, -26f, 0.3f),
