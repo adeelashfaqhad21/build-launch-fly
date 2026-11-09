@@ -626,6 +626,25 @@ class GameApp(private val context: Context, private val input: InputState) {
         physics.update(dt, stats, ground, flightInput)
         flightTime += dt
 
+        // The world's own solids — trunks, rooftops, ruins — end the flight the way the ground
+        // does, so flying low over the timber is a real risk instead of a free ride.
+        if (physics.state == FlightState.FLYING && currentScene.obstacles.blocks(
+                physics.position.x,
+                physics.position.y,
+                physics.position.z,
+                AIRCRAFT_COLLISION_RADIUS
+            )
+        ) {
+            physics.impact()
+            Log.i(
+                TAG,
+                "Flight ended on an obstacle at " +
+                    "${"%.1f".format(physics.position.x)}, " +
+                    "${"%.1f".format(physics.position.y)}, " +
+                    "${"%.1f".format(physics.position.z)}"
+            )
+        }
+
         val altitude = (physics.position.y - ground).coerceAtLeast(0f)
         if (altitude > maxAltitudeThisFlight) maxAltitudeThisFlight = altitude
 
@@ -1047,7 +1066,13 @@ class GameApp(private val context: Context, private val input: InputState) {
         const val AIRCRAFT_VISUAL_SCALE = 1.5f
 
         /** Upward push from the launch ramp lip, in m/s. */
-        const val LAUNCH_RAMP_BOOST = 2.2f
+        const val LAUNCH_RAMP_BOOST = 1.0f
+
+        /**
+         * Radius of the aircraft's collision disc, in metres: the fuselage plus a little, so a
+         * wingtip clipping a trunk counts but squeezing between two trees does not.
+         */
+        const val AIRCRAFT_COLLISION_RADIUS = 1.5f
 
         /** Height the aircraft stands at on the hangar floor, in metres above the pad. */
         const val HANGAR_PARK_HEIGHT = 0.95f

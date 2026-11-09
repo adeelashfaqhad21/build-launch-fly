@@ -28,6 +28,9 @@ object Vegetation {
     /** Grass clumps: tall crossed blades, narrow tuft, low clump. */
     const val GRASS_SPECIES = 3
 
+    /** Radius around the launch pad, in metres, that trees are kept out of. */
+    private const val LAUNCH_CLEAR_RADIUS = 55f
+
     fun scatterTrees(
         terrain: Terrain,
         def: WorldDefinition,
@@ -51,6 +54,9 @@ object Vegetation {
             // than a corridor in front of the hangar.
             val x = -1150f + rng.nextFloat() * 2300f
             val z = -1900f + rng.nextFloat() * 2600f
+            // The hangar, the ramp and the first seconds of the launch stay clear: timber
+            // starts where the aircraft has already picked up height.
+            if (x * x + z * z < LAUNCH_CLEAR_RADIUS * LAUNCH_CLEAR_RADIUS) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)

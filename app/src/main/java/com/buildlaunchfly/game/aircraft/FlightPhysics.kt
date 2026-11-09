@@ -140,7 +140,9 @@ class FlightPhysics {
         }
 
         val speed = velocity.length()
-        val controlAuthority = M.clamp(speed / 20f, 0.2f, 1f)
+        // Elevator authority grows with airspeed: a fast dive has the power to pull out, a slow
+        // one does not, so "trade height for speed, then pull" is a move the model rewards.
+        val controlAuthority = M.clamp(speed / 18f, 0.35f, 1.5f)
 
         // ---- attitude: the stick asks for an angle of attack, not a fixed horizon angle ----
         // Commanding alpha (nose relative to the airflow) keeps the launch arc intact and
@@ -151,7 +153,14 @@ class FlightPhysics {
             0f
         }
         val pitchCommand = input.pitch.coerceIn(-1f, 1f)
-        val targetAlpha = ALPHA_TRIM + pitchCommand * ALPHA_RANGE
+        // The wing can only use so much angle before the airflow separates. Asking for more than
+        // that is what used to leave the aircraft stuck nose-down: a hard pull past the stall
+        // angle bought drag instead of lift, so it sank whatever its speed. The request is kept
+        // inside the working part of the lift curve, which means a hard pull always produces the
+        // most lift the wing has at that airspeed — and the faster the aircraft is going, the
+        // harder that lift pulls the flight path back up out of a dive.
+        val wantedAlpha = ALPHA_TRIM + pitchCommand * ALPHA_RANGE
+        val targetAlpha = wantedAlpha.coerceIn(-ALPHA_NEG, ALPHA_LIMIT)
         val targetPitch = M.wrapAngle(gammaNow + targetAlpha)
         val pitchError = M.wrapAngle(targetPitch - pitch)
         val pitchGain = (6f + stats.stability * 2f) * controlAuthority
@@ -184,7 +193,6 @@ class FlightPhysics {
         }
         val alpha = M.wrapAngle(pitch - gamma)
         angleOfAttack = alpha
-        stalled = kotlin.math.abs(alpha) > ALPHA_STALL
 
         val clMax = CL_MAX + stats.lift * 0.16f
         val cl = liftCoefficient(alpha, clMax)
@@ -192,6 +200,11 @@ class FlightPhysics {
         val q = 0.5f * RHO * speed * speed
         val refArea = stats.wingArea.coerceAtLeast(0.8f)
         val hasWing = stats.wingArea >= 0.5f
+
+        // The wing itself is working; the airspeed is not. That is what the warning is for: under
+        // this speed even the best angle of attack cannot hold the aircraft up, so the way to fly
+        // far is to trade height for speed instead of living on the stick.
+        stalled = hasWing && speed < stallSpeed(stats)
 
         val liftAccel = if (hasWing) q * refArea * cl / stats.mass else 0f
 
@@ -269,6 +282,17 @@ class FlightPhysics {
             position.y = terrainHeight + 260f
             if (velocity.y > 0f) velocity.y = 0f
         }
+    }
+
+    /**
+     * Ends the flight on the spot. [update] already handles arriving at the ground; this is for
+     * the world's own solids — a trunk, a rooftop, a ruin — which the caller tests against the
+     * scene before the aircraft can pass through them.
+     */
+    fun impact() {
+        if (state != FlightState.FLYING) return
+        state = FlightState.CRASHED
+        velocity.scale(0.12f)
     }
 
     /**
@@ -379,13 +403,25 @@ class FlightPhysics {
         const val CL_MAX = 1.05f
         const val CD0 = 0.040f
 
+        /**
+         * The most angle of attack the stick may ask for, just under the stall angle, so a full
+         * pull sits at the peak of the lift curve instead of beyond it.
+         */
+        const val ALPHA_LIMIT = ALPHA_STALL * 0.96f
+
         /** A few degrees of angle of attack off the ramp so the wing bites immediately. */
-        const val LAUNCH_ALPHA = 0.13f
+        const val LAUNCH_ALPHA = 0.10f
 
         /** Neutral stick holds this angle of attack: the efficient glide attitude. */
         const val ALPHA_TRIM = 0.13f
-        const val ALPHA_RANGE = 0.22f
-        const val MAX_PITCH = 1.05f
+
+        /** How far the stick may take the angle of attack away from trim, either way. */
+        const val ALPHA_RANGE = 0.28f
+
+        /** The most negative angle of attack a full push may ask for, well inside the curve. */
+        const val ALPHA_NEG = 0.15f
+
+        const val MAX_PITCH = 1.50f
         const val PITCH_RATE = 1.6f
 
         const val MAX_BANK = 0.95f

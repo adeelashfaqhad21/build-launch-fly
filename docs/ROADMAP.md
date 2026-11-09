@@ -67,7 +67,8 @@ appearance below is a reading of the code and the assets, not an observation.
 | Vegetation | Near field (18–140 m) imported, per-realm; 140–400 m scatter still procedural | `Vegetation.kt`, `WorldScene.buildHeroProps` |
 | Wildlife | Ground: 11 Quaternius models, 2–3 species per realm on their own rings. Birds: imported `parrot.glb` via `gfx/GlbLoader` | `WorldScene.buildAnimalParts` |
 | Aircraft | Imported `samolet` biplane split by material; procedural airframe as fallback | `aircraft/AircraftModelLoader` |
-| Flight | Glider physics: lift curve to 16°, induced drag, stall, banked lift | `aircraft/FlightPhysics.kt` |
+| Flight | Glider physics: lift curve to 16°, induced drag, stall, banked lift; the stick asks for an angle of attack inside the working part of the curve | `aircraft/FlightPhysics.kt` |
+| Obstacles | Every tree, building and kit prop is a solid cylinder in one grid the flight model queries each frame | `world/ObstacleField.kt`, `WorldScene` |
 | Slingshot | Two squared posts + one band; posts generated | `slingshot/SlingshotMesh.kt` |
 | Hangar | Shell and 6 m ramp generated; furniture imported (Kenney) | `world/HangarMesh.kt` |
 | Landmarks | Quaternius RTS buildings + mountains; Kenney Castle ruin; industrial and town dressing | `WorldScene.buildStructures`, `buildKitDressing` |
@@ -122,6 +123,9 @@ Priority is about what the player meets, not about effort.
 | 20 | Grass reads as a repeating pattern; soil and bare ground never break it up. | The terrain's bare-earth mask now mixes three noise scales (450 m, 125 m, 32 m) so grass grows in large irregular regions with ragged edges and dry stretches between, and `scatterGrass` varies blade height 0.6–1.6 m, thins its fringes with noise and adds a fine clump mask. |
 | 21 | Large trees and buildings are missing; objects look far below and too small. | Trees were scattered across ~5 km² (~1 per 1 500 m²) at 2.6–7 m tall, so the flight path had almost none. They are now 10–20 m tall and scattered over the whole playable world (±1150 m, −1900…+700 m) at 2.6× the count. |
 | 22 | Layout rebuild: the aircraft hung in the band 4.55 m up, inside the roof and over the ramp. | `SlingshotLayout.HOLD_POINT` is now **(0, 1.02, +3.0)**: fuselage centre one metre above the plank floor with the wheels on it, 3 m behind the posts and 13 m ahead of the ramp, which still starts at the door. The launch camera dropped to 2.6 m high, 5.5 m behind, so the aim view is inside the shed at aircraft height instead of above the roof. |
+| 23 | The aircraft flies far above everything, so no tree or building is ever in the way. | The stick asked for up to **20° of angle of attack** against a wing that stalls at 16°, so a pull sat past the lift peak: the aircraft climbed until it stalled, then fell. The request is now clamped inside the working curve (`ALPHA_LIMIT = 0.96 × ALPHA_STALL`), trim is the efficient glide attitude, and pitch authority grows with airspeed (`speed / 18`, capped at 1.5×). |
+| 24 | Once it is nose-down it will not climb again, however fast it is going. | Same cause: at full pull the deep stall produced drag instead of lift. With the request inside the curve, a dive at speed builds the most lift the wing has (`q·S·CL/max`) and the flight path arcs back up; the nose follows because `MAX_PITCH` was raised to 1.50 rad so the attitude is never clipped below what the pull asks for. |
+| 25 | Trees and buildings are decoration: nothing tests them. | `world/ObstacleField` files every tree instance (crown height and width read from its own matrix), every building and every kit prop as an upright cylinder in a 32 m grid. `GameApp.updateFlight` asks it once a frame with a 1.5 m aircraft disc and calls `FlightPhysics.impact()` on a hit. Trees are kept 55 m clear of the launch pad so a take-off cannot end in a trunk. |
 
 ## 4. Asset catalog
 
@@ -241,6 +245,17 @@ on its final commit.
 - **85d1dc6**, **efc9e74** — a world or a frame that throws is reported on the splash screen
   instead of ending the process; the splash stays up while an error is set.
 - **5deecbd** — the crash report and its handling written down.
-- **this commit** — first device-look fixes: terrain falls back to plain PBR when its layered
+- **91a2f33** — first device-look fixes: terrain falls back to plain PBR when its layered
   program is missing, the aircraft stands on the hangar floor in the hangar view, the
   slingshot is hidden there, and the hangar camera focuses the parked plane from inside.
+- **6df1cb0** — the airframe is turned onto the flight axis from its own extents; the hangar
+  orbit is kept inside the shed.
+- **859004e**, **ad18de7**, **59183b3** — the meadow pattern broken up, mature timber across
+  the whole flyable world, farmsteads and towers scattered in every realm.
+- **e532d57**, **383cf59** — the launch stands inside the shed, the release ribbon is gone,
+  a retry resets to the aim camera, and the aircraft waits on the hangar floor ahead of the
+  ramp.
+- **this commit** — flight feel and obstacles: the stick's angle-of-attack request is clamped
+  inside the lift curve so a dive can be pulled out of at speed, pitch authority follows
+  airspeed, and every tree, building and prop is now a solid cylinder the flight model tests
+  each frame.

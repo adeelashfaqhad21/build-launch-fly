@@ -55,6 +55,12 @@ class WorldScene(
 
     val terrain = Terrain(definition)
 
+    /**
+     * Everything solid the aircraft can hit: the trunks and crowns of every tree, the buildings
+     * and the kit props. Filled while the world is built, then queried by the flight model.
+     */
+    val obstacles = ObstacleField()
+
     /** Realm-specific plant family: cacti and dead trees in the desert, palms on the coast. */
     private val plantStyle: PlantStyle = when (definition.id) {
         WorldId.DESERT -> PlantStyle.DESERT
@@ -241,6 +247,9 @@ class WorldScene(
         for (species in treeSets.indices) {
             val set = treeSets[species]
             if (set.count == 0) continue
+            // Every tree is solid. The cylinder is filed before the meshes are built, so the
+            // world's collision shape and its artwork come from exactly the same scatter.
+            registerTreeObstacles(set)
             val canopyData = buildCanopyData(plantStyle, species)
             val trunkMesh = Mesh("treeTrunk$species", trunkData)
             val canopyMesh = Mesh("treeCanopy$species", canopyData)
@@ -380,6 +389,11 @@ class WorldScene(
 
         waterDeep = definition.waterDeep
         waterShallow = definition.waterShallow
+
+        // Build the collision grid here, on the world-building thread, rather than in the first
+        // frame of a flight.
+        obstacles.freeze()
+        Log.i(TAG, "${definition.id}: ${obstacles.count} solid objects in the flight space")
     }
 
     fun update(dt: Float, time: Float, camera: Camera, particles: ParticleRenderer) {
@@ -917,6 +931,13 @@ class WorldScene(
                     1f, 1f, 1f
                 )
                 System.arraycopy(matrix.m, 0, matrices, index * 16, 16)
+                // A house is a wall the aircraft has to go around or climb over.
+                registerObstacle(
+                    spot.first,
+                    spot.second,
+                    y + spec.height,
+                    spec.height * BUILDING_FOOTPRINT
+                )
             }
 
             val mesh = Mesh("structure${spec.asset}", data)
@@ -1140,6 +1161,12 @@ class WorldScene(
 
             matrix.setTrs(spec.x, ground - 0.12f, spec.z, 0f, spec.heading, 0f, 1f)
             groups.getOrPut(key) { ArrayList(8) }.addAll(matrix.m.toList())
+            registerObstacle(
+                spec.x,
+                spec.z,
+                ground - 0.12f + spec.height,
+                spec.height * BUILDING_FOOTPRINT
+            )
         }
 
         val out = ArrayList<InstancedPart>(groups.size)
@@ -1173,6 +1200,48 @@ class WorldScene(
             )
         }
         return out
+    }
+
+    /**
+     * Files every tree in [set] as a solid cylinder. The instance matrix already carries the
+     * tree's scale, so the crown's real height and width come straight out of the scatter: the
+     * canopy meshes are built around y = 1, which puts a full-grown crown at about one and a half
+     * times the trunk scale.
+     */
+    private fun registerTreeObstacles(set: InstanceSet) {
+        val matrices = set.matrices
+        for (index in 0 until set.count) {
+            val base = index * 16
+            val x = matrices[base + 12]
+            val ground = matrices[base + 13]
+            val z = matrices[base + 14]
+            val width = kotlin.math.sqrt(
+                matrices[base] * matrices[base] +
+                    matrices[base + 2] * matrices[base + 2]
+            )
+            val height = kotlin.math.sqrt(
+                matrices[base + 1] * matrices[base + 1] +
+                    matrices[base + 5] * matrices[base + 5] +
+                    matrices[base + 9] * matrices[base + 9]
+            )
+            if (width <= 0f || height <= 0f) continue
+            registerObstacle(x, z, ground + height * TREE_CANOPY_TOP, width * TREE_CANOPY_WIDTH)
+        }
+    }
+
+    /**
+     * Files one solid object with the flight model, except inside the launch corridor: the
+     * aircraft stands there and rolls down it, so anything overlapping that strip would end the
+     * flight before it started.
+     */
+    private fun registerObstacle(x: Float, z: Float, topY: Float, radius: Float) {
+        if (kotlin.math.abs(x) < LAUNCH_CORRIDOR_HALF_WIDTH &&
+            z < LAUNCH_CORRIDOR_FRONT &&
+            z > LAUNCH_CORRIDOR_BACK
+        ) {
+            return
+        }
+        obstacles.add(x, z, topY, radius)
     }
 
     /**
@@ -1875,5 +1944,19 @@ class WorldScene(
 
         /** Height a fence section is scaled to, in metres: about waist high on the player. */
         const val FENCE_HEIGHT = 0.9f
+
+        /** Launch strip kept clear of solids: half-width, and the z range it covers. */
+        const val LAUNCH_CORRIDOR_HALF_WIDTH = 7f
+        const val LAUNCH_CORRIDOR_FRONT = 16f
+        const val LAUNCH_CORRIDOR_BACK = -30f
+
+        /** A crown reaches this far above its trunk scale, as a multiple of it. */
+        const val TREE_CANOPY_TOP = 1.55f
+
+        /** Crown radius as a fraction of the tree's width scale. */
+        const val TREE_CANOPY_WIDTH = 0.45f
+
+        /** Footprint radius of a building or a prop, as a fraction of its height. */
+        const val BUILDING_FOOTPRINT = 0.45f
     }
 }
