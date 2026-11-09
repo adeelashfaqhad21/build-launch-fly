@@ -81,7 +81,8 @@ vec3 shadeSurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos, float roughness, f
 
 vec3 applyFog(vec3 color, vec3 worldPos) {
     float dist = length(uCameraPos - worldPos);
-    float fog = 1.0 - exp(-max(uFogDensity, 0.0) * dist);
+    float fogDistance = max(uFogDensity, 0.0) * dist;
+    float fog = 1.0 - exp(-(fogDistance * fogDistance));
     return mix(color, uFogColor, clamp(fog, 0.0, 1.0));
 }
 
@@ -388,7 +389,8 @@ void main() {
         discard;
     }
     float alpha = smoothstep(1.0, 0.15, r);
-    float fog = 1.0 - exp(-vDepth * max(uFogDensity, 0.0));
+    float fogDistance = vDepth * max(uFogDensity, 0.0);
+    float fog = 1.0 - exp(-(fogDistance * fogDistance));
     vec3 c = mix(uColor, uFogColor, clamp(fog, 0.0, 1.0));
     vec3 mapped = c / (c + vec3(1.0));
     fragColor = vec4(pow(max(mapped, vec3(0.0)), vec3(1.0 / 2.2)), alpha * 0.85);
