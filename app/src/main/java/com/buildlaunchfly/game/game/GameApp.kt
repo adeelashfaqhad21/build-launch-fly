@@ -234,14 +234,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         physics.reset(seatPosition)
         physics.visualScale = AIRCRAFT_VISUAL_SCALE
 
-        cameraDirector.snapTo(
-            Vec3(
-                seatPosition.x,
-                padPosition.y + CameraDirector.SEATED_HEIGHT,
-                padPosition.z + CameraDirector.SEATED_DISTANCE
-            ),
-            seatPosition
-        )
+        snapLaunchCamera()
 
         applyAudioVolumes()
         audio.start()
@@ -250,6 +243,22 @@ class GameApp(private val context: Context, private val input: InputState) {
         hud?.onStateChanged(state)
         loadProgressValue = 1f
         Log.i(TAG, "Engine ready\n${build.summary()}")
+    }
+
+    private fun snapLaunchCamera() {
+        camera.fovYDegrees = CameraDirector.SEATED_FOV
+        cameraDirector.snapTo(
+            Vec3(
+                seatPosition.x,
+                seatPosition.y + CameraDirector.SEATED_CAMERA_HEIGHT,
+                seatPosition.z + CameraDirector.SEATED_DISTANCE
+            ),
+            Vec3(
+                seatPosition.x,
+                padPosition.y + CameraDirector.SEATED_TARGET_HEIGHT,
+                (seatPosition.z + padPosition.z) * 0.5f - 0.25f
+            )
+        )
     }
 
     fun loadProgress(): Float = loadProgressValue
@@ -758,14 +767,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         slingRecoilTimer = 0f
         input.consumeRelease()
         audio.setFlight(0f, 0f, false)
-        cameraDirector.snapTo(
-            Vec3(
-                seatPosition.x,
-                padPosition.y + CameraDirector.SEATED_HEIGHT,
-                padPosition.z + CameraDirector.SEATED_DISTANCE
-            ),
-            seatPosition
-        )
+        snapLaunchCamera()
         hud?.onStateChanged(state)
     }
 
