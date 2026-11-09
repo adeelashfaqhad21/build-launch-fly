@@ -41,6 +41,20 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         env.shadowTexel = 1f / shadowMap.size
     }
 
+    /**
+     * Programs that failed to compile or link, by label. A non-empty list means either a
+     * driver problem or a GLSL error: the owner reports it instead of drawing with whatever
+     * program happened to be bound.
+     */
+    val failedPrograms: List<String>
+        get() = arrayOf(
+            "pbr" to pbrProgram,
+            "pbrInstanced" to instancedProgram,
+            "terrain" to terrainProgram,
+            "depth" to depthProgram,
+            "depthInstanced" to depthInstancedProgram
+        ).filter { it.second.id == 0 }.map { it.first }
+
     fun resize(w: Int, h: Int) {
         width = w
         height = h
@@ -151,6 +165,13 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         soilEnd: Float = 0.68f
     ) {
         val cam = camera ?: return
+        if (terrainProgram.id == 0) {
+            // The layered terrain program did not build. Draw the ground with the plain PBR
+            // program and the base layer instead: a ground without its soil blend is a far
+            // better failure than a landscape left as sky.
+            drawTerrainFallback(mesh, textureA, tintA, cam)
+            return
+        }
         terrainProgram.use()
         env.apply(terrainProgram, cam)
         terrainProgram.set("uModel", identity)
@@ -193,6 +214,26 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         tint.y + (1f - tint.y) * TINT_NEUTRALISE,
         tint.z + (1f - tint.z) * TINT_NEUTRALISE
     )
+
+    /** Plain PBR draw of the terrain's base layer, used when the layered program is missing. */
+    private fun drawTerrainFallback(mesh: Mesh, texture: Texture2D, tint: Vec3, cam: Camera) {
+        pbrProgram.use()
+        env.apply(pbrProgram, cam)
+        pbrProgram.set("uModel", identity)
+        pbrProgram.set("uNormalMat", identity)
+        pbrProgram.set("uUvScale", TERRAIN_UV_SCALE)
+        texture.bind(0)
+        pbrProgram.set("uAlbedo", 0)
+        pbrProgram.set("uTint", muted(tint))
+        pbrProgram.set("uRoughness", 0.9f)
+        pbrProgram.set("uMetallic", 0f)
+        pbrProgram.set("uEmissive", 0f)
+        pbrProgram.set("uAlpha", 1f)
+        mesh.draw()
+
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0 + EnvUniforms.SHADOW_TEXTURE_UNIT)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, shadowMap.depthTexture)
+    }
 
     fun drawWater(
         mesh: Mesh,

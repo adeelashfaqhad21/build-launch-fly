@@ -111,6 +111,14 @@ Priority is about what the player meets, not about effort.
 | 14 | No skeletal animation: animals and the parrot are static-pose. | Needs a skinning pass in the renderer; independent of any pack. Out of scope until P1 closes. |
 | 15 | Unused on-disk material: Poly-Google airframe, `Horse.obj`, castle bridges/siege engines, nature cliffs/crops/fences/logs, ambientCG zips. | Keep on disk, adopt only where the plates ask for it. Delete the redundant ambientCG zips. |
 
+**Device findings, first look (`5deecbd`)**
+
+| # | Report | Change |
+|---|---|---|
+| 16 | The ground reads as a white/bluish floor with no grass or soil. | The layered terrain program is the only shader whose absence leaves the ground drawn by whatever program was last bound (the sky). `drawTerrain` now falls back to the plain PBR program and the base layer, and a failed terrain shader is survivable while a failed lit or depth shader is reported on the splash. |
+| 17 | The plane is never on the ground, even in the hangar. | It was always drawn at the band's tow point (4.55 m up), including the hangar view. In `ORBIT_AIRCRAFT` it now stands on the plank floor at `HANGAR_PARK_HEIGHT`; the launch setup still hangs it in the band. |
+| 18 | The hangar and slingshot look disoriented. | In the hangar view the slingshot is no longer drawn, and the camera focus moved from the band height down to the parked aircraft, with the orbit clamped to 4.5–7 m so it stays inside the shed instead of swinging through the plank wall. |
+
 ## 4. Asset catalog
 
 **Shipped in `app/src/main/assets/` (~110 models + 15 maps + 5 cues)**
@@ -228,3 +236,7 @@ on its final commit.
   blob over 4 MB (the parrot is 12.2 MB), so the flock falls back to the procedural birds.
 - **85d1dc6**, **efc9e74** — a world or a frame that throws is reported on the splash screen
   instead of ending the process; the splash stays up while an error is set.
+- **5deecbd** — the crash report and its handling written down.
+- **this commit** — first device-look fixes: terrain falls back to plain PBR when its layered
+  program is missing, the aircraft stands on the hangar floor in the hangar view, the
+  slingshot is hidden there, and the hangar camera focuses the parked plane from inside.

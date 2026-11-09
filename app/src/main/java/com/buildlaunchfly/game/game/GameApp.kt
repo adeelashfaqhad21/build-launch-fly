@@ -134,6 +134,9 @@ class GameApp(private val context: Context, private val input: InputState) {
     @Volatile
     var orbitRadius: Float = 9.5f
 
+    /** Focus for the hangar view, at aircraft-on-the-floor height rather than in the band. */
+    private val hangarFocus = Vec3()
+
     var lastLaunchStretch: Float = 0.75f
         private set
 
@@ -198,6 +201,16 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         val sceneRenderer = SceneRenderer(width, height, textureFactory.white)
         renderer = sceneRenderer
+        val failedShaders = sceneRenderer.failedPrograms
+        if (failedShaders.isNotEmpty()) {
+            Log.e(TAG, "Shader programs failed to build: $failedShaders")
+            // Losing the terrain program is survivable (it falls back to plain PBR); losing a
+            // lit or depth program is not, so that is reported rather than drawn as garbage.
+            if (failedShaders.any { it != "terrain" }) {
+                startupError = "shaders: " + failedShaders.joinToString()
+                return
+            }
+        }
         loadProgressValue = 0.45f
 
         aircraft = AircraftMesh(textureFactory, context.assets).also { it.updateFor(build) }
@@ -560,9 +573,18 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         when (state) {
             GameState.SEATED -> when (cameraMode) {
-                CameraMode.ORBIT_AIRCRAFT -> cameraDirector.updateOrbitAircraft(
-                    seatPosition, time, dt, orbitRadius, orbitOffset
-                )
+                CameraMode.ORBIT_AIRCRAFT -> {
+                    hangarFocus.set(
+                        padPosition.x,
+                        padPosition.y + HANGAR_CAMERA_HEIGHT,
+                        padPosition.z
+                    )
+                    // Kept close enough that the orbit stays inside the shed instead of
+                    // swinging out through the plank wall.
+                    cameraDirector.updateOrbitAircraft(
+                        hangarFocus, time, dt, orbitRadius.coerceIn(4.5f, 7.0f), orbitOffset
+                    )
+                }
                 CameraMode.ORBIT_SLINGSHOT -> cameraDirector.updateOrbitSlingshot(
                     padPosition, time, dt, orbitOffset
                 )
@@ -724,7 +746,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         val aircraftMesh = aircraft ?: return
         val rig = slingMesh ?: return
         val definition = currentScene.definition
-        val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
+        val showSling = (state == GameState.SEATED && cameraMode != CameraMode.ORBIT_AIRCRAFT) ||
+            slingRecoilTimer > 0f
         val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
         val showHangarRoof = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
@@ -752,9 +775,12 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (state == GameState.SEATED) {
             val hold = rig.holdPoint(pull)
+            // The hangar shows the aircraft standing on the plank floor on its cradle; only the
+            // launch setup hangs it up in the band.
+            val parked = cameraMode == CameraMode.ORBIT_AIRCRAFT
             aircraftModel.setTrs(
                 padPosition.x + hold.x,
-                padPosition.y + hold.y,
+                padPosition.y + if (parked) HANGAR_PARK_HEIGHT else hold.y,
                 padPosition.z + hold.z,
                 0.10f * pull, 0f, 0f,
                 AIRCRAFT_VISUAL_SCALE
@@ -1007,6 +1033,12 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         /** Upward push from the launch ramp lip, in m/s. */
         const val LAUNCH_RAMP_BOOST = 2.2f
+
+        /** Height the aircraft stands at on the hangar floor, in metres above the pad. */
+        const val HANGAR_PARK_HEIGHT = 0.95f
+
+        /** Height the hangar camera is centred on: the parked aircraft, not the band. */
+        const val HANGAR_CAMERA_HEIGHT = 1.7f
 
         const val DESIGN_REFERENCE_HEIGHT = DesignTokens.DESIGN_HEIGHT
     }
