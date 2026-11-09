@@ -583,7 +583,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                     // Kept inside the shed: the plank wall is at half-width 5.3 m, so a wider
                     // orbit would put the camera outside and the wall between it and the plane.
                     cameraDirector.updateOrbitAircraft(
-                        hangarFocus, time, dt, orbitRadius.coerceIn(3.5f, 5.0f), orbitOffset
+                        hangarFocus, time, dt, orbitRadius.coerceIn(8.0f, 9.5f), orbitOffset
                     )
                 }
                 CameraMode.ORBIT_SLINGSHOT -> cameraDirector.updateOrbitSlingshot(
@@ -625,7 +625,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val rampGround = hangar?.rampHeightAt(
             physics.position.x - padPosition.x,
             physics.position.z - padPosition.z
-        )
+        )?.let { padPosition.y + it }
         val ground = maxOf(terrainGround, rampGround ?: terrainGround)
         flightInput.pitch = steerPitch
         flightInput.roll = steerRoll
@@ -779,7 +779,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val definition = currentScene.definition
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
         val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
-        val showHangarRoof = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
+        val showLaunchHangar = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (showSling) {
@@ -841,7 +841,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
             for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
         }
-        if (showHangar || showHangarRoof) {
+        if (showHangar || showLaunchHangar) {
             hangar?.let { set ->
                 sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
                 if (showHangar) sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
@@ -917,6 +917,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         if (showHangar) {
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
@@ -925,7 +926,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                     sceneRenderer.drawMesh(prop.mesh, prop.material, hangarPropModel)
                 }
             }
-        } else if (showHangarRoof) {
+        } else if (showLaunchHangar) {
             // Keep the launch view open above and behind the aircraft. The roof is intentionally
             // omitted here: the camera is inside the shed and the roof panels otherwise
             // dominate the view or appear to intersect the aircraft during pull-back.
