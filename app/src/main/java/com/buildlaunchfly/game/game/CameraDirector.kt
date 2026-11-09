@@ -153,8 +153,8 @@ class CameraDirector(private val camera: Camera) {
          */
         const val SEATED_HEIGHT = 2.6f
         const val SEATED_DISTANCE = 6.5f
-        const val SEATED_CAMERA_HEIGHT = 1.0f
-        const val SEATED_TARGET_HEIGHT = 1.1f
+        const val SEATED_CAMERA_HEIGHT = 0.65f
+        const val SEATED_TARGET_HEIGHT = 0.65f
         const val SEATED_FOV = 58f
 
         /** Fixed rear-side oblique of the hangar view (Ref-2), not an animation. */
