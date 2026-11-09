@@ -237,12 +237,11 @@ on tap.
   exposed rafters, ties and purlins, a heavy timber door frame at the open front, a plank floor,
   and the working-shed clutter (hay bales, crates, a barrel, a bench and stool, a lamp hanging
   from the ridge)
-- [x] **Launch ramp** — a narrow timber kicker on the shed floor, along the launch axis
-  (`buildRampData`): it begins 5–6 ft (1.7 m) ahead of the tow point, runs 10–11 ft (3.2 m) in
-  all, and its last 3–4 ft (1.1 m) climb to the lip; the lip adds a small upward push to the
-  launch (`LAUNCH_RAMP_BOOST`)
-- [x] Hero scale — interior 10.6 m wide and 21 m long, walls 6.4 m, ridge 8.55 m, so the
-  1.5× aircraft and the 4.85 m slingshot fit inside with room to read
+- [x] **Launch deck** — broad, dark, tapered surface centred on the aircraft's -Z axis; its
+  near edge is approximately the aircraft wingspan, and it runs forward through the open front
+  into the valley. The lip adds a small upward push to the launch (`LAUNCH_RAMP_BOOST`)
+- [x] Hero scale — interior 10.6 m wide and 21 m long, walls 6.4 m, ridge 8.55 m; the imported
+  aircraft sits on its wheels at ground level and the 2.65 m slingshot posts frame its wings
 - [x] Plane idles with the reference's ±2 cm bob (`SlingshotMesh.idleBob`)
 - [x] Two currency pills with compact formatting (`28.15K`)
 - [x] Gear opens settings
@@ -364,10 +363,12 @@ In Ref-3 the plane sits back; in Ref-4 the camera is closer and the band forms a
 Each post is planted, not floating: a foot block, a wide squared shaft and a chamfered crown.
 Both posts splay slightly outward so the band clears the wings.
 
-**Layout in world space:** posts at x ±3.30 m with a 0.34 m square section, 4.85 m tall and a
-0.045 rad outward splay; band radius 0.10 m before the upgrade multiplier; tow point 0.12 m
-below the aircraft origin and 0.30 m behind it; aircraft seat at 4.55 m; camera behind at about
-6.2 m height and 9.0 m back so both posts and the whole aircraft stay in frame.
+**Layout in world space:** the imported aircraft spans 3.56 m. Posts sit just outside the wing
+tips at x ±2.05 m, with a 0.34 m square section, 2.65 m tall and a 0.045 rad outward splay.
+The continuous flat webbing is 0.28 m wide and 0.07 m thick before the upgrade multiplier;
+the tow point is 0.12 m below the aircraft origin and 0.30 m behind it. The aircraft origin is
+0.85 m above the pad, putting the wheels on the ground. The launch camera is directly behind
+the aircraft at 2.6 m above the pad and 5.5 m back.
 
 **Colours:** timber `#8A6A4A` posts, band `yellow #FFD52B` + `cream #F5F2E8` stripes.
 
@@ -390,13 +391,13 @@ and launch speed.
   continuous band; no lattice, mast, cross-bar, cradle or metalwork
 - [x] Posts planted, not floating — a foot block at each base (`buildFrameData`)
 - [x] Wide supports — `POLE_HALF = 0.17`, so each post is 0.34 m across
-- [x] Single central band strung tip-to-tip through the tow point (`bandMatrices`, one curve)
+- [x] Single central striped webbing band strung tip-to-tip through the tow point (`bandMatrices`, one curve)
 - [x] Band sags when slack and pulls straight as the draw deepens (`BAND_SAG`, 4 segments/arm)
 - [x] Yellow/white striped band — `TextureFactory.hazard` (yellow `#FFD52B` / cream `#F5F2E8`)
-- [x] Band and frame cast shadows — both meshes are in the shadow pass
+- [x] Band and frame cast shadows; elastic webbing is also drawn visibly over the wing root
 - [x] Upgrade level changes band thickness and draw length — `thicknessBoost` / `drawLength`,
   and the band strength / launching power levels raise launch speed
-- [x] Hero scale — 4.85 m posts, 3.30 m half-spacing, aircraft drawn at 1.5×
+- [x] Reference scale — 2.65 m posts, 2.05 m half-spacing, aircraft drawn at 1.5×
 - [ ] Rear-view framing with both posts visible (camera path exists; needs an on-device check)
 
 **Acceptance:** from the launch camera a first-time player understands "pull back here".

@@ -926,7 +926,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
                 for (prop in set.props) {
                     sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
                 }
@@ -1081,7 +1081,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         const val AIRCRAFT_COLLISION_RADIUS = 1.5f
 
         /** Height the aircraft stands at on the hangar floor, in metres above the pad. */
-        const val HANGAR_PARK_HEIGHT = 0.95f
+        const val HANGAR_PARK_HEIGHT = 0.85f
 
         /** Height the hangar camera is centred on: the parked aircraft, not the band. */
         const val HANGAR_CAMERA_HEIGHT = 1.7f

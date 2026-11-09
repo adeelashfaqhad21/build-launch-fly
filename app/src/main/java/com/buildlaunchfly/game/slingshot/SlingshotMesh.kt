@@ -26,16 +26,16 @@ object SlingshotLayout {
      * Height of the aircraft's fuselage centre above the hangar floor. The landing wheels sit
      * on the boards; the aircraft is not hung in the band.
      */
-    const val SEAT_HEIGHT = 1.02f
+    const val SEAT_HEIGHT = 0.85f
 
     /** Where the parked aircraft stands inside the shed, ahead of the back wall and clear of
      * the ramp, which starts at the open front. */
     const val HOLD_Z = 3.0f
 
-    /** Two wide posts, a little wider apart than the wingspan so the band clears the tips. */
-    const val POLE_X = 4.00f
+    /** Two wide posts just outside the imported aircraft's 3.56 m wingspan. */
+    const val POLE_X = 2.05f
 
-    /** Taller than the aircraft, as in the reference plates. */
+    /** Taller than the aircraft, but scaled to the actual reference framing. */
     const val POLE_HEIGHT = 2.65f
 
     /** Half-width of a post: about a third of a metre across, a chunky timber support. */
@@ -67,7 +67,7 @@ object SlingshotLayout {
 /**
  * Two wide posts and one elastic band.
  *
- * The band is a single unit cylinder stretched per segment along a sagging curve, so the
+ * The band is a single flat webbing strap stretched per segment along a sagging curve, so the
  * model matrix of every segment is rebuilt from the current draw position each frame and the
  * band stretches, droops and snaps back as one piece.
  */
@@ -141,7 +141,7 @@ class SlingshotMesh(textures: TextureFactory) {
         return b.build()
     }
 
-    /** Unit cylinder: radius 1 at the base, height 1, stretched to a segment by its matrix. */
+    /** Unit-length flat strap, stretched to each segment by its matrix. */
     private fun buildBandData(): MeshData {
         val b = MeshBuilder()
         // Flat, broad elastic webbing rather than a round cable: the reference shows
@@ -204,7 +204,7 @@ class SlingshotMesh(textures: TextureFactory) {
     }
 
     /**
-     * Matrix that maps the unit band cylinder onto the segment [from] -> [to]. The band's +Y
+     * Matrix that maps the unit strap onto the segment [from] -> [to]. The strap's +Y
      * axis runs along the segment, so the matrix only has to stretch it.
      */
     fun bandMatrix(from: Vec3, to: Vec3, thickness: Float, out: Mat4): Mat4 {

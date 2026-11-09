@@ -22,8 +22,8 @@ class FlightInput(var pitch: Float = 0f, var roll: Float = 0f)
  *    a large induced-drag penalty, so airspeed bleeds away; past the stall angle the wing
  *    stops lifting and the aircraft drops. Holding a small, efficient angle of attack gives
  *    the flattest, longest glide.
- *  - **Bank.** Lift acts along the aircraft's own up axis, so banking tilts part of it
- *    sideways. That sideways force is what curves the flight path around trees and buildings.
+ *  - **Bank.** The banked wing-up axis is projected perpendicular to the relative airflow,
+ *    so banking tilts the lift vector sideways and curves the flight path around obstacles.
  *    There is no separate "steer" force.
  *
  * Gravity, air density and wing area are real numbers, and the wing is defined by the
@@ -225,7 +225,7 @@ class FlightPhysics {
         }
 
         accel.set(0f, -GRAVITY, 0f)
-        if (hasWing && liftAccel > 0f) {
+        if (hasWing && kotlin.math.abs(liftAccel) > 1e-6f) {
             // Aerodynamic lift is perpendicular to the relative airflow, not parallel to the
             // fuselage's up axis. Project the banked wing-up vector onto the plane normal to
             // velocity; this preserves bank steering without adding a false backwards force
@@ -278,7 +278,7 @@ class FlightPhysics {
         drivePropeller(dt, stats, speed)
 
         // ---- ground contact: a gentle arrival is a landing, anything else is a crash ----
-        val groundY = terrainHeight + 0.5f
+        val groundY = terrainHeight + GROUND_CLEARANCE
         if (position.y <= groundY) {
             position.y = groundY
             val vertical = velocity.y
@@ -412,6 +412,8 @@ class FlightPhysics {
 
     private companion object {
         const val GRAVITY = 9.81f
+        /** Imported biplane's centred mesh has its wheels 0.85 m below the origin. */
+        const val GROUND_CLEARANCE = 0.85f
         const val RHO = 1.225f
 
         /** Wing lift curve: linear to 16°, then falling away. */

@@ -11,10 +11,8 @@ import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
 import com.buildlaunchfly.game.slingshot.SlingshotLayout
-import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * The hangar from the reference plates: a big timber shed the aircraft is launched out of.
@@ -48,7 +46,7 @@ class HangarMesh(
     /** Hanging lamp and its shade. */
     val metalMesh: Mesh
 
-    /** Narrow timber kicker on the shed floor ahead of the tow point: the launch run-out. */
+    /** Broad tapered launch deck centred on the aircraft's -Z flight axis. */
     val rampMesh: Mesh
 
     /** Kenney Furniture Kit props standing inside the shed, one entry per material group. */
@@ -237,16 +235,6 @@ class HangarMesh(
     }
 
     /**
-     * The launch ramp: a narrow timber kicker standing on the shed floor, running the way the
-     * aircraft launches rather than across it.
-     *
-     * Its leading edge sits 5–6 ft (1.7 m) ahead of the tow point, its whole run is 10–11 ft
-     * (3.2 m), and its last 3–4 ft (1.1 m) climbs to the launching lip, so the aircraft rolls
-     * forward on the flat, up the incline and off the end. The leading edge is a low chamfer
-     * board, not a step, and the incline is carried on two timber trestles, so it reads as a
-     * built ramp from every camera angle.
-     */
-    /**
      * Full-width forward launch deck reconstructed around the reference composition.
      * The aircraft faces -Z; the deck begins immediately ahead of its nose and runs straight
      * out through the open hangar front. It is a broad tapered wedge, not a short crosswise
@@ -355,8 +343,8 @@ class HangarMesh(
         private val RAMP_END_Z = RAMP_START_Z - RAMP_LENGTH
 
         /** Reference-like tapered plan: broad at the aircraft, narrower at the far end. */
-        private const val RAMP_NEAR_HALF_WIDTH = 4.20f
-        private const val RAMP_FAR_HALF_WIDTH = 2.75f
+        private const val RAMP_NEAR_HALF_WIDTH = 1.95f
+        private const val RAMP_FAR_HALF_WIDTH = 1.45f
         private const val RAMP_NEAR_HEIGHT = 0.12f
         private const val RAMP_FAR_HEIGHT = 1.25f
 
