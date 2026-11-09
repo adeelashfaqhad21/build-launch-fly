@@ -101,9 +101,11 @@ Still needed:
 
 The flight is meant to weave through obstacles; today only buildings, trees and rocks serve.
 
-Needed: hot-air balloon, rock arch, stone pillars, floating rings/course markers, target
-flag. **The Kenney Castle Kit already ships `rocks-large`, `gate`, `metal-gate`, flags,
-`siege-*` and `tower-hexagon-*`** — unused and immediately available.
+**Wired:** castle `gate`, `metal-gate`, `rocks-small` and `flag-wide` now stand in the flight
+corridor at 86–150 m, and the Fantasy Town `stall`, `cart`, `banner-red`, `lantern`, `fence`,
+`hedge`, `pillar-stone` and `tree-high` dress the launch area per realm.
+
+Still needed: hot-air balloon, rock arch, floating rings/course markers.
 
 ## 7. Far-field vegetation
 

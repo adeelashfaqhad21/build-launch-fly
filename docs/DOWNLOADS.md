@@ -22,6 +22,8 @@ and Poly Haven do have direct file URLs, so those can be fetched straight into t
 | 6 | **Impact Sounds** — CC0, 130 files | <https://kenney.nl/assets/impact-sounds> | §10 the slingshot release, the crash on landing, debris hits | `assets-source/kenney_impact-sounds/` |
 
 Packs 1 and 2 are the ones that change how the game looks; 3–6 are polish and can follow.
+Both are now partly wired: the industrial buildings stand around the airfield, and the town
+props dress the launch area per realm (see `docs/ASSET_GAPS.md` §5–§6).
 
 Optional, lower value:
 

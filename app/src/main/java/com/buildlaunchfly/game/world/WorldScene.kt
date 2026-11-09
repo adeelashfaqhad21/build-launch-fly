@@ -348,7 +348,7 @@ class WorldScene(
         }
 
         structures = if (assets != null) {
-            buildStructures(assets, textures)
+            buildStructures(assets, textures) + buildKitDressing(assets)
         } else {
             emptyList()
         }
@@ -1005,6 +1005,144 @@ class WorldScene(
             instanced.setInstances(matrices, count)
             out.add(InstancedPart(mesh, instanced, material))
         }
+        return out
+    }
+
+    /**
+     * One piece of a Kenney modular kit placed in the world: which kit and model it comes
+     * from, the height it should stand, and where it goes.
+     */
+    private class KitSpec(
+        val kit: String,
+        val model: String,
+        val height: Float,
+        val x: Float,
+        val z: Float,
+        val heading: Float
+    )
+
+    /**
+     * Dresses the launch area and the first part of the flight with the industrial and town
+     * kits: airfield buildings around the hangar, a few town props per realm, and castle
+     * gates, flags and boulders standing in the flight corridor as obstacles.
+     *
+     * Every piece is normalised to its own height by [PropLoader.load], so a standalone prop
+     * keeps its proportions without the modular grid the castle tower needs.
+     */
+    private fun buildKitDressing(assets: AssetManager): List<InstancedPart> {
+        val textures = mapOf(
+            "industrial" to "models/industrial/colormap.png",
+            "town" to "models/town/colormap.png",
+            "castle" to "models/castle/colormap.png"
+        ).mapValues { (_, path) -> AssetTextures.load(assets, path) }
+
+        val meshes = LinkedHashMap<String, MeshData>()
+        val groups = LinkedHashMap<String, ArrayList<Float>>()
+        val matrix = Mat4()
+
+        for (spec in kitDressing()) {
+            val key = "${spec.kit}/${spec.model}"
+            val data = meshes.getOrPut(key) {
+                PropLoader.load(
+                    assets,
+                    "models/${spec.kit}/${spec.model}.obj",
+                    spec.height
+                ) ?: return@getOrPut MeshData(FloatArray(0), IntArray(0))
+            }
+            if (data.vertices.isEmpty()) continue
+
+            val ground = terrain.height(spec.x, spec.z)
+            if (ground < definition.waterLevel + 0.5f) continue
+
+            matrix.setTrs(spec.x, ground - 0.12f, spec.z, 0f, spec.heading, 0f, 1f)
+            groups.getOrPut(key) { ArrayList(8) }.addAll(matrix.m.toList())
+        }
+
+        val out = ArrayList<InstancedPart>(groups.size)
+        for ((key, values) in groups) {
+            val data = meshes[key] ?: continue
+            if (data.vertices.isEmpty()) continue
+            val kit = key.substringBefore('/')
+            val texture = textures[kit] ?: continue
+            val count = values.size / 16
+            if (count == 0) continue
+
+            val matrices = FloatArray(count * 16)
+            for (index in matrices.indices) matrices[index] = values[index]
+
+            val name = "kit" + key.replace('/', '_')
+            val mesh = Mesh(name, data)
+            val instanced = InstancedMesh(name, data, count)
+            instanced.setInstances(matrices, count)
+            out.add(
+                InstancedPart(
+                    mesh,
+                    instanced,
+                    Material(
+                        albedo = texture,
+                        tint = Vec3(1f, 1f, 1f),
+                        roughness = 0.9f,
+                        metallic = 0f,
+                        uvScale = 1f
+                    )
+                )
+            )
+        }
+        return out
+    }
+
+    /** Every kit piece placed per realm, grouped by the kit it comes from. */
+    private fun kitDressing(): List<KitSpec> {
+        val out = ArrayList<KitSpec>(24)
+
+        // The airfield behind and beside the hangar: industrial buildings, containers and a
+        // water tower on the horizon the launch runs toward.
+        out += KitSpec("industrial", "building-a", 12f, -64f, -128f, 0.35f)
+        out += KitSpec("industrial", "building-c", 9f, 72f, -96f, -0.6f)
+        out += KitSpec("industrial", "building-h", 7f, 46f, -196f, 0.1f)
+        out += KitSpec("industrial", "shipping-container-a", 2.6f, 22f, -38f, 0.35f)
+        out += KitSpec("industrial", "shipping-container-a", 2.4f, 25.5f, -40f, 0.35f)
+        out += KitSpec("industrial", "water-tower", 9f, -42f, -74f, 0f)
+        out += KitSpec("industrial", "windmill", 14f, 92f, -152f, 0.2f)
+
+        // Realm dressing, placed close enough to read from the launch pad.
+        when (definition.id) {
+            WorldId.FOREST -> {
+                out += KitSpec("town", "tree-high", 6.5f, 26f, -22f, 0.8f)
+                out += KitSpec("town", "fence", 1.2f, 14f, -12f, 0f)
+                out += KitSpec("town", "lantern", 3.2f, 9f, -16f, 0f)
+                out += KitSpec("town", "stall", 2.6f, -18f, -30f, 1.1f)
+            }
+            WorldId.DESERT -> {
+                out += KitSpec("town", "hedge", 1.6f, -26f, -26f, 0f)
+                out += KitSpec("town", "pillar-stone", 3.5f, 22f, -34f, 0f)
+                out += KitSpec("town", "banner-red", 4f, 16f, -40f, 0.5f)
+            }
+            WorldId.SNOW -> {
+                out += KitSpec("town", "tree-high", 5.5f, -30f, -24f, 0.4f)
+                out += KitSpec("town", "pillar-stone", 4f, 12f, -20f, 0f)
+                out += KitSpec("town", "lantern", 3.2f, -8f, -18f, 0f)
+            }
+            WorldId.OCEAN -> {
+                out += KitSpec("town", "cart", 2.2f, 24f, -18f, 1.9f)
+                out += KitSpec("town", "stall", 2.6f, 15f, -28f, 0.7f)
+                out += KitSpec("town", "banner-red", 4f, -22f, -36f, -0.4f)
+            }
+            WorldId.MOUNTAIN -> {
+                out += KitSpec("town", "fence", 1.2f, 20f, -14f, 0f)
+                out += KitSpec("town", "hedge", 1.6f, -24f, -30f, 0f)
+                out += KitSpec("town", "tree-high", 6f, 30f, -40f, 0.2f)
+            }
+        }
+
+        // Castle obstacles standing in the flight line, so the launch has something to steer
+        // around beyond the trees and the ruin on the skyline.
+        out += KitSpec("castle", "gate", 6.5f, 0f, -86f, 0f)
+        out += KitSpec("castle", "rocks-small", 2.2f, 14f, -102f, 0f)
+        out += KitSpec("castle", "flag-wide", 5f, -12f, -96f, 0f)
+        out += KitSpec("castle", "rocks-small", 1.8f, -22f, -120f, 0.9f)
+        out += KitSpec("castle", "metal-gate", 5.5f, 10f, -150f, 0f)
+
         return out
     }
 
