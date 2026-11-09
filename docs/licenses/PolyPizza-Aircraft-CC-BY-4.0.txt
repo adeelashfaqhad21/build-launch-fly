@@ -1,0 +1,26 @@
+Poly Pizza — aircraft models
+
+Poly Pizza (https://poly.pizza) hosts the models below. All three are licensed
+**Creative Commons Attribution 4.0** (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/):
+attribution is required, commercial use is allowed.
+
+Downloads supplied in assets-source/Planes /:
+
+1. "samolet" by vrlab development
+   https://poly.pizza/m/6OgsLgd7vKM
+   Tagged #Biplane. **This is the aircraft the game flies**, shipped as
+   app/src/main/assets/aircraft/samolet/model.obj + materials.mtl.
+
+2. "Airplane" by Poly by Google
+   https://poly.pizza/m/8VysVKMXN2J
+   Unzipped in assets-source; kept as a candidate second airframe.
+
+3. "very cute airplane" by Akash Rudra
+   https://poly.pizza/m/3UtIosDm9u-
+   Not used.
+
+Format: OBJ. "samolet" has no texture and no UVs — its seven colours are flat `Kd` values in
+materials.mtl — so the engine splits it by material (aircraft/AircraftModelLoader) and draws
+each part with the shared white map tinted by that colour. One welded mesh: there are no
+separate wing, tail or propeller objects.
+

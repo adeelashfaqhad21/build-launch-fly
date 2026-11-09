@@ -673,36 +673,23 @@ class WorldScene(
         }
 
 
-        // Four supplied glacier-specific OBJ/MTL flora assets supplement the alpine pine set.
+        // Supplied glacier-specific flora, loaded with their own flat MTL colours.
         if (plantStyle == PlantStyle.GLACIER) {
-            val glacierSpecs = listOf(
-                Triple("FrostPine", 10.5f, 6),
-                Triple("IceCrystalShrub", 1.6f, 18),
-                Triple("GlacierMoss", 0.38f, 34),
-                Triple("SnowBloom", 1.25f, 22)
-            )
+            val glacierSpecs = listOf(Triple("FrostPine", 10.5f, 6), Triple("IceCrystalShrub", 1.6f, 18),
+                Triple("GlacierMoss", 0.38f, 34), Triple("SnowBloom", 1.25f, 22))
             for ((index, spec) in glacierSpecs.withIndex()) {
-                val name = spec.first
-                val height = spec.second
-                val count = spec.third
-                val parts = AnimalLoader.load(
-                    assets, "glacier/$name.obj", "glacier/aircraft_and_glacier.mtl", height
-                )
+                val name = spec.first; val height = spec.second; val count = spec.third
+                val parts = AnimalLoader.load(assets, "glacier/$name.obj", "glacier/aircraft_and_glacier.mtl", height)
                 if (parts.isEmpty()) continue
                 val set = heroScatter(heroCount(count), 151 + index, height)
                 if (set.count == 0) continue
                 for ((partIndex, part) in parts.withIndex()) {
                     val mesh = Mesh("glacier${name}$partIndex", part.data)
-                    val instanced = InstancedMesh("glacier${name}$partIndex", part.data, set.count)
-                    instanced.setInstances(set.matrices, set.count)
-                    val material = Material(
-                        albedo = textures.white,
-                        tint = part.color,
-                        roughness = 0.92f,
-                        metallic = if (name == "IceCrystalShrub") 0.16f else 0f,
-                        uvScale = 1f
-                    )
-                    outPlants.add(InstancedPart(mesh, instanced, material))
+                    val instances = InstancedMesh("glacier${name}$partIndex", part.data, set.count)
+                    instances.setInstances(set.matrices, set.count)
+                    val material = Material(albedo = textures.white, tint = part.color, roughness = 0.92f,
+                        metallic = if (name == "IceCrystalShrub") 0.16f else 0f, uvScale = 1f)
+                    outPlants.add(InstancedPart(mesh, instances, material))
                 }
             }
         }

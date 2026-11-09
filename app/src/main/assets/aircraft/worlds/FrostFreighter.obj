@@ -1,4 +1,4 @@
-# Combined mesh assembled from the supplied modular OBJ components.
+# Combined mesh assembled from supplied modular OBJ components.
 mtllib aircraft_and_glacier.mtl
 o FrostFreighter_Complete
 v 0.00 0.20 -7.4

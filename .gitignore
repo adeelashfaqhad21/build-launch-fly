@@ -1,0 +1,62 @@
+# Gradle
+.gradle/
+build/
+app/build/
+local.properties
+gradle-app.setting
+.gradletasknamecache
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+captures/
+.externalNativeBuild/
+.cxx/
+.output.json
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+*.hprof
+.DS_Store
+Thumbs.db
+
+# Kotlin
+.kotlin/
+
+# Logs
+*.log
+
+# Local reference archives (the individual plates are tracked)
+docs/reference/*.zip
+
+
+# Unpacked third-party kits: the models actually used are copied into app/src/main/assets
+assets-source/kenney_nature-kit/
+assets-source/kenney_castle-kit/
+assets-source/kenney_furniture-kit/
+assets-source/kenney_city-kit-industrial_2.0/
+assets-source/kenney_fantasy-town-kit_2.0/
+assets-source/kenney_fantasy-ui-borders/
+assets-source/kenney_ui-pack/
+assets-source/kenney_interface-sounds/
+assets-source/kenney_impact-sounds/
+assets-source/kenney_rpg-audio/
+
+# Downloaded texture archives: only the colour maps that ship are copied into assets/terrain
+assets-source/ambientcg/
+
+# Downloaded model sources already copied into app/src/main/assets
+assets-source/parrot-light.glb
+
+# Screenshots from a device run: kept on disk, not in the repository
+assets-source/screenshots/
+
+
+# Unpacked plane sources: the airframe used is copied into app/src/main/assets/aircraft
+assets-source/Planes\ /*/

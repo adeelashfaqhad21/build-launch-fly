@@ -1,0 +1,26 @@
+Quaternius — Ultimate Stylized Nature Pack
+=========================================
+
+Source: https://quaternius.com/packs/ultimatestylizednature.html
+Download: https://drive.google.com/drive/folders/1IV3bXHzkNvuNWFHPi4KPx-G4ghuxIuT-
+Author: Quaternius (https://quaternius.com)
+License: CC0 1.0 Universal (public domain dedication)
+         https://creativecommons.org/publicdomain/zero/1.0/
+
+Files shipped in app/src/main/assets/quaternius/ (OBJ + leaf/rock PNG maps):
+  BirchTree_1.obj, BirchTree_Leaves.png
+  MapleTree_1.obj, MapleTree_Leaves.png
+  PineTree_1.obj,  PineTree_Leaves.png
+  PalmTree_1.obj,  PalmTree_Leaves.png
+  Bush.obj,        Bush_Leaves.png
+  Flower_1_Clump.obj, Flowers.png
+  Grass_Large.obj, Grass.png
+  Rock_1.obj,      Rocks.png
+
+Modifications: the models are loaded at runtime by gfx/ObjLoader and normalised
+(1 unit tall, base at y = 0, centred in XZ); trunk/bark geometry is drawn with
+the game's procedurally generated bark texture instead of the pack's 20 MB
+4K bark map, which is not shipped. No other edits were made to the assets.
+
+CC0 places the work in the public domain, so no attribution is required in the
+app. This record is kept for provenance.

@@ -189,12 +189,8 @@ class AircraftMesh(
             WorldId.OCEAN -> "AuroraScout"
             WorldId.MOUNTAIN -> "ViperStrike"
         }
-        val parts = AircraftModelLoader.load(
-            manager,
-            "aircraft/worlds/$modelName.obj",
-            "aircraft/worlds/aircraft_and_glacier.mtl",
-            IMPORTED_SPAN
-        )
+        val parts = AircraftModelLoader.load(manager, "aircraft/worlds/$modelName.obj",
+            "aircraft/worlds/aircraft_and_glacier.mtl", IMPORTED_SPAN)
         if (parts.isEmpty()) return
 
         importedParts = parts.mapIndexed { index, part ->

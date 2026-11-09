@@ -1,0 +1,24 @@
+Kenney — Castle Kit
+
+Source: https://kenney.nl/assets/castle-kit
+Author: Kenney (https://www.kenney.nl)
+Licence: Creative Commons CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+CC0: no attribution is required and commercial use is allowed. Attribution is given here
+and in the README as a courtesy.
+
+Pack contents (75 files, version 2.0): a modular low-poly medieval set — wall sections,
+towers, gates, stairs, roofs, doors, windows, banners and flags — in GLTF / FBX / OBJ with a
+single shared palette texture. The OBJ models are the ones the game loads.
+
+Intended use in this project: a ruin on every realm's skyline — a three-piece tower
+(tower-square-base, tower-square-mid, tower-square-roof) with a wall run beside it
+(wall, wall-doorway) — dressed with the kit's own colormap.png atlas.
+
+Shipped as: the pieces actually placed are copied into app/src/main/assets/models/castle/
+with the shared colormap.png; the model .obj files are read at load time by
+gfx/PropLoader.loadScaled, which applies one shared scale to the whole modular set so the
+stacked tower lines up. The 2 MB source archive is kept out of the APK; the open-source kit
+stays in assets-source/.
+

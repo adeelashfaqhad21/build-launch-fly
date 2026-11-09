@@ -1,0 +1,285 @@
+package com.buildlaunchfly.game.world
+
+import com.buildlaunchfly.game.gfx.SurfaceKind
+import com.buildlaunchfly.game.math.Vec3
+
+enum class WorldId { FOREST, DESERT, SNOW, OCEAN, MOUNTAIN }
+
+enum class AmbienceStyle { FOREST, DESERT, SNOW, OCEAN, MOUNTAIN }
+
+/**
+ * A complete world description: terrain shaping, surface palette, sky, weather, wildlife
+ * and progression metadata. All five worlds share the engine but not the look.
+ */
+class WorldDefinition(
+    val id: WorldId,
+    val displayName: String,
+    val unlockDistanceMeters: Float,
+    val seed: Int,
+
+    // Terrain shaping
+    val hillHeight: Float,
+    val mountainHeight: Float,
+    val roughness: Float,
+    val duneStrength: Float,
+    val heightOffset: Float,
+    val waterLevel: Float,
+    val hasWater: Boolean,
+    val waterDeep: Vec3,
+    val waterShallow: Vec3,
+
+    // Surfaces
+    val surfaceA: SurfaceKind,
+    val surfaceB: SurfaceKind,
+    val surfaceC: SurfaceKind,
+    val tintA: Vec3,
+    val tintB: Vec3,
+    val tintC: Vec3,
+    val rockThreshold: Float,
+    val snowLine: Float,
+
+    // Scatter counts (max; scaled by the quality level)
+    val treeCount: Int,
+    val rockCount: Int,
+    val grassCount: Int,
+    val pineTrees: Boolean,
+
+    // Sky and light
+    val sunDirection: Vec3,
+    val sunColor: Vec3,
+    val zenithColor: Vec3,
+    val horizonColor: Vec3,
+    val fogColor: Vec3,
+    val fogDensity: Float,
+    val ambientSky: Vec3,
+    val ambientGround: Vec3,
+
+    // Weather and life
+    val snowfall: Float,
+    val dust: Float,
+    val birdCount: Int,
+    val animalCount: Int,
+
+    // Audio mood and progression
+    val ambience: AmbienceStyle,
+    val earningsMultiplier: Float
+)
+
+object WorldCatalog {
+
+    val all: List<WorldDefinition> = listOf(forest(), desert(), snow(), ocean(), mountain())
+
+    fun byId(id: WorldId): WorldDefinition = all.first { it.id == id }
+
+    private fun forest(): WorldDefinition = WorldDefinition(
+        id = WorldId.FOREST,
+        displayName = "Greenwood Forest",
+        unlockDistanceMeters = 0f,
+        seed = 1101,
+        hillHeight = 26f,
+        mountainHeight = 46f,
+        roughness = 1.35f,
+        duneStrength = 0f,
+        heightOffset = 0f,
+        waterLevel = -3.5f,
+        hasWater = false,
+        waterDeep = Vec3(0.05f, 0.20f, 0.20f),
+        waterShallow = Vec3(0.16f, 0.42f, 0.38f),
+        surfaceA = SurfaceKind.GRASS,
+        surfaceB = SurfaceKind.ROCK,
+        surfaceC = SurfaceKind.FOREST_FLOOR,
+        tintA = Vec3(0.86f, 1.02f, 0.74f),
+        tintB = Vec3(0.78f, 0.74f, 0.68f),
+        tintC = Vec3(0.92f, 0.86f, 0.70f),
+        rockThreshold = 0.70f,
+        snowLine = 4000f,
+        treeCount = 4200,
+        rockCount = 900,
+        grassCount = 7600,
+        pineTrees = false,
+        sunDirection = Vec3(0.38f, 0.60f, 0.70f),
+        sunColor = Vec3(3.05f, 2.92f, 2.60f),
+        zenithColor = Vec3(0.12f, 0.31f, 0.62f),
+        horizonColor = Vec3(0.66f, 0.78f, 0.84f),
+        fogColor = Vec3(0.64f, 0.75f, 0.80f),
+        fogDensity = 0.00030f,
+        ambientSky = Vec3(0.34f, 0.48f, 0.62f),
+        ambientGround = Vec3(0.16f, 0.22f, 0.13f),
+        snowfall = 0f,
+        dust = 0f,
+        birdCount = 34,
+        animalCount = 12,
+        ambience = AmbienceStyle.FOREST,
+        earningsMultiplier = 1.0f
+    )
+
+    private fun desert(): WorldDefinition = WorldDefinition(
+        id = WorldId.DESERT,
+        displayName = "Amber Dunes",
+        unlockDistanceMeters = 600f,
+        seed = 2203,
+        hillHeight = 16f,
+        mountainHeight = 58f,
+        roughness = 0.85f,
+        duneStrength = 22f,
+        heightOffset = 2f,
+        waterLevel = -1000f,
+        hasWater = false,
+        waterDeep = Vec3(0.10f, 0.22f, 0.26f),
+        waterShallow = Vec3(0.22f, 0.40f, 0.42f),
+        surfaceA = SurfaceKind.SAND,
+        surfaceB = SurfaceKind.CRACKED,
+        surfaceC = SurfaceKind.SAND,
+        tintA = Vec3(1.02f, 0.90f, 0.70f),
+        tintB = Vec3(0.88f, 0.72f, 0.56f),
+        tintC = Vec3(1.00f, 0.92f, 0.76f),
+        rockThreshold = 0.66f,
+        snowLine = 4000f,
+        treeCount = 240,
+        rockCount = 1400,
+        grassCount = 400,
+        pineTrees = false,
+        sunDirection = Vec3(0.30f, 0.72f, 0.62f),
+        sunColor = Vec3(3.45f, 3.05f, 2.45f),
+        zenithColor = Vec3(0.22f, 0.40f, 0.68f),
+        horizonColor = Vec3(0.90f, 0.80f, 0.66f),
+        fogColor = Vec3(0.88f, 0.78f, 0.62f),
+        fogDensity = 0.00034f,
+        ambientSky = Vec3(0.52f, 0.50f, 0.44f),
+        ambientGround = Vec3(0.34f, 0.26f, 0.18f),
+        snowfall = 0f,
+        dust = 1f,
+        birdCount = 8,
+        animalCount = 5,
+        ambience = AmbienceStyle.DESERT,
+        earningsMultiplier = 1.25f
+    )
+
+    private fun snow(): WorldDefinition = WorldDefinition(
+        id = WorldId.SNOW,
+        displayName = "Glacier Reach",
+        unlockDistanceMeters = 1400f,
+        seed = 3307,
+        hillHeight = 30f,
+        mountainHeight = 78f,
+        roughness = 1.1f,
+        duneStrength = 6f,
+        heightOffset = 6f,
+        waterLevel = -1000f,
+        hasWater = false,
+        waterDeep = Vec3(0.14f, 0.25f, 0.32f),
+        waterShallow = Vec3(0.55f, 0.72f, 0.82f),
+        surfaceA = SurfaceKind.SNOW,
+        surfaceB = SurfaceKind.CLIFF,
+        surfaceC = SurfaceKind.ROCK,
+        tintA = Vec3(1.00f, 1.01f, 1.04f),
+        tintB = Vec3(0.70f, 0.72f, 0.78f),
+        tintC = Vec3(0.88f, 0.95f, 1.02f),
+        rockThreshold = 0.62f,
+        // Surface C is ROCK in this realm; keep the high-altitude overlay disabled so
+        // it cannot replace the snow base across the entire landscape.
+        snowLine = 4000f,
+        treeCount = 900,
+        rockCount = 1100,
+        grassCount = 0,
+        pineTrees = true,
+        sunDirection = Vec3(0.46f, 0.42f, 0.78f),
+        sunColor = Vec3(2.70f, 2.85f, 3.15f),
+        zenithColor = Vec3(0.16f, 0.30f, 0.58f),
+        horizonColor = Vec3(0.78f, 0.86f, 0.94f),
+        fogColor = Vec3(0.80f, 0.87f, 0.94f),
+        fogDensity = 0.00032f,
+        ambientSky = Vec3(0.48f, 0.58f, 0.74f),
+        ambientGround = Vec3(0.34f, 0.40f, 0.50f),
+        snowfall = 1f,
+        dust = 0f,
+        birdCount = 6,
+        animalCount = 6,
+        ambience = AmbienceStyle.SNOW,
+        earningsMultiplier = 1.5f
+    )
+
+    private fun ocean(): WorldDefinition = WorldDefinition(
+        id = WorldId.OCEAN,
+        displayName = "Sapphire Coast",
+        unlockDistanceMeters = 2400f,
+        seed = 4409,
+        hillHeight = 34f,
+        mountainHeight = 62f,
+        roughness = 1.5f,
+        duneStrength = 0f,
+        heightOffset = 0f,
+        waterLevel = 0f,
+        hasWater = true,
+        waterDeep = Vec3(0.03f, 0.15f, 0.28f),
+        waterShallow = Vec3(0.10f, 0.42f, 0.46f),
+        surfaceA = SurfaceKind.BEACH,
+        surfaceB = SurfaceKind.CLIFF,
+        surfaceC = SurfaceKind.GRASS,
+        tintA = Vec3(0.98f, 0.92f, 0.78f),
+        tintB = Vec3(0.70f, 0.70f, 0.70f),
+        tintC = Vec3(0.80f, 0.96f, 0.72f),
+        rockThreshold = 0.68f,
+        snowLine = 90f,
+        treeCount = 1150,
+        rockCount = 1500,
+        grassCount = 2100,
+        pineTrees = false,
+        sunDirection = Vec3(0.34f, 0.66f, 0.66f),
+        sunColor = Vec3(3.20f, 3.10f, 2.85f),
+        zenithColor = Vec3(0.10f, 0.34f, 0.70f),
+        horizonColor = Vec3(0.74f, 0.84f, 0.90f),
+        fogColor = Vec3(0.72f, 0.83f, 0.90f),
+        fogDensity = 0.00025f,
+        ambientSky = Vec3(0.38f, 0.56f, 0.74f),
+        ambientGround = Vec3(0.22f, 0.28f, 0.26f),
+        snowfall = 0f,
+        dust = 0f,
+        birdCount = 26,
+        animalCount = 4,
+        ambience = AmbienceStyle.OCEAN,
+        earningsMultiplier = 1.75f
+    )
+
+    private fun mountain(): WorldDefinition = WorldDefinition(
+        id = WorldId.MOUNTAIN,
+        displayName = "Highland Valley",
+        unlockDistanceMeters = 3600f,
+        seed = 5513,
+        hillHeight = 38f,
+        mountainHeight = 105f,
+        roughness = 1.8f,
+        duneStrength = 0f,
+        heightOffset = 8f,
+        waterLevel = -6f,
+        hasWater = false,
+        waterDeep = Vec3(0.06f, 0.18f, 0.22f),
+        waterShallow = Vec3(0.20f, 0.40f, 0.40f),
+        surfaceA = SurfaceKind.GRASS,
+        surfaceB = SurfaceKind.CLIFF,
+        surfaceC = SurfaceKind.SNOW,
+        tintA = Vec3(0.82f, 0.98f, 0.72f),
+        tintB = Vec3(0.74f, 0.72f, 0.70f),
+        tintC = Vec3(0.98f, 0.99f, 1.00f),
+        rockThreshold = 0.64f,
+        snowLine = 120f,
+        treeCount = 2800,
+        rockCount = 1700,
+        grassCount = 5600,
+        pineTrees = true,
+        sunDirection = Vec3(0.52f, 0.56f, 0.64f),
+        sunColor = Vec3(3.00f, 2.90f, 2.70f),
+        zenithColor = Vec3(0.13f, 0.30f, 0.60f),
+        horizonColor = Vec3(0.72f, 0.82f, 0.88f),
+        fogColor = Vec3(0.70f, 0.80f, 0.86f),
+        fogDensity = 0.00031f,
+        ambientSky = Vec3(0.36f, 0.50f, 0.66f),
+        ambientGround = Vec3(0.18f, 0.22f, 0.16f),
+        snowfall = 0f,
+        dust = 0f,
+        birdCount = 22,
+        animalCount = 10,
+        ambience = AmbienceStyle.MOUNTAIN,
+        earningsMultiplier = 2.0f
+    )
+}

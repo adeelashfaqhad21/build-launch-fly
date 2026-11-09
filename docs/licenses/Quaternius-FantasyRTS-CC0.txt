@@ -1,0 +1,25 @@
+Quaternius — Ultimate Fantasy RTS Pack
+======================================
+
+Source: https://quaternius.com/packs/ultimatefantasyrts.html
+Download: https://drive.google.com/drive/folders/1h7sztlZyavWla-JDk3jp6KiWDdMh08yd
+Author: Quaternius (https://quaternius.com)
+License: CC0 1.0 Universal (public domain dedication)
+         https://creativecommons.org/publicdomain/zero/1.0/
+
+The folder is the Ultimate Fantasy RTS pack: buildings, walls, farms, towers,
+market, temple, mine, port, mountains, crates and barrels. Each model is an
+OBJ with a matching PNG texture.
+
+Downloaded (OBJ + PNG) and shipped in app/src/main/assets/buildings:
+  Houses_FirstAge_1_Level2, Windmill_FirstAge, WatchTower_FirstAge_Level2,
+  Dock_FirstAge, Mine, TowerHouse_FirstAge, TownCenter_FirstAge_Level1,
+  Mountain_Single, MountainLarge_Single, Crate, Barrel
+
+They are loaded by gfx/PropLoader (one merged mesh per model, the PNG as
+albedo, normalised to a target height with its base on the ground) and placed
+as static scenery per realm. The remaining RTS models stay in the Drive
+folder; this is a curated subset.
+
+CC0 places the work in the public domain, so no attribution is required in
+the app. This record is kept for provenance.

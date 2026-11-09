@@ -1,0 +1,32 @@
+Kenney — Interface Sounds and Impact Sounds
+
+Sources:
+  https://kenney.nl/assets/interface-sounds  (CC0, 100 files, released 2020)
+  https://kenney.nl/assets/impact-sounds     (CC0, 130 files, released 2019)
+Licence: CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Kenney publishes these packs under CC0; attribution is not required and is given here and in
+the README as a courtesy.
+
+Assets included in this build (OGG, under app/src/main/assets/audio/):
+
+  click_001.ogg        <- Interface Sounds  "click_001"
+  confirmation_001.ogg <- Interface Sounds  "confirmation_001"
+  switch_001.ogg       <- Interface Sounds  "switch_001"
+  error_001.ogg        <- Interface Sounds  "error_001"
+  release.ogg          <- Impact Sounds     "impactWood_heavy_000", renamed: the slingshot
+                                              release thump
+
+They are played by audio/SoundBank through SoundPool and mapped onto AudioEngine.Cue:
+
+  CLICK   -> click_001
+  UPGRADE -> confirmation_001
+  REWARD  -> confirmation_001 (quieter)
+  UNLOCK  -> switch_001
+  RESULT  -> error_001 (quieter, low-speed / crash result)
+  release -> impactWood_heavy_000
+
+Anything that has not finished loading (or is missing) falls through to the synthesised cue in
+AudioEngine, so the game is never silent. Wind, propeller, creak and the per-realm ambience
+remain synthesised; the full packs stay in the git-ignored assets-source/.

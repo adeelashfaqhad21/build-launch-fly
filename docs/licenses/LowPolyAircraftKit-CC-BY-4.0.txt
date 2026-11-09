@@ -1,0 +1,13 @@
+"Low-Poly Aircraft Kit Free - Trainer, Helicopter and Runway Sampler"
+by heyheythere
+https://heyheythere.itch.io/low-poly-aircraft-kit-free
+
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+Used in this project: the windsock and traffic cone from the free kit
+archive, read at runtime by gfx/ZipKit and gfx/PropLoader and placed beside
+the launch pad. Nothing else from the kit is used.
+
+Attribution is provided in the project README ("Credits") and this file, as
+the licence requires.
