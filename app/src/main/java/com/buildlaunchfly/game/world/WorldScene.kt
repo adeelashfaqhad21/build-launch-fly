@@ -917,11 +917,14 @@ class WorldScene(
                 ?: continue
             val texture =
                 AssetTextures.load(assets, "buildings/${spec.asset}.png") ?: continue
-            if (spec.spots.isEmpty()) continue
+            val validSpots = spec.spots.filterNot {
+                Vegetation.isInsideLaunchFacility(it.first, it.second)
+            }
+            if (validSpots.isEmpty()) continue
 
-            val matrices = FloatArray(spec.spots.size * 16)
-            for (index in spec.spots.indices) {
-                val spot = spec.spots[index]
+            val matrices = FloatArray(validSpots.size * 16)
+            for (index in validSpots.indices) {
+                val spot = validSpots[index]
                 val y = terrain.height(spot.first, spot.second) - 0.15f
                 matrix.setTrs(
                     spot.first,
@@ -941,8 +944,8 @@ class WorldScene(
             }
 
             val mesh = Mesh("structure${spec.asset}", data)
-            val instanced = InstancedMesh("structures${spec.asset}", data, spec.spots.size)
-            instanced.setInstances(matrices, spec.spots.size)
+            val instanced = InstancedMesh("structures${spec.asset}", data, validSpots.size)
+            instanced.setInstances(matrices, validSpots.size)
             val material = Material(
                 albedo = texture,
                 tint = Vec3(1f, 1f, 1f),
@@ -987,6 +990,7 @@ class WorldScene(
             val texture = AssetTextures.loadFromBytes(png.bytes, png.name) ?: continue
 
             val spot = spec.third
+            if (Vegetation.isInsideLaunchFacility(spot.first, spot.second)) continue
             val y = terrain.height(spot.first, spot.second) - 0.05f
             matrix.setTrs(spot.first, y, spot.second, 0f, spot.third, 0f, 1f, 1f, 1f)
             val matrices = FloatArray(16)
@@ -1068,6 +1072,7 @@ class WorldScene(
         val wallWidth = (measured["wall"]?.size ?: 0f) * scale
 
         for (site in castleSites()) {
+            if (Vegetation.isInsideLaunchFacility(site.x, site.z)) continue
             if (terrain.height(site.x, site.z) < definition.waterLevel + 1f) continue
 
             var lift = terrain.height(site.x, site.z) - 0.25f
@@ -1156,6 +1161,7 @@ class WorldScene(
             }
             if (data.vertices.isEmpty()) continue
 
+            if (Vegetation.isInsideLaunchFacility(spec.x, spec.z)) continue
             val ground = terrain.height(spec.x, spec.z)
             if (ground < definition.waterLevel + 0.5f) continue
 
@@ -1333,6 +1339,7 @@ class WorldScene(
                 if (distance > length) break
                 val x = run.startX + stepX * distance
                 val z = run.startZ + stepZ * distance
+                if (Vegetation.isInsideLaunchFacility(x, z)) continue
                 val ground = terrain.height(x, z)
                 if (ground < definition.waterLevel + 0.4f) continue
 
@@ -1603,7 +1610,7 @@ class WorldScene(
             // beside or behind the launch path.
             val x = (rng.nextFloat() * 2f - 1f) * 105f
             val z = -36f - rng.nextFloat() * 360f
-            if (x * x + z * z < 26f * 26f) continue
+            if (Vegetation.isInsideLaunchFacility(x, z)) continue
 
             val h = terrain.height(x, z)
             if (h < definition.waterLevel + 1.5f) continue
