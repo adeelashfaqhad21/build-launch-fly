@@ -1,0 +1,106 @@
+# --- Skyhopper Palette ---
+newmtl M_Skyhopper_Body
+Kd 0.22 0.58 0.88
+Ks 0.2 0.2 0.2
+Ns 32.0
+
+newmtl M_Skyhopper_GoldAccent
+Kd 0.95 0.76 0.18
+Ks 0.5 0.5 0.3
+Ns 45.0
+
+newmtl M_Skyhopper_Canopy
+Kd 0.70 0.88 0.96
+d 0.7
+Ns 60.0
+
+newmtl M_DarkMetal
+Kd 0.18 0.19 0.22
+Ks 0.3 0.3 0.3
+Ns 20.0
+
+# --- Viper Strike Palette ---
+newmtl M_Viper_SlateGray
+Kd 0.24 0.27 0.31
+Ks 0.25 0.25 0.25
+Ns 40.0
+
+newmtl M_Viper_RedAccent
+Kd 0.85 0.15 0.15
+Ks 0.3 0.1 0.1
+Ns 35.0
+
+newmtl M_Viper_ExhaustGlow
+Kd 0.98 0.65 0.12
+Ke 0.80 0.40 0.05
+Ns 50.0
+
+# --- Vintage Biplane Palette ---
+newmtl M_Vintage_WoodFabric
+Kd 0.68 0.52 0.38
+Ks 0.1 0.1 0.1
+Ns 10.0
+
+newmtl M_Vintage_CreamWing
+Kd 0.92 0.88 0.76
+Ks 0.1 0.1 0.1
+Ns 12.0
+
+# --- Frost Freighter Palette ---
+newmtl M_Freighter_SteelGray
+Kd 0.42 0.46 0.50
+Ks 0.2 0.2 0.2
+Ns 25.0
+
+newmtl M_Freighter_CyanGreen
+Kd 0.28 0.72 0.68
+Ks 0.3 0.3 0.3
+Ns 30.0
+
+# --- Aurora Scout Palette ---
+newmtl M_Aurora_Teal
+Kd 0.08 0.68 0.74
+Ks 0.4 0.5 0.5
+Ns 65.0
+
+newmtl M_Aurora_WhitePurple
+Kd 0.88 0.86 0.96
+Ks 0.3 0.3 0.4
+Ns 40.0
+
+newmtl M_Aurora_PlasmaGlow
+Kd 0.62 0.24 0.92
+Ke 0.55 0.18 0.85
+Ns 70.0
+
+# --- Snowy / Glacier Ecosystem Palette ---
+newmtl M_PineBark
+Kd 0.32 0.22 0.16
+Ks 0.05 0.05 0.05
+Ns 8.0
+
+newmtl M_PineNeedles
+Kd 0.12 0.32 0.18
+Ks 0.1 0.1 0.1
+Ns 15.0
+
+newmtl M_GlacierSnow
+Kd 0.94 0.96 0.98
+Ks 0.4 0.4 0.5
+Ns 40.0
+
+newmtl M_IceCrystal
+Kd 0.65 0.85 0.95
+Ks 0.9 0.95 1.0
+d 0.82
+Ns 90.0
+
+newmtl M_GlacierMoss
+Kd 0.22 0.48 0.32
+Ks 0.1 0.1 0.1
+Ns 12.0
+
+newmtl M_SnowBloom_Petal
+Kd 0.88 0.94 0.99
+d 0.85
+Ns 75.0

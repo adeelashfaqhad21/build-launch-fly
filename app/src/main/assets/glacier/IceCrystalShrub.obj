@@ -1,0 +1,48 @@
+# IceCrystalShrub.obj
+mtllib aircraft_and_glacier.mtl
+o IceCrystalShrub
+# Base Origin Center (Pivot Y=0)
+v 0.00 0.00 0.00
+# Crystal Spire 1 (Tall Central Cluster)
+v 0.12 0.05 0.10
+v -0.10 0.05 0.12
+v -0.12 0.05 -0.10
+v 0.10 0.05 -0.12
+v 0.02 1.62 -0.04
+# Crystal Spire 2 (Angled North-East)
+v 0.28 0.02 0.25
+v 0.12 0.02 0.38
+v 0.24 0.02 0.45
+v 0.78 1.15 0.85
+# Crystal Spire 3 (Angled West)
+v -0.32 0.02 0.10
+v -0.42 0.02 -0.08
+v -0.22 0.02 -0.18
+v -0.95 0.88 -0.12
+# Crystal Spire 4 (Angled South-East)
+v 0.18 0.02 -0.28
+v 0.34 0.02 -0.18
+v 0.30 0.02 -0.38
+v 0.82 0.74 -0.72
+vn 0.0 1.0 0.0
+vn 0.7 0.7 0.0
+vn -0.7 0.7 0.0
+usemtl M_IceCrystal
+s 1
+# Spire 1 Facets
+f 6//1 2//2 3//3
+f 6//1 3//3 4//3
+f 6//1 4//3 5//2
+f 6//1 5//2 2//2
+# Spire 2 Facets
+f 10//1 7//2 8//2
+f 10//1 8//2 9//2
+f 10//1 9//2 7//2
+# Spire 3 Facets
+f 14//1 11//3 12//3
+f 14//1 12//3 13//3
+f 14//1 13//3 11//3
+# Spire 4 Facets
+f 18//1 15//2 16//2
+f 18//1 16//2 17//2
+f 18//1 17//2 15//2

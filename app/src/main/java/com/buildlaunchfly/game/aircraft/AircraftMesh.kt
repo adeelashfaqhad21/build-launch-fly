@@ -8,6 +8,7 @@ import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
+import com.buildlaunchfly.game.world.WorldId
 
 /**
  * Procedural vintage biplane from docs/DESIGN.md §3.14: tan doped canvas wings with
@@ -123,10 +124,12 @@ class AircraftMesh(
     )
 
     private var signature = ""
+    private var selectedWorld: WorldId = WorldId.FOREST
 
     /** Rebuilds geometry when the build differs from what is currently uploaded. */
-    fun updateFor(build: AircraftBuild) {
-        val newSignature = PartSlot.values().joinToString(",") { "${it.name}=${build.tierOf(it)}" }
+    fun updateFor(build: AircraftBuild, worldId: WorldId? = null) {
+        if (worldId != null) selectedWorld = worldId
+        val newSignature = selectedWorld.name + "|" + PartSlot.values().joinToString(",") { "${it.name}=${build.tierOf(it)}" }
         if (newSignature == signature) return
         signature = newSignature
 
@@ -179,10 +182,17 @@ class AircraftMesh(
         if (importedParts.isNotEmpty()) return
 
         val manager = assets ?: return
+        val modelName = when (selectedWorld) {
+            WorldId.FOREST -> "Skyhopper"
+            WorldId.DESERT -> "VintageBiplane"
+            WorldId.SNOW -> "FrostFreighter"
+            WorldId.OCEAN -> "AuroraScout"
+            WorldId.MOUNTAIN -> "ViperStrike"
+        }
         val parts = AircraftModelLoader.load(
             manager,
-            "aircraft/samolet/model.obj",
-            "aircraft/samolet/materials.mtl",
+            "aircraft/worlds/$modelName.obj",
+            "aircraft/worlds/aircraft_and_glacier.mtl",
             IMPORTED_SPAN
         )
         if (parts.isEmpty()) return

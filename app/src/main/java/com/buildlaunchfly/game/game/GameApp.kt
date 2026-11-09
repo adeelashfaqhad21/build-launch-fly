@@ -219,7 +219,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         loadProgressValue = 0.45f
 
-        aircraft = AircraftMesh(textureFactory, context.assets).also { it.updateFor(build) }
+        aircraft = AircraftMesh(textureFactory, context.assets).also { it.updateFor(build, profile.selectedWorld) }
         slingMesh = SlingshotMesh(textureFactory)
         hangar = HangarMesh(textureFactory, context.assets)
         loadProgressValue = 0.55f
@@ -294,6 +294,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             return
         }
         scene = newScene
+        aircraft?.updateFor(build, id)
 
         applyEnvironment(definition, sceneRenderer)
         padPosition.set(0f, newScene.terrain.padHeight, 0f)
