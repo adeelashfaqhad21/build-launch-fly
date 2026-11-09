@@ -157,9 +157,10 @@ Rajdhani retained for instrumentation.
 [`docs/reference/README.md`](docs/reference/README.md).
 
 **Progression & audio** — coins from distance/performance, persistence in
-SharedPreferences JSON, world unlocks, achievements, four quality tiers, and procedural
-audio (wind, propeller, creak, release, per-world ambience, UI cues) with three mixer
-faders.
+SharedPreferences JSON, world unlocks, achievements, four quality tiers, and audio with three
+mixer faders: wind, propeller, creak and the per-realm ambience are synthesised, while UI
+clicks, confirmations, unlocks, results and the slingshot release play the imported Kenney
+samples (`audio/SoundBank`) with the synth as fallback.
 
 ## Build
 
@@ -254,10 +255,14 @@ Why the two APKs behaved differently before:
 - **Quaternius** (CC0): Ultimate Stylized Nature, Ultimate Animated Animals, Ships and
   Ultimate Fantasy RTS packs — `docs/licenses/Quaternius-*.txt`.
 - **Kenney** (CC0): [Nature Kit](https://kenney.nl/assets/nature-kit),
-  [Castle Kit](https://kenney.nl/assets/castle-kit) and
-  [Furniture Kit](https://kenney.nl/assets/furniture-kit) —
+  [Castle Kit](https://kenney.nl/assets/castle-kit),
+  [Furniture Kit](https://kenney.nl/assets/furniture-kit),
+  [City Kit (Industrial)](https://kenney.nl/assets/city-kit-industrial),
+  [Fantasy Town Kit](https://kenney.nl/assets/fantasy-town-kit),
+  [Interface Sounds](https://kenney.nl/assets/interface-sounds) and
+  [Impact Sounds](https://kenney.nl/assets/impact-sounds) —
   `docs/licenses/Kenney-NatureKit-CC0.txt`, `docs/licenses/Kenney-CastleKit-CC0.txt`,
-  `docs/licenses/Kenney-FurnitureKit-CC0.txt`.
+  `docs/licenses/Kenney-FurnitureKit-CC0.txt`, `docs/licenses/Kenney-Audio-CC0.txt`.
 - **Poly Haven** (CC0): the thirteen ground/terrain and wood/bark diffuse maps in
   `assets/terrain` — `docs/licenses/PolyHaven-CC0.txt`.
 - **ambientCG** (CC0): the rubber and painted-metal colour maps in `assets/terrain`

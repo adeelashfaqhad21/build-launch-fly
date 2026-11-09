@@ -10,6 +10,7 @@ import com.buildlaunchfly.game.aircraft.FlightPhysics
 import com.buildlaunchfly.game.aircraft.FlightState
 import com.buildlaunchfly.game.aircraft.PartSlot
 import com.buildlaunchfly.game.audio.AudioEngine
+import com.buildlaunchfly.game.audio.SoundBank
 import com.buildlaunchfly.game.gfx.Camera
 import com.buildlaunchfly.game.gfx.DesignTokens
 import com.buildlaunchfly.game.gfx.ParticleRenderer
@@ -40,7 +41,7 @@ enum class CameraMode { LAUNCH, ORBIT_AIRCRAFT, ORBIT_SLINGSHOT }
  */
 class GameApp(private val context: Context, private val input: InputState) {
 
-    val audio = AudioEngine()
+    val audio = AudioEngine(SoundBank(context))
 
     /** Optional non-UI bridge (kept for headless integrations). */
     var hud: HudBridge? = null

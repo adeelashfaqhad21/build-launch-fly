@@ -36,11 +36,32 @@ much of them a photographic map can carry.
 | Landmarks | Quaternius fantasy RTS (10 buildings + mountains) | — | **done** |
 | Ruins | Kenney Castle Kit (tower + walls) | — | **done** |
 | Hangar props | Kenney Furniture Kit (5 props) | — | **done** |
-| Hangar shell + 6 m ramp | nothing wired yet | `world/HangarMesh.kt` | **open** — City Industrial is on disk |
-| Slingshot | nothing wired yet | `slingshot/SlingshotMesh.kt` | **open** — Castle/Nature timber is on disk |
-| Realm-specific buildings | Quaternius houses (read wrong in sand and snow) | — | **open** — Fantasy Town is on disk |
-| Flight obstacles | buildings, trees, rocks only | — | **open** — Castle gates/rocks/flags on disk |
-| UI | vector only | `ui/UiFrame.kt`, `ui/UiIcons.kt`, `ui/UiPainter.kt` | **open** — Fantasy UI Borders + UI Pack on disk |
+| Hangar shell + 6 m ramp | City Industrial backdrop around the shed; Furniture Kit props inside | `world/HangarMesh.kt` shell and ramp | **keep generated** — see below |
+| Slingshot | hazard-map band | `slingshot/SlingshotMesh.kt` posts | **keep generated** — see below |
+| Realm-specific buildings | Quaternius houses + Fantasy Town dressing | — | done |
+| Flight obstacles | Castle gates, flags, boulders in the corridor | — | **done** |
+| UI | vector only | `ui/UiFrame.kt`, `ui/UiIcons.kt`, `ui/UiPainter.kt` | **keep vector** — see below |
+| Audio | Kenney Interface + Impact one-shots via `audio/SoundBank` | wind/prop/creak/ambience loops | done for one-shots |
+
+## Decisions where "imported" would be worse
+
+Being lead developer here means not importing for its own sake:
+
+- **Hangar shell and ramp** stay generated. The plates show an open-sided timber shed with a
+  6 m ramp; the City Kit is closed industrial boxes and the Fantasy Town kit is a stone/wood
+  module system that would read as a village house. Importing either would move the hero
+  screen *away* from the reference plates, which outrank every pack. The imported buildings
+  now dress the airfield around the shed instead.
+- **Slingshot posts** stay generated. The plates specify two **wide squared timber** posts;
+  the Castle/Nature `tree-log` and `tree-trunk` models are round logs. The band already uses
+  the imported hazard map.
+- **UI** stays vector. The reference plates are flat white rounded cards with navy outlines and
+  gold accents; Kenney's Fantasy UI Borders are pixel-art fantasy frames. Switching would make
+  the UI less like the plates, not more. The UI Pack's buttons and sliders are candidates only
+  if the art direction changes.
+- **Far-field vegetation** stays procedural for now. The 140–400 m ring is billboard cards; the
+  imported tree meshes are 5k–35k-line OBJs and instancing hundreds of them would cost frame
+  time on mid-range phones without a visible gain at that distance.
 | Audio | synthesised | `audio/AudioEngine.kt` | **open** — Interface/Impact sounds on disk |
 
 ## Shipped files

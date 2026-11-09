@@ -10,11 +10,11 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 /**
- * Fully procedural audio. Every sound — wind, propeller, slingshot creak and release,
- * per-world ambience and UI cues — is synthesized on a dedicated mixing thread and written
- * to a streaming [AudioTrack], so the repository needs no audio assets.
+ * Game audio. Loops (wind, propeller, creak, ambience) are synthesized on a dedicated mixing
+ * thread and written to a streaming [AudioTrack]; one-shot cues come from the imported Kenney
+ * samples through [SoundBank] when they load, and the synth covers them otherwise.
  */
-class AudioEngine {
+class AudioEngine(private val soundBank: SoundBank? = null) {
 
     enum class Cue { CLICK, UPGRADE, REWARD, UNLOCK, RESULT }
 
@@ -146,10 +146,13 @@ class AudioEngine {
     }
 
     fun playRelease(power: Float) {
-        releases.add(power.coerceIn(0f, 1f))
+        val p = power.coerceIn(0f, 1f)
+        if (soundBank?.playRelease(p, masterVolume) == true) return
+        releases.add(p)
     }
 
     fun playUi(cue: Cue) {
+        if (soundBank?.playUi(cue, masterVolume) == true) return
         cues.add(cue.ordinal)
     }
 

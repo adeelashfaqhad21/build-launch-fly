@@ -139,13 +139,16 @@ Needed if we want imported 2D: coin, gem, pros, chest, VIP cap, rocket, 9-slice 
 panel/button skins, gear/trophy/pilot icons, plaque plate. Kenney's *UI Pack* (CC0) covers
 all of it.
 
-## 10. Audio — still procedural
+## 10. Audio — samples for the one-shots
 
-`audio/AudioEngine.kt` (291 lines) synthesises wind, propeller, creak, release, ambience and
-UI cues.
+`audio/AudioEngine.kt` synthesises the loops (wind, propeller, elastic creak, per-realm
+ambience). The one-shots now come from the **Kenney Interface Sounds and Impact Sounds** packs
+through `audio/SoundBank` (SoundPool): click, confirmation, switch, error and the wooden
+release thump, mapped in `docs/licenses/Kenney-Audio-CC0.txt`. A cue that has not loaded falls
+back to the synth, so the game is never silent.
 
-Needed if we import sound: wind loop, propeller loop, elastic creak, release whoosh,
-per-realm ambience beds, UI pops, coin cascade.
+Still synthesised: the wind loop, propeller loop, elastic creak and the five ambience beds.
+Real recordings for those would need a looping-sample path on top of SoundBank.
 
 ---
 
