@@ -57,7 +57,7 @@ class SlingshotState(val levels: MutableMap<SlingUpgrade, Int> = LinkedHashMap()
     }
 
     /** Rendered draw length in metres at full stretch. */
-    fun drawLengthMeters(): Float = 2.2f + levelOf(SlingUpgrade.LAUNCH_POWER) * 0.12f
+    fun drawLengthMeters(): Float = 3.0f + levelOf(SlingUpgrade.LAUNCH_POWER) * 0.12f
 
     /** Visual band thickness multiplier used by the mesh. */
     fun bandThickness(): Float = 1f + levelOf(SlingUpgrade.BAND_STRENGTH) * 0.055f
