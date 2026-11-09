@@ -59,7 +59,8 @@ object Wildlife {
     class GroundAnimals(
         private val count: Int,
         private val center: com.buildlaunchfly.game.math.Vec3,
-        private val seed: Int
+        private val seed: Int,
+        private val isExcluded: (Float, Float) -> Boolean = { _, _ -> false }
     ) {
         private val matrices = FloatArray(count.coerceAtLeast(1) * 16)
         private val angle = FloatArray(count)
@@ -88,9 +89,19 @@ object Wildlife {
                 // Animals pause and graze intermittently.
                 val graze = (sin(time * 0.31f + phase[i]) > 0.55f)
                 if (!graze) angle[i] += speed[i] * dt
-                val a = angle[i]
-                val x = center.x + cos(a) * radius[i]
-                val z = center.z + sin(a) * radius[i]
+                var a = angle[i]
+                var x = center.x + cos(a) * radius[i]
+                var z = center.z + sin(a) * radius[i]
+                // Ground wildlife is world dressing, so it must respect the same reserved
+                // launch-facility exclusion as vegetation and imported props.
+                var exclusionAttempts = 0
+                while (isExcluded(x, z) && exclusionAttempts < 24) {
+                    a += if (speed[i] >= 0f) 0.25f else -0.25f
+                    x = center.x + cos(a) * radius[i]
+                    z = center.z + sin(a) * radius[i]
+                    exclusionAttempts++
+                }
+                angle[i] = a
                 val y = terrain.height(x, z)
                 val yaw = if (graze) a + 1.5707964f else a + 1.5707964f
                 matrix.setTrs(x, y, z, 0f, yaw, 0f, scale[i], scale[i], scale[i])
