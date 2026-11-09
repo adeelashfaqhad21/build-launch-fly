@@ -70,7 +70,9 @@ object Vegetation {
             // All world vegetation starts outside its boundary.
             val x = -1150f + rng.nextFloat() * 2300f
             val z = -1900f + rng.nextFloat() * 2600f
-            if (isInsideLaunchFacility(x, z)) continue
+            // Mature crowns can overhang their trunk by several metres; keep a wider
+            // buffer than the small-prop exclusion used by shrubs and grass.
+            if (isInsideLaunchFacility(x, z, margin = 20f)) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
