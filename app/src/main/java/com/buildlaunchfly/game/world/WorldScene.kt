@@ -232,8 +232,10 @@ class WorldScene(
         )
 
         // ---- trees: one instanced pair per species ----
+        // Forests cover the whole flyable world, so the density multiplier is generous: the
+        // camera can point any way and still see timber.
         val treeSets = Vegetation.scatterTrees(
-            terrain, definition, (definition.treeCount * scale).toInt(), definition.seed
+            terrain, definition, (definition.treeCount * 2.6f * scale).toInt(), definition.seed
         )
         val treeBuilder = ArrayList<TreePart>(treeSets.size)
         for (species in treeSets.indices) {
@@ -268,7 +270,7 @@ class WorldScene(
         val shrubSets = Vegetation.scatterShrubs(
             terrain,
             definition,
-            (definition.treeCount * 0.55f * scale).toInt().coerceAtLeast(0),
+            (definition.treeCount * 1.45f * scale).toInt().coerceAtLeast(0),
             definition.seed
         )
         shrubs = buildParts(shrubSets, "shrub", listOf(shrubMaterial)) {
@@ -277,7 +279,7 @@ class WorldScene(
 
         // ---- rocks ----
         val rockSets = Vegetation.scatterRocks(
-            terrain, definition, (definition.rockCount * scale).toInt(), definition.seed
+            terrain, definition, (definition.rockCount * 1.6f * scale).toInt(), definition.seed
         )
         rockParts = buildParts(rockSets, "rock", rockMaterials) { buildRockData(it) }
 

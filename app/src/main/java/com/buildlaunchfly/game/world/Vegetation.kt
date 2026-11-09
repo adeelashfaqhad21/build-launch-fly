@@ -47,18 +47,20 @@ object Vegetation {
 
         while (placed < count && attempts < maxAttempts) {
             attempts++
-            val x = -420f + rng.nextFloat() * 900f
-            val z = -1500f + rng.nextFloat() * 1620f
+            // The player may steer anywhere, so timber covers the whole playable world rather
+            // than a corridor in front of the hangar.
+            val x = -1150f + rng.nextFloat() * 2300f
+            val z = -1900f + rng.nextFloat() * 2600f
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
             if (normal.y < 0.74f) continue
             val density = Noise.fbm01(x * 0.0035f, z * 0.0035f, 2, seed + 5)
-            if (density < 0.40f) continue
+            if (density < 0.38f) continue
 
-            // Full-grown timber: 5–13 m, so the aircraft flies between the crowns rather than
-            // over a field of saplings.
-            val height = 5.0f + rng.nextFloat() * 8.0f
+            // Full-grown timber: 6–14 m, two to three times the aircraft's wingspan, so the
+            // aircraft passes between crowns instead of over a field of saplings.
+            val height = 6.0f + rng.nextFloat() * 8.0f
             val width = height * (0.30f + rng.nextFloat() * 0.22f)
             val species = if (rng.nextFloat() < coniferChance) {
                 coniferSlot(speciesCount)
