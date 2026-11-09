@@ -105,9 +105,15 @@ class WorldScene(
 
     /**
      * Hand-authored animal meshes, one per material group. When present they replace the
-     * procedural animal mesh and share the same scripted instance matrices.
+     * procedural animal mesh; each species drives its own instance buffer through [herds].
      */
     val animalParts: List<InstancedPart>
+
+    /**
+     * One imported species per herd. Each species walks its own grazing ring, so a realm can
+     * hold a deer and a fox at the same time instead of copies of one animal.
+     */
+    private var herds: List<Herd> = emptyList()
 
     /** Static ships anchored offshore: only the ocean realm has water for them. */
     val shipParts: List<InstancedPart>
@@ -330,7 +336,7 @@ class WorldScene(
         birdsMesh = InstancedMesh("birds", buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))
         animalParts = if (assets != null) {
-            buildAnimalParts(assets, textures)
+            buildAnimalParts(assets, textures, animalCount)
         } else {
             emptyList()
         }
@@ -356,16 +362,19 @@ class WorldScene(
             birds.update(dt, time)
             birdsMesh.setInstances(birds.matrices(), birds.instanceCount)
         }
-        if (animals.instanceCount > 0) {
-            animals.update(dt, time, terrain)
-            val matrices = animals.matrices()
-            if (animalParts.isEmpty()) {
-                animalsMesh.setInstances(matrices, animals.instanceCount)
-            } else {
-                for (part in animalParts) {
-                    part.instanced.setInstances(matrices, animals.instanceCount)
+        if (herds.isNotEmpty()) {
+            // Every species moves on its own ring and writes its own instance buffer.
+            for (herd in herds) {
+                if (herd.group.instanceCount <= 0) continue
+                herd.group.update(dt, time, terrain)
+                val matrices = herd.group.matrices()
+                for (part in herd.parts) {
+                    part.instanced.setInstances(matrices, herd.group.instanceCount)
                 }
             }
+        } else if (animals.instanceCount > 0) {
+            animals.update(dt, time, terrain)
+            animalsMesh.setInstances(animals.matrices(), animals.instanceCount)
         }
         updateShips(time)
         weather.updateAndEmit(camera, dt, time, particles)
@@ -1061,47 +1070,90 @@ class WorldScene(
         }
     }
 
-    /** Picks the animal that belongs in this realm. */
-    private class AnimalSpec(val file: String, val height: Float)
+    /**
+     * One imported species: the model, the height it is scaled to, and its share of the
+     * realm's animal budget. Real ground has more than one animal living on it.
+     */
+    private class AnimalSpec(val file: String, val height: Float, val share: Float)
+
+    /** One species in a realm: its own grazing group and the mesh groups that draw it. */
+    private class Herd(
+        val spec: AnimalSpec,
+        val group: Wildlife.GroundAnimals,
+        val parts: List<InstancedPart>
+    )
+
+    /** The species that live in each realm, in the order they are placed. */
+    private fun animalSpecs(): List<AnimalSpec> = when (definition.id) {
+        WorldId.FOREST -> listOf(
+            AnimalSpec("Deer", 1.35f, 0.45f),
+            AnimalSpec("Fox", 0.62f, 0.30f),
+            AnimalSpec("ShibaInu", 0.52f, 0.25f)
+        )
+        WorldId.DESERT -> listOf(
+            AnimalSpec("Donkey", 1.50f, 0.60f),
+            AnimalSpec("Horse_White", 1.65f, 0.40f)
+        )
+        WorldId.SNOW -> listOf(
+            AnimalSpec("Husky", 0.78f, 0.55f),
+            AnimalSpec("Wolf", 0.90f, 0.45f)
+        )
+        WorldId.OCEAN -> listOf(
+            AnimalSpec("Cow", 1.45f, 0.55f),
+            AnimalSpec("Alpaca", 1.10f, 0.45f)
+        )
+        WorldId.MOUNTAIN -> listOf(
+            AnimalSpec("Stag", 1.75f, 0.55f),
+            AnimalSpec("Bull", 1.55f, 0.45f)
+        )
+    }
 
     private fun buildAnimalParts(
         assets: AssetManager,
-        textures: TextureFactory
+        textures: TextureFactory,
+        total: Int
     ): List<InstancedPart> {
-        val spec = when (definition.id) {
-            WorldId.FOREST -> AnimalSpec("Deer", 1.35f)
-            WorldId.DESERT -> AnimalSpec("Donkey", 1.50f)
-            WorldId.SNOW -> AnimalSpec("Husky", 0.75f)
-            WorldId.OCEAN -> AnimalSpec("Cow", 1.45f)
-            WorldId.MOUNTAIN -> AnimalSpec("Stag", 1.75f)
-        }
-        val parts = AnimalLoader.load(
-            assets,
-            "animals/${spec.file}.obj",
-            "animals/${spec.file}.mtl",
-            spec.height
-        )
-        if (parts.isEmpty()) return emptyList()
+        val out = ArrayList<InstancedPart>()
+        val built = ArrayList<Herd>(2)
+        var seedOffset = 0
 
-        val out = ArrayList<InstancedPart>(parts.size)
-        for ((index, part) in parts.withIndex()) {
-            val mesh = Mesh("animal${spec.file}$index", part.data)
-            val instanced = InstancedMesh(
-                "animal${spec.file}$index",
-                part.data,
-                animals.instanceCount.coerceAtLeast(1)
-            )
-            val material = Material(
-                albedo = textures.white,
-                tint = com.buildlaunchfly.game.math.Vec3(
-                    part.color.x, part.color.y, part.color.z
-                ),
-                roughness = 0.88f,
-                metallic = 0f,
-                uvScale = 1f
-            )
-            out.add(InstancedPart(mesh, instanced, material))
+        for (spec in animalSpecs()) {
+            val count = (total * spec.share).toInt().coerceAtLeast(if (total > 0) 1 else 0)
+            if (count > 0) {
+                val parts = AnimalLoader.load(
+                    assets,
+                    "animals/${spec.file}.obj",
+                    "animals/${spec.file}.mtl",
+                    spec.height
+                )
+                if (parts.isNotEmpty()) {
+                    val group = Wildlife.GroundAnimals(
+                        count,
+                        Vec3(0f, terrain.padHeight, -90f),
+                        definition.seed + 331 + seedOffset
+                    )
+                    val meshes = ArrayList<InstancedPart>(parts.size)
+                    for ((index, part) in parts.withIndex()) {
+                        val name = "animal${spec.file}$index"
+                        val mesh = Mesh(name, part.data)
+                        val instanced = InstancedMesh(name, part.data, count)
+                        val material = Material(
+                            albedo = textures.white,
+                            tint = Vec3(part.color.x, part.color.y, part.color.z),
+                            roughness = 0.88f,
+                            metallic = 0f,
+                            uvScale = 1f
+                        )
+                        meshes.add(InstancedPart(mesh, instanced, material))
+                    }
+                    out.addAll(meshes)
+                    built.add(Herd(spec, group, meshes))
+                }
+            }
+            seedOffset += 97
         }
+
+        herds = built
         return out
     }
 

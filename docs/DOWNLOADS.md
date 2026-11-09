@@ -53,7 +53,7 @@ These cost nothing and are the next wiring jobs, in this order:
 
 | Source | Unused in the build | Fills |
 |---|---|---|
-| `assets-source/animals/` | Alpaca, Bull, Fox, Horse, Horse_White, ShibaInu, Wolf | §4 a different animal per realm |
+| `assets-source/animals/` | the six remaining Quaternius animals — shipped in `assets/animals/` and wired per realm | §4 wildlife variety |
 | Kenney Castle Kit | `gate`, `metal-gate`, `rocks-large`, `rocks-small`, `flag*`, `bridge-*`, `tree-log`, `wall-narrow-wood*`, hexagon towers, siege engines | §6 flight obstacles and §2 timber dressing |
 | Kenney Nature Kit | `fence_*`, `crop_*`, `cliff_*`, `log`, `stump`, `tent`, `statue`, `mushroom`, `lily`, more trees | §5 field boundaries, §7 far-field trees |
 | `assets-source/Planes /` | Airplane by Poly by Google (`PUSHILIN_Plane.obj`) | §1 a second airframe |

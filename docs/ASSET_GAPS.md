@@ -77,10 +77,11 @@ imported slingshot exists in any pack in use.
 Birds are procedural triangles (`WorldScene.buildBirdData`), and so is the fallback animal
 mesh (`buildAnimalData`) used when a pack model is missing.
 
-Needed: one low-poly bird (a few flap poses, or glTF animation). **Free win:** the
-Quaternius animal pack also has `Alpaca`, `Bull`, `Fox`, `Horse`, `Horse_White`,
-`ShibaInu` and `Wolf` unzipped in `assets-source/animals/` — they are not in the APK yet,
-and would give every realm its own wildlife.
+Needed: one low-poly bird (a few flap poses, or glTF animation). The Quaternius animal pack's
+`Alpaca`, `Bull`, `Fox`, `Horse_White`, `ShibaInu` and `Wolf` are now shipped in
+`assets/animals/` beside the original five, and every realm grazes two or three species:
+deer/fox/dog (forest), donkey/white horse (desert), husky/wolf (snow), cattle/alpaca (coast),
+stag/bull (mountains).
 
 ## 5. Realm-specific buildings — partly covered
 

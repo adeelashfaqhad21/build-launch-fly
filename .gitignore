@@ -40,6 +40,12 @@ docs/reference/*.zip
 assets-source/kenney_nature-kit/
 assets-source/kenney_castle-kit/
 assets-source/kenney_furniture-kit/
+assets-source/kenney_city-kit-industrial_2.0/
+assets-source/kenney_fantasy-town-kit_2.0/
+assets-source/kenney_fantasy-ui-borders/
+assets-source/kenney_ui-pack/
+assets-source/kenney_interface-sounds/
+assets-source/kenney_impact-sounds/
 
 # Downloaded texture archives: only the colour maps that ship are copied into assets/terrain
 assets-source/ambientcg/
