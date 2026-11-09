@@ -777,8 +777,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         val aircraftMesh = aircraft ?: return
         val rig = slingMesh ?: return
         val definition = currentScene.definition
-        val showSling = (state == GameState.SEATED && cameraMode != CameraMode.ORBIT_AIRCRAFT) ||
-            slingRecoilTimer > 0f
+        val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
         val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
         val showHangarRoof = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
@@ -845,7 +844,7 @@ class GameApp(private val context: Context, private val input: InputState) {
         if (showHangar || showHangarRoof) {
             hangar?.let { set ->
                 sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
-                sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
+                if (showHangar) sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.rampMesh, slingshotModel)
@@ -918,7 +917,6 @@ class GameApp(private val context: Context, private val input: InputState) {
         if (showHangar) {
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
@@ -928,9 +926,9 @@ class GameApp(private val context: Context, private val input: InputState) {
                 }
             }
         } else if (showHangarRoof) {
-            // The launch shot stands inside the shed: the plank wall, floor, roof, lamp and ramp
-            // are all drawn, because the camera now sits under the eave (3.6 m) rather than on
-            // top of the roof.
+            // Keep the launch view open above and behind the aircraft. The roof is intentionally
+            // omitted here: the camera is inside the shed and the roof panels otherwise
+            // dominate the view or appear to intersect the aircraft during pull-back.
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
