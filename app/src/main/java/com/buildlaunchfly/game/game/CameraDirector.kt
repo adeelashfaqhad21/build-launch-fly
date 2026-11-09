@@ -146,13 +146,13 @@ class CameraDirector(private val camera: Camera) {
 
     companion object {
         /**
-         * Camera height above the pad and distance behind the aircraft. Both are chosen for a
-         * launch that happens inside the shed: the aircraft now stands on the floor, so the
-         * camera is at eye level a few metres behind it, under the eave, and stays inside the
-         * back wall during the pull.
+         * Portrait launch composition: the camera stays centred on the aircraft but sits far
+         * enough behind it to include both 4.2 m-offset slingshot posts in the narrow horizontal
+         * field of view. The launch wall variant omits the rear wall, so the camera can sit
+         * beyond the shed without an occluding wall.
          */
         const val SEATED_HEIGHT = 2.6f
-        const val SEATED_DISTANCE = 6.5f
+        const val SEATED_DISTANCE = 18.5f
         const val SEATED_CAMERA_HEIGHT = 0.65f
         const val SEATED_TARGET_HEIGHT = 0.65f
         const val SEATED_FOV = 58f
