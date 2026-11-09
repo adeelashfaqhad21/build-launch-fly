@@ -35,10 +35,17 @@ object Vegetation {
      */
     const val FACILITY_HALF_EXTENT = 80f
 
-    /** Shared exclusion test used by every procedural and imported scatter path. */
-    fun isInsideLaunchFacility(x: Float, z: Float): Boolean =
-        kotlin.math.abs(x) <= FACILITY_HALF_EXTENT &&
-            kotlin.math.abs(z) <= FACILITY_HALF_EXTENT
+    /**
+     * Shared exclusion test used by every procedural and imported scatter path.
+     * The default 8 m margin keeps large crowns, rocks and props from overhanging the plot.
+     */
+    fun isInsideLaunchFacility(
+        x: Float,
+        z: Float,
+        margin: Float = 8f
+    ): Boolean =
+        kotlin.math.abs(x) <= FACILITY_HALF_EXTENT + margin &&
+            kotlin.math.abs(z) <= FACILITY_HALF_EXTENT + margin
 
     fun scatterTrees(
         terrain: Terrain,
