@@ -174,6 +174,10 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         }
         terrainProgram.use()
         env.apply(terrainProgram, cam)
+        // The world sky fill is deliberately blue for atmospheric lighting, but applying it
+        // unmodified to an upward-facing terrain normal makes every non-desert ground map look
+        // cyan. Keep the terrain's ambient fill close to neutral without changing prop lighting.
+        terrainProgram.set("uSkyColor", terrainSkyFill())
         terrainProgram.set("uModel", identity)
         terrainProgram.set("uNormalMat", identity)
         // TerrainMesh writes one UV unit per 8 m of ground; this maps that to a ~10 m
@@ -208,6 +212,13 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, shadowMap.depthTexture)
     }
 
+    /** Prevent blue sky fill from washing upward-facing terrain into a cyan cast. */
+    private fun terrainSkyFill(): Vec3 = Vec3(
+        env.skyColor.x,
+        env.skyColor.y,
+        env.skyColor.z.coerceAtMost(env.skyColor.y * 1.08f)
+    )
+
     /** Pulls a design tint [TINT_NEUTRALISE] of the way back to white for photographic maps. */
     private fun muted(tint: Vec3): Vec3 = Vec3(
         tint.x + (1f - tint.x) * TINT_NEUTRALISE,
@@ -219,6 +230,7 @@ class SceneRenderer(var width: Int, var height: Int, private val white: Texture2
     private fun drawTerrainFallback(mesh: Mesh, texture: Texture2D, tint: Vec3, cam: Camera) {
         pbrProgram.use()
         env.apply(pbrProgram, cam)
+        pbrProgram.set("uSkyColor", terrainSkyFill())
         pbrProgram.set("uModel", identity)
         pbrProgram.set("uNormalMat", identity)
         pbrProgram.set("uUvScale", TERRAIN_UV_SCALE)
