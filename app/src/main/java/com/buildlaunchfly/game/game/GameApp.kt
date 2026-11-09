@@ -180,6 +180,7 @@ class GameApp(private val context: Context, private val input: InputState) {
      * instead of the process dying without a trace.
      */
     private fun createResources(width: Int, height: Int) {
+        startupError = null
         try {
             buildResources(width, height)
         } catch (error: Throwable) {
