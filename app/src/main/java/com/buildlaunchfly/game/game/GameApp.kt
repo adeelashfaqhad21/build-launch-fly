@@ -109,6 +109,8 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
+    /** Reused world-space position of the aircraft while it is being pulled back. */
+    private val cameraAircraftPosition = Vec3()
     private val focusPoint = Vec3()
     private val dragScratch = FloatArray(2)
     private val flightInput = FlightInput()
@@ -589,7 +591,17 @@ class GameApp(private val context: Context, private val input: InputState) {
                 CameraMode.ORBIT_SLINGSHOT -> cameraDirector.updateOrbitSlingshot(
                     padPosition, time, dt, orbitOffset
                 )
-                CameraMode.LAUNCH -> cameraDirector.updateSeated(padPosition, seatPosition, pull, dt)
+                CameraMode.LAUNCH -> {
+                    // The camera must follow the live hold point. Following the static reset
+                    // position leaves the aircraft behind the camera as the player pulls back.
+                    val held = slingMesh?.holdPoint(pull) ?: SlingshotLayout.HOLD_POINT
+                    cameraAircraftPosition.set(
+                        padPosition.x + held.x,
+                        padPosition.y + held.y,
+                        padPosition.z + held.z
+                    )
+                    cameraDirector.updateSeated(padPosition, cameraAircraftPosition, pull, dt)
+                }
             }
             GameState.FLIGHT -> cameraDirector.updateFlight(
                 physics.position, physics.velocity, physics.speed(), dt
