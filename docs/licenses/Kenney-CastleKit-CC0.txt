@@ -1,0 +1,19 @@
+Kenney — Castle Kit
+
+Source: https://kenney.nl/assets/castle-kit
+Author: Kenney (https://www.kenney.nl)
+Licence: Creative Commons CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+CC0: no attribution is required and commercial use is allowed. Attribution is given here
+and in the README as a courtesy.
+
+Pack contents (75 files, version 2.0): a modular low-poly medieval set — wall sections,
+towers, gates, stairs, roofs, doors, windows, banners and flags — in GLTF / FBX / OBJ with a
+single shared palette texture. The OBJ models are the ones the game loads.
+
+Intended use in this project: the timber/stone hangar shell, its open front wall and roof,
+plus the ruins and stone-arch obstacles along the flight course.
+
+Shipped as: app/src/main/assets/kits/kenney_castle.zip
+Read in memory at load time (gfx/ZipKit); no build-time unpack step.

@@ -615,6 +615,53 @@ class WorldScene(
                 outPlants.add(InstancedPart(mesh, instanced, deadMaterial))
             }
         }
+
+        // Whatever the Quaternius packs do not cover — desert cacti, coastal reeds, extra
+        // rocks — comes out of the Kenney Nature Kit archive.
+        buildKenneyPlants(assets, outPlants)
+    }
+
+    /** Model-name keywords per realm, matched against the Kenney archive's OBJ entries. */
+    private fun kenneyKeywords(): List<String> = when (plantStyle) {
+        PlantStyle.DESERT -> listOf("cactus", "rock")
+        PlantStyle.COAST -> listOf("plant", "grass", "rock")
+        PlantStyle.ALPINE -> listOf("rock", "plant")
+        PlantStyle.FOREST -> listOf("rock", "plant")
+    }
+
+    /**
+     * Kenney kits ship one shared palette texture and a folder of OBJs, so the archive is
+     * scanned for the first model whose name matches each keyword. A missing model is simply
+     * skipped, which keeps the worlds working if the pack layout changes.
+     */
+    private fun buildKenneyPlants(assets: AssetManager, out: MutableList<InstancedPart>) {
+        val entries = ZipKit.read(assets, "kits/kenney_nature.zip")
+        if (entries.isEmpty()) return
+        val objects = entries.filter { it.name.lowercase().endsWith(".obj") }
+        if (objects.isEmpty()) return
+        val texture = ZipKit.textureFor(entries, objects.first().name)?.let {
+            AssetTextures.loadFromBytes(it.bytes, it.name)
+        } ?: return
+        val material = Material(
+            albedo = texture,
+            tint = Vec3(1f, 1f, 1f),
+            roughness = 0.90f,
+            metallic = 0f,
+            uvScale = 1f
+        )
+
+        for (keyword in kenneyKeywords()) {
+            val entry = objects.firstOrNull { it.name.lowercase().contains(keyword) } ?: continue
+            val text = String(entry.bytes, Charsets.UTF_8)
+            val data = PropLoader.loadFromText(text, entry.name, 1f) ?: continue
+            val set = heroScatter(heroCount(6), keyword.hashCode(), 1.6f)
+            if (set.count == 0) continue
+
+            val mesh = Mesh("kenney$keyword", data)
+            val instanced = InstancedMesh("kenney$keyword", data, set.count)
+            instanced.setInstances(set.matrices, set.count)
+            out.add(InstancedPart(mesh, instanced, material))
+        }
     }
 
     // ---- hand-authored buildings and mountains ----------------------------
