@@ -101,6 +101,7 @@ class GameApp(private val context: Context, private val input: InputState) {
     private val aircraftModel = Mat4()
     private val propellerModel = Mat4()
     private val slingshotModel = Mat4()
+    private val hangarPropModel = Mat4()
 
     /** One matrix per band segment: the sling is a single elastic drawn in pieces. */
     private val bandLocal = Array(SlingshotMesh.BAND_SEGMENTS) { Mat4() }
@@ -836,14 +837,17 @@ class GameApp(private val context: Context, private val input: InputState) {
             sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
             for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
         }
-        if (showHangar) {
+        if (showHangar || showHangarRoof) {
             hangar?.let { set ->
                 sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.rampMesh, slingshotModel)
-                for (prop in set.props) sceneRenderer.shadowMesh(prop.mesh, prop.matrix)
+                for (prop in set.props) {
+                    hangarPropModel.setProduct(slingshotModel, prop.matrix)
+                    sceneRenderer.shadowMesh(prop.mesh, hangarPropModel)
+                }
             }
         }
         for (tree in currentScene.trees) {
@@ -914,7 +918,8 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
                 for (prop in set.props) {
-                    sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
+                    hangarPropModel.setProduct(slingshotModel, prop.matrix)
+                    sceneRenderer.drawMesh(prop.mesh, prop.material, hangarPropModel)
                 }
             }
         } else if (showHangarRoof) {
