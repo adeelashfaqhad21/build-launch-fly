@@ -765,7 +765,10 @@ class GameApp(private val context: Context, private val input: InputState) {
         cameraMode = CameraMode.LAUNCH
         orbitOffset = 0f
         slingRecoilTimer = 0f
-        input.consumeRelease()
+        // A crash can happen while the player's finger is still down. Clear the complete
+        // touch state (including pointerDown and any queued release), or the next seated
+        // frame interprets the old gesture as a fresh pull and auto-loads the aircraft.
+        input.reset()
         audio.setFlight(0f, 0f, false)
         snapLaunchCamera()
         hud?.onStateChanged(state)
@@ -795,6 +798,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         // elastic band is transient; it is visible while seated and during its release recoil.
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
         val showHangar = state != GameState.SEATED || cameraMode == CameraMode.ORBIT_AIRCRAFT
+        // The roof is for hangar inspection only. It must stay out of the launch and flight
+        // paths; otherwise the aircraft visibly clips through it as soon as FLIGHT begins.
+        val showHangarRoof = state != GameState.FLIGHT && cameraMode == CameraMode.ORBIT_AIRCRAFT
         val showLaunchHangar = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
@@ -864,7 +870,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                     if (showHangar) set.wallMesh else set.launchWallMesh,
                     slingshotModel
                 )
-                if (showHangar) sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
+                if (showHangarRoof) sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.rampMesh, slingshotModel)
@@ -937,7 +943,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         if (showHangar) {
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
+                if (showHangarRoof) {
+                    sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
+                }
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
