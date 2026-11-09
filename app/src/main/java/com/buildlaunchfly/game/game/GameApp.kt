@@ -791,8 +791,10 @@ class GameApp(private val context: Context, private val input: InputState) {
         val aircraftMesh = aircraft ?: return
         val rig = slingMesh ?: return
         val definition = currentScene.definition
+        // The timber launcher, hangar and ramp are permanent facility geometry. Only the
+        // elastic band is transient; it is visible while seated and during its release recoil.
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
-        val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
+        val showHangar = state != GameState.SEATED || cameraMode == CameraMode.ORBIT_AIRCRAFT
         val showLaunchHangar = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
@@ -851,8 +853,9 @@ class GameApp(private val context: Context, private val input: InputState) {
             aircraftMesh.metalMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
             aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         }
+        // The posts remain in the world after launch; only the moving elastic is transient.
+        sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
         if (showSling) {
-            sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
             for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
         }
         if (showHangar || showLaunchHangar) {
@@ -977,11 +980,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             )
         }
 
-        if (showSling) {
-            // Draw the timber posts here. The continuous yellow/cream elastic is assembled
-            // from the six live segment transforms and drawn over the aircraft immediately below.
-            sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-        }
+        // Static timber posts remain visible in the facility after the aircraft launches.
+        sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
 
         if (aircraftMesh.hasImportedModel) {
             // The imported biplane is one welded mesh with its own propeller and airframe,
