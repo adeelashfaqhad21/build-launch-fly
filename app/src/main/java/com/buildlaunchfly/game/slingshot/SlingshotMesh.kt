@@ -30,7 +30,7 @@ object SlingshotLayout {
 
     /** Where the parked aircraft stands inside the shed, ahead of the back wall and clear of
      * the ramp, which starts at the open front. */
-    const val HOLD_Z = 3.0f
+    const val HOLD_Z = 0.0f
 
     /** Two wide posts just outside the imported aircraft's 3.56 m wingspan. */
     const val POLE_X = 4.0f
