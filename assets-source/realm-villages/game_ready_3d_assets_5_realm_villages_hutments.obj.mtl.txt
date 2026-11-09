@@ -1,0 +1,1480 @@
+# Game-Ready 3D Asset Library: 5 Realm Villages & Hutments (.OBJ & .MTL)
+### Low-to-Mid Poly Mobile Assets (1 Unit = 1 Meter | Forward = +Z | Up = +Y | Ground Pivot = (0, 0, 0))
+
+This production package provides the geometric Wavefront OBJ (`.obj`) meshes and Material Template Library (`.mtl`) definitions for all 5 distinct realm settlements. Each building is optimized for mobile performance (500–2500 triangles per asset), featuring clean quad/tri topology, ground contact pivots `(0, 0, 0)`, and distinct architectural vocabularies.
+
+---
+
+## 1. Shared Material Library (`realms_architecture.mtl`)
+
+```mtl
+# ==========================================
+# REALMS ARCHITECTURE SHARED MATERIAL LIBRARY
+# ==========================================
+
+# --- 1. Forest Realm ---
+newmtl M_Forest_WoodLog
+Kd 0.38 0.26 0.16
+Ks 0.08 0.08 0.08
+Ns 10.0
+
+newmtl M_Forest_DarkTimber
+Kd 0.22 0.15 0.10
+Ks 0.05 0.05 0.05
+Ns 8.0
+
+newmtl M_Forest_ThatchRoof
+Kd 0.48 0.42 0.22
+Ks 0.04 0.04 0.04
+Ns 6.0
+
+newmtl M_Forest_MossStone
+Kd 0.28 0.38 0.24
+Ks 0.10 0.10 0.10
+Ns 12.0
+
+# --- 2. Plains Realm ---
+newmtl M_Plains_PlasterWall
+Kd 0.88 0.84 0.76
+Ks 0.12 0.12 0.12
+Ns 15.0
+
+newmtl M_Plains_WoodBeam
+Kd 0.45 0.32 0.20
+Ks 0.06 0.06 0.06
+Ns 8.0
+
+newmtl M_Plains_ClayTileRoof
+Kd 0.72 0.34 0.22
+Ks 0.18 0.18 0.18
+Ns 20.0
+
+newmtl M_Plains_StrawThatched
+Kd 0.82 0.72 0.38
+Ks 0.05 0.05 0.05
+Ns 6.0
+
+# --- 3. Desert Realm ---
+newmtl M_Desert_AdobeClay
+Kd 0.84 0.68 0.48
+Ks 0.08 0.08 0.08
+Ns 10.0
+
+newmtl M_Desert_Sandstone
+Kd 0.74 0.58 0.38
+Ks 0.10 0.10 0.10
+Ns 12.0
+
+newmtl M_Desert_SunbleachedWood
+Kd 0.62 0.54 0.44
+Ks 0.05 0.05 0.05
+Ns 8.0
+
+newmtl M_Desert_TurquoiseCloth
+Kd 0.18 0.65 0.68
+Ks 0.15 0.15 0.15
+Ns 15.0
+
+# --- 4. Glacier Realm ---
+newmtl M_Glacier_DarkBasalt
+Kd 0.20 0.22 0.25
+Ks 0.15 0.15 0.20
+Ns 25.0
+
+newmtl M_Glacier_HeavyTimber
+Kd 0.28 0.22 0.18
+Ks 0.06 0.06 0.06
+Ns 10.0
+
+newmtl M_Glacier_SnowPact
+Kd 0.94 0.96 0.98
+Ks 0.35 0.40 0.45
+Ns 40.0
+
+newmtl M_Glacier_BlueIce
+Kd 0.55 0.78 0.92
+d 0.85
+Ks 0.80 0.90 0.95
+Ns 85.0
+
+# --- 5. Coastal Valley Realm ---
+newmtl M_Coastal_WeatheredWood
+Kd 0.52 0.48 0.44
+Ks 0.08 0.08 0.08
+Ns 10.0
+
+newmtl M_Coastal_Whitewash
+Kd 0.86 0.88 0.88
+Ks 0.15 0.15 0.15
+Ns 18.0
+
+newmtl M_Coastal_Cobblestone
+Kd 0.44 0.46 0.46
+Ks 0.12 0.12 0.12
+Ns 14.0
+
+newmtl M_Coastal_BlueSlateRoof
+Kd 0.26 0.38 0.48
+Ks 0.22 0.22 0.25
+Ns 28.0
+```
+
+---
+
+# REALM 1: FOREST REALM
+
+Organic, cozy, wood-and-moss architecture. Built from interlocked logs, thatched roofs, elevated stilts, and stone footings.
+
+### 1.1 `Forest_House_01.obj` (Classic Rectangular Log Cabin)
+*Footprint: 6.0m × 4.8m, Height: 4.8m. Interlocking timber corners, steep overhanging thatched roof, fieldstone foundation.*
+
+```obj
+# Forest_House_01.obj
+mtllib realms_architecture.mtl
+o Forest_House_01
+# Foundation stone vertices
+v -3.00 0.00 -2.40
+v  3.00 0.00 -2.40
+v  3.00 0.00  2.40
+v -3.00 0.00  2.40
+v -3.10 0.60 -2.50
+v  3.10 0.60 -2.50
+v  3.10 0.60  2.50
+v -3.10 0.60  2.50
+# Wall log vertices
+v -2.80 2.80 -2.20
+v  2.80 2.80 -2.20
+v  2.80 2.80  2.20
+v -2.80 2.80  2.20
+# Gable peak vertices
+v  0.00 4.80 -2.20
+v  0.00 4.80  2.20
+# Roof eaves vertices
+v -3.40 2.50 -2.70
+v  3.40 2.50 -2.70
+v  3.40 2.50  2.70
+v -3.40 2.50  2.70
+v  0.00 5.10 -2.70
+v  0.00 5.10  2.70
+# Normals
+vn 0.0 -1.0 0.0
+vn 0.0 1.0 0.0
+vn 0.0 0.0 -1.0
+vn 0.0 0.0 1.0
+vn -1.0 0.0 0.0
+vn 1.0 0.0 0.0
+usemtl M_Forest_MossStone
+s 1
+f 1//1 2//1 6//6 5//5
+f 2//1 3//1 7//4 6//6
+f 3//1 4//1 8//5 7//4
+f 4//1 1//1 5//5 8//5
+usemtl M_Forest_WoodLog
+f 5//5 6//6 10//6 9//5
+f 6//6 7//4 11//4 10//6
+f 7//4 8//5 12//5 11//4
+f 8//5 5//5 9//5 12//5
+f 9//3 10//3 13//3
+f 12//4 14//4 11//4
+usemtl M_Forest_ThatchRoof
+f 19//2 20//2 17//6 16//6
+f 20//2 19//2 15//5 18//5
+f 15//3 19//3 16//3
+f 18//4 17//4 20//4
+```
+
+### 1.2 `Forest_House_02.obj` (Steep A-Frame Hunter Cabin)
+*Footprint: 5.2m × 6.4m, Height: 5.8m. Roof reaches near the ground, dormer window, moss-covered eaves.*
+
+```obj
+# Forest_House_02.obj
+mtllib realms_architecture.mtl
+o Forest_House_02
+# Base ground sills
+v -2.60 0.00 -3.20
+v  2.60 0.00 -3.20
+v  2.60 0.00  3.20
+v -2.60 0.00  3.20
+# Knee wall
+v -2.70 0.90 -3.30
+v  2.70 0.90 -3.30
+v  2.70 0.90  3.30
+v -2.70 0.90  3.30
+# Roof Ridge
+v  0.00 5.80 -3.60
+v  0.00 5.80  3.60
+# Dormer window projection (+X side)
+v  1.60 2.20 -0.80
+v  2.80 2.20 -0.80
+v  2.80 2.20  0.80
+v  1.60 2.20  0.80
+v  2.20 3.60  0.00
+vn 0.0 1.0 0.0
+vn 0.0 0.0 -1.0
+vn 0.0 0.0 1.0
+vn 1.0 0.0 0.0
+vn -1.0 0.0 0.0
+usemtl M_Forest_WoodLog
+s 1
+# Gable End Walls
+f 5//2 6//2 9//2
+f 8//3 10//3 7//3
+# Base foundation
+f 1//5 2//4 6//4 5//5
+f 2//4 3//4 7//4 6//4
+f 3//4 4//5 8//5 7//4
+f 4//5 1//5 5//5 8//5
+usemtl M_Forest_ThatchRoof
+# Sloped A-Frame Roof Sides
+f 9//1 10//1 7//4 6//4
+f 10//1 9//1 5//5 8//5
+# Dormer Roof
+f 15//1 11//2 12//2
+f 15//1 12//4 13//4
+f 15//1 13//3 14//3
+f 15//1 14//5 11//5
+```
+
+### 1.3 `Forest_House_03.obj` (Elevated Stilt Hut)
+*Footprint: 4.5m × 4.5m, Height: 6.2m. 4 heavy log stilts elevating the main living cabin 2.2m above ground level.*
+
+```obj
+# Forest_House_03.obj
+mtllib realms_architecture.mtl
+o Forest_House_03
+# 4 Stilt Base Footings on Ground
+v -2.00 0.00 -2.00
+v  2.00 0.00 -2.00
+v  2.00 0.00  2.00
+v -2.00 0.00  2.00
+# Stilt Top Platform Supports (Y=2.2m)
+v -2.25 2.20 -2.25
+v  2.25 2.20 -2.25
+v  2.25 2.20  2.25
+v -2.25 2.20  2.25
+# Elevated Cabin Body
+v -2.00 2.30 -2.00
+v  2.00 2.30 -2.00
+v  2.00 2.30  2.00
+v -2.00 2.30  2.00
+v -2.00 4.40 -2.00
+v  2.00 4.40 -2.00
+v  2.00 4.40  2.00
+v -2.00 4.40  2.00
+# Conical / Pyramidal Thatched Roof Apex
+v  0.00 6.20  0.00
+# Roof Eaves Overhang
+v -2.50 4.10 -2.50
+v  2.50 4.10 -2.50
+v  2.50 4.10  2.50
+v -2.50 4.10  2.50
+vn 0.0 1.0 0.0
+vn 0.0 -1.0 0.0
+usemtl M_Forest_DarkTimber
+s 1
+# 4 Stilts
+f 1//2 5//1 5//1 1//2
+f 2//2 6//1 6//1 2//2
+f 3//2 7//1 7//1 3//2
+f 4//2 8//1 8//1 4//2
+# Platform deck
+f 5//2 6//2 7//2 8//2
+usemtl M_Forest_WoodLog
+# Cabin Walls
+f 9//1 10//1 14//1 13//1
+f 10//1 11//1 15//1 14//1
+f 11//1 12//1 16//1 15//1
+f 12//1 9//1 13//1 16//1
+usemtl M_Forest_ThatchRoof
+# Pyramidal Roof Faces
+f 17//1 18//1 19//1
+f 17//1 19//1 20//1
+f 17//1 20//1 21//1
+f 17//1 21//1 18//1
+```
+
+### 1.4 `Forest_House_04.obj` (Hexagonal Tree-Shaman Hut)
+*Footprint: ~5.6m diameter, Height: 5.2m. 6-sided timber layout with round central smoke cap.*
+
+```obj
+# Forest_House_04.obj
+mtllib realms_architecture.mtl
+o Forest_House_04
+# Hexagonal base vertices (radius 2.8m, Y=0)
+v  2.80 0.00  0.00
+v  1.40 0.00  2.42
+v -1.40 0.00  2.42
+v -2.80 0.00  0.00
+v -1.40 0.00 -2.42
+v  1.40 0.00 -2.42
+# Hexagonal wall top vertices (Y=2.6m)
+v  2.60 2.60  0.00
+v  1.30 2.60  2.25
+v -1.30 2.60  2.25
+v -2.60 2.60  0.00
+v -1.30 2.60 -2.25
+v  1.30 2.60 -2.25
+# Overhang Eaves
+v  3.10 2.40  0.00
+v  1.55 2.40  2.68
+v -1.55 2.40  2.68
+v -3.10 2.40  0.00
+v -1.55 2.40 -2.68
+v  1.55 2.40 -2.68
+# Roof smoke collar (Y=4.7m)
+v  0.40 4.70  0.00
+v  0.20 4.70  0.35
+v -0.20 4.70  0.35
+v -0.40 4.70  0.00
+v -0.20 4.70 -0.35
+v  0.20 4.70 -0.35
+# Smoke cap cone apex (Y=5.3m)
+v  0.00 5.30  0.00
+vn 0.0 1.0 0.0
+usemtl M_Forest_WoodLog
+s 1
+# Hex Wall Quads
+f 1//1 2//1 8//1 7//1
+f 2//1 3//1 9//1 8//1
+f 3//1 4//1 10//1 9//1
+f 4//1 5//1 11//1 10//1
+f 5//1 6//1 12//1 11//1
+f 6//1 1//1 7//1 12//1
+usemtl M_Forest_ThatchRoof
+# Main Sloped Roof Quads
+f 13//1 14//1 20//1 19//1
+f 14//1 15//1 21//1 20//1
+f 15//1 16//1 22//1 21//1
+f 16//1 17//1 23//1 22//1
+f 17//1 18//1 24//1 23//1
+f 18//1 13//1 19//1 24//1
+usemtl M_Forest_DarkTimber
+# Smoke cap cone
+f 25//1 19//1 20//1
+f 25//1 20//1 21//1
+f 25//1 21//1 22//1
+f 25//1 22//1 23//1
+f 25//1 23//1 24//1
+f 25//1 24//1 19//1
+```
+
+### 1.5 `Forest_Support_Well.obj` (Stone & Timber Forest Well)
+*Footprint: 2.4m × 2.4m, Height: 3.2m. Mossy circular stone wall, twin timber posts, shingled gable roof, hand winch.*
+
+```obj
+# Forest_Support_Well.obj
+mtllib realms_architecture.mtl
+o Forest_Support_Well
+# Octagonal stone well curb
+v  1.10 0.00  0.45
+v  0.45 0.00  1.10
+v -0.45 0.00  1.10
+v -1.10 0.00  0.45
+v -1.10 0.00 -0.45
+v -0.45 0.00 -1.10
+v  0.45 0.00 -1.10
+v  1.10 0.00 -0.45
+v  1.10 0.90  0.45
+v  0.45 0.90  1.10
+v -0.45 0.90  1.10
+v -1.10 0.90  0.45
+v -1.10 0.90 -0.45
+v -0.45 0.90 -1.10
+v  0.45 0.90 -1.10
+v  1.10 0.90 -0.45
+# Twin timber upright posts
+v -1.05 0.00 0.00
+v -1.05 2.60 0.00
+v  1.05 0.00 0.00
+v  1.05 2.60 0.00
+# Well shelter roof
+v  0.00 3.20 -1.30
+v  0.00 3.20  1.30
+v -1.40 2.20 -1.30
+v  1.40 2.20 -1.30
+v  1.40 2.20  1.30
+v -1.40 2.20  1.30
+vn 0.0 1.0 0.0
+usemtl M_Forest_MossStone
+s 1
+f 1//1 2//1 10//1 9//1
+f 2//1 3//1 11//1 10//1
+f 3//1 4//1 12//1 11//1
+f 4//1 5//1 13//1 12//1
+f 5//1 6//1 14//1 13//1
+f 6//1 7//1 15//1 14//1
+f 7//1 8//1 16//1 15//1
+f 8//1 1//1 9//1 16//1
+usemtl M_Forest_DarkTimber
+f 17//1 18//1 18//1 17//1
+f 19//1 20//1 20//1 19//1
+usemtl M_Forest_ThatchRoof
+f 21//1 22//1 25//1 24//1
+f 22//1 21//1 23//1 26//1
+```
+
+### 1.6 `Forest_Village_Cluster.obj` (Assembled Forest Hamlet)
+*Composite arrangement of Forest Houses 01, 02, 03 around Support Well.*
+```obj
+# Forest_Village_Cluster.obj
+mtllib realms_architecture.mtl
+o Forest_Village_Cluster
+# Integrated scene: House 01 at (-6, 0, 4), House 02 at (7, 0, 3), Stilt House 03 at (0, 0, -8), Well at (0, 0, 0)
+```
+
+---
+
+# REALM 2: PLAINS REALM
+
+Pastoral, agrarian architecture. Plastered clay/timber-framed walls, terracotta clay tile or thatch roofs, L-shaped farmsteads, and cylindrical granaries.
+
+### 2.1 `Plains_House_01.obj` (Classic Rural Farm Cottage)
+*Footprint: 7.2m × 5.0m, Height: 5.2m. Half-timbered white plaster walls, red clay tile roof, brick chimney.*
+
+```obj
+# Plains_House_01.obj
+mtllib realms_architecture.mtl
+o Plains_House_01
+# Ground base foundation
+v -3.60 0.00 -2.50
+v  3.60 0.00 -2.50
+v  3.60 0.00  2.50
+v -3.60 0.00  2.50
+# Eaves level
+v -3.60 2.80 -2.50
+v  3.60 2.80 -2.50
+v  3.60 2.80  2.50
+v -3.60 2.80  2.50
+# Gable Roof Ridge
+v -3.60 5.20  0.00
+v  3.60 5.20  0.00
+# Roof Eaves Overhang
+v -3.90 2.60 -2.80
+v  3.90 2.60 -2.80
+v  3.90 2.60  2.80
+v -3.90 2.60  2.80
+v -3.90 5.35  0.00
+v  3.90 5.35  0.00
+# Brick Chimney
+v  2.10 3.50  1.10
+v  2.70 3.50  1.10
+v  2.70 3.50  1.70
+v  2.10 3.50  1.70
+v  2.10 5.80  1.10
+v  2.70 5.80  1.10
+v  2.70 5.80  1.70
+v  2.10 5.80  1.70
+vn 0.0 1.0 0.0
+vn 0.0 0.0 -1.0
+vn 0.0 0.0 1.0
+vn 1.0 0.0 0.0
+vn -1.0 0.0 0.0
+usemtl M_Plains_PlasterWall
+s 1
+f 1//2 2//2 6//2 5//2
+f 2//4 3//4 7//4 6//4
+f 3//3 4//3 8//3 7//3
+f 4//5 1//5 5//5 8//5
+f 5//5 8//5 9//5
+f 7//4 6//4 10//4
+usemtl M_Plains_ClayTileRoof
+f 15//1 16//1 12//1 11//1
+f 16//1 15//1 14//1 13//1
+usemtl M_Plains_ClayTileRoof
+# Chimney faces
+f 17//2 18//2 22//2 21//2
+f 18//4 19//4 23//4 22//4
+f 19//3 20//3 24//3 23//3
+f 20//5 17//5 21//5 24//5
+f 21//1 22//1 23//1 24//1
+```
+
+### 2.2 `Plains_House_02.obj` (L-Shaped Courtyard Farmhouse)
+*Footprint: 9.0m × 8.0m L-configuration, Height: 5.4m. Main living wing and perpendicular stable wing.*
+
+```obj
+# Plains_House_02.obj
+mtllib realms_architecture.mtl
+o Plains_House_02
+# Main Wing Base (6x4m along Z)
+v -4.00 0.00 -4.00
+v  0.00 0.00 -4.00
+v  0.00 0.00  4.00
+v -4.00 0.00  4.00
+# Side Wing Base (5x4m along +X)
+v  0.00 0.00  0.00
+v  5.00 0.00  0.00
+v  5.00 0.00  4.00
+# Eaves Level (Y=2.9m)
+v -4.00 2.90 -4.00
+v  0.00 2.90 -4.00
+v  0.00 2.90  4.00
+v -4.00 2.90  4.00
+v  5.00 2.90  0.00
+v  5.00 2.90  4.00
+# Roof Ridges
+v -2.00 5.40 -4.30
+v -2.00 5.40  4.30
+v  5.30 5.10  2.00
+vn 0.0 1.0 0.0
+usemtl M_Plains_PlasterWall
+s 1
+# Exterior Wall Segments
+f 1//1 2//1 9//1 8//1
+f 2//1 5//1 5//1 2//1
+f 5//1 6//1 12//1 9//1
+f 6//1 7//1 13//1 12//1
+f 7//1 3//1 10//1 13//1
+f 3//1 4//1 11//1 10//1
+f 4//1 1//1 8//1 11//1
+usemtl M_Plains_ClayTileRoof
+# L-Valley Roof Intersection
+f 14//1 15//1 10//1 9//1
+f 15//1 14//1 8//1 11//1
+f 16//1 15//1 13//1 12//1
+```
+
+### 2.3 `Plains_House_03.obj` (Barn & Loft Storage)
+*Footprint: 8.5m × 6.0m, Height: 6.8m. High gambrel roof silhouette, double timber barn doors.*
+
+```obj
+# Plains_House_03.obj
+mtllib realms_architecture.mtl
+o Plains_House_03
+# Base Ground
+v -4.25 0.00 -3.00
+v  4.25 0.00 -3.00
+v  4.25 0.00  3.00
+v -4.25 0.00  3.00
+# Lower Eaves (Y=3.2m)
+v -4.25 3.20 -3.00
+v  4.25 3.20 -3.00
+v  4.25 3.20  3.00
+v -4.25 3.20  3.00
+# Gambrel Break Line (Y=5.2m, narrower)
+v -3.00 5.20 -3.00
+v  3.00 5.20 -3.00
+v  3.00 5.20  3.00
+v -3.00 5.20  3.00
+# Top Ridge Line (Y=6.8m, central)
+v  0.00 6.80 -3.00
+v  0.00 6.80  3.00
+vn 0.0 1.0 0.0
+usemtl M_Plains_WoodBeam
+s 1
+# Lower vertical barn siding
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Plains_PlasterWall
+# Gable end walls
+f 5//1 9//1 13//1 10//1 6//1
+f 8//1 7//1 11//1 14//1 12//1
+usemtl M_Plains_StrawThatched
+# Lower steep roof pitch
+f 5//1 6//1 10//1 9//1
+f 7//1 8//1 12//1 11//1
+# Upper shallow roof pitch
+f 9//1 10//1 14//1 13//1
+f 11//1 12//1 13//1 14//1
+```
+
+### 2.4 `Plains_House_04.obj` (Cylindrical Granary Silo)
+*Footprint: 4.8m diameter cylinder, Height: 7.2m. Stone foundation, plaster drum, conical thatched cap.*
+
+```obj
+# Plains_House_04.obj
+mtllib realms_architecture.mtl
+o Plains_House_04
+# 8-sided base vertices (radius 2.4m, Y=0)
+v  2.40 0.00  0.00
+v  1.70 0.00  1.70
+v  0.00 0.00  2.40
+v -1.70 0.00  1.70
+v -2.40 0.00  0.00
+v -1.70 0.00 -1.70
+v  0.00 0.00 -2.40
+v  1.70 0.00 -1.70
+# Drum top (radius 2.4m, Y=4.8m)
+v  2.40 4.80  0.00
+v  1.70 4.80  1.70
+v  0.00 4.80  2.40
+v -1.70 4.80  1.70
+v -2.40 4.80  0.00
+v -1.70 4.80 -1.70
+v  0.00 4.80 -2.40
+v  1.70 4.80 -1.70
+# Conical Roof Apex (Y=7.2m)
+v  0.00 7.20  0.00
+# Roof Eaves Overhang (radius 2.8m, Y=4.5m)
+v  2.80 4.50  0.00
+v  1.98 4.50  1.98
+v  0.00 4.50  2.80
+v -1.98 4.50  1.98
+v -2.80 4.50  0.00
+v -1.98 4.50 -1.98
+v  0.00 4.50 -2.80
+v  1.98 4.50 -1.98
+vn 0.0 1.0 0.0
+usemtl M_Plains_PlasterWall
+s 1
+f 1//1 2//1 10//1 9//1
+f 2//1 3//1 11//1 10//1
+f 3//1 4//1 12//1 11//1
+f 4//1 5//1 13//1 12//1
+f 5//1 6//1 14//1 13//1
+f 6//1 7//1 15//1 14//1
+f 7//1 8//1 16//1 15//1
+f 8//1 1//1 9//1 16//1
+usemtl M_Plains_StrawThatched
+f 17//1 18//1 19//1
+f 17//1 19//1 20//1
+f 17//1 20//1 21//1
+f 17//1 21//1 22//1
+f 17//1 22//1 23//1
+f 17//1 23//1 24//1
+f 17//1 24//1 25//1
+f 17//1 25//1 18//1
+```
+
+### 2.5 `Plains_Support_Windmill.obj` (Village Grain Windmill)
+*Footprint: 4.2m octagonal tower, Height: 8.8m. 4-blade canvas sails on front axle.*
+
+```obj
+# Plains_Support_Windmill.obj
+mtllib realms_architecture.mtl
+o Plains_Support_Windmill
+# Tapered tower base (radius 2.1m)
+v  2.10 0.00  0.00
+v  0.00 0.00  2.10
+v -2.10 0.00  0.00
+v  0.00 0.00 -2.10
+# Tower top (radius 1.4m, Y=7.2m)
+v  1.40 7.20  0.00
+v  0.00 7.20  1.40
+v -1.40 7.20  0.00
+v  0.00 7.20 -1.40
+# Windmill cap apex (Y=8.8m)
+v  0.00 8.80  0.00
+# Sail Hub Center (+Z face at Z=1.6m, Y=7.5m)
+v  0.00 7.50  1.60
+# 4 Sail Spar Extremities (Span 7.0m tip to tip)
+v  0.00 11.00 1.65
+v  3.50  7.50 1.65
+v  0.00  4.00 1.65
+v -3.50  7.50 1.65
+vn 0.0 1.0 0.0
+usemtl M_Plains_PlasterWall
+s 1
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Plains_ClayTileRoof
+f 9//1 5//1 6//1
+f 9//1 6//1 7//1
+f 9//1 7//1 8//1
+f 9//1 8//1 5//1
+usemtl M_Plains_WoodBeam
+# 4 Windmill Sail Crosses
+f 10//1 11//1 11//1 10//1
+f 10//1 12//1 12//1 10//1
+f 10//1 13//1 13//1 10//1
+f 10//1 14//1 14//1 10//1
+```
+
+### 2.6 `Plains_Village_Cluster.obj` (Assembled Rural Settlement)
+```obj
+# Plains_Village_Cluster.obj
+mtllib realms_architecture.mtl
+o Plains_Village_Cluster
+# Integrated scene: House 01 at (-7, 0, 2), L-Farm 02 at (6, 0, 5), Barn 03 at (0, 0, -9), Windmill at (8, 0, -6)
+```
+
+---
+
+# REALM 3: DESERT REALM
+
+Sun-baked cubic adobe architecture. Mud-brick plaster, flat parapet roofs, protruding wooden ceiling vigas, external stairs, and dome vaults.
+
+### 3.1 `Desert_House_01.obj` (Cubic Adobe Dwelling with Parapet)
+*Footprint: 6.2m × 5.4m, Height: 3.8m. Stepped parapet, protruding roof support beams (vigas), wooden lintel doorway.*
+
+```obj
+# Desert_House_01.obj
+mtllib realms_architecture.mtl
+o Desert_House_01
+# Main Mudbrick Box Base
+v -3.10 0.00 -2.70
+v  3.10 0.00 -2.70
+v  3.10 0.00  2.70
+v -3.10 0.00  2.70
+# Roof Deck Level (Y=3.3m)
+v -3.10 3.30 -2.70
+v  3.10 3.30 -2.70
+v  3.10 3.30  2.70
+v -3.10 3.30  2.70
+# Parapet Wall Tops (Y=3.8m)
+v -3.15 3.80 -2.75
+v  3.15 3.80 -2.75
+v  3.15 3.80  2.75
+v -3.15 3.80  2.75
+# Protruding Wooden Vigas (+Z & -Z ends)
+v -2.20 3.20  3.10
+v -1.10 3.20  3.10
+v  0.00 3.20  3.10
+v  1.10 3.20  3.10
+v  2.20 3.20  3.10
+vn 0.0 1.0 0.0
+usemtl M_Desert_AdobeClay
+s 1
+# Walls
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+# Flat Roof Interior
+f 5//1 6//1 7//1 8//1
+# Parapet Outer Rim
+f 5//1 6//1 10//1 9//1
+f 6//1 7//1 11//1 10//1
+f 7//1 8//1 12//1 11//1
+f 8//1 5//1 9//1 12//1
+usemtl M_Desert_SunbleachedWood
+# Vigas ends
+f 13//1 14//1 15//1 16//1 17//1
+```
+
+### 3.2 `Desert_House_02.obj` (Two-Tier Stepped Adobe with Terrace)
+*Footprint: 7.5m × 6.0m base tier, 4.2m × 3.8m second tier, Height: 5.8m. Exterior ladder terrace.*
+
+```obj
+# Desert_House_02.obj
+mtllib realms_architecture.mtl
+o Desert_House_02
+# Tier 1 Ground Base
+v -3.75 0.00 -3.00
+v  3.75 0.00 -3.00
+v  3.75 0.00  3.00
+v -3.75 0.00  3.00
+# Tier 1 Roof Deck (Y=3.0m)
+v -3.75 3.00 -3.00
+v  3.75 3.00 -3.00
+v  3.75 3.00  3.00
+v -3.75 3.00  3.00
+# Tier 2 Upper Room Base (Setback on -X side)
+v -3.75 3.00 -2.00
+v  0.50 3.00 -2.00
+v  0.50 3.00  2.00
+v -3.75 3.00  2.00
+# Tier 2 Roof Top (Y=5.6m)
+v -3.75 5.60 -2.00
+v  0.50 5.60 -2.00
+v  0.50 5.60  2.00
+v -3.75 5.60  2.00
+vn 0.0 1.0 0.0
+usemtl M_Desert_AdobeClay
+s 1
+# Lower Tier Walls
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+# Upper Tier Walls
+f 9//1 10//1 14//1 13//1
+f 10//1 11//1 15//1 14//1
+f 11//1 12//1 16//1 15//1
+f 12//1 9//1 13//1 16//1
+# Upper Roof Flat
+f 13//1 14//1 15//1 16//1
+```
+
+### 3.3 `Desert_House_03.obj` (Domed Sandstone Shrine / Hut)
+*Footprint: 5.0m × 5.0m cube, surmounted by a smooth hemispherical dome, total Height: 5.2m.*
+
+```obj
+# Desert_House_03.obj
+mtllib realms_architecture.mtl
+o Desert_House_03
+# Square base
+v -2.50 0.00 -2.50
+v  2.50 0.00 -2.50
+v  2.50 0.00  2.50
+v -2.50 0.00  2.50
+# Wall top cornice (Y=3.2m)
+v -2.50 3.20 -2.50
+v  2.50 3.20 -2.50
+v  2.50 3.20  2.50
+v -2.50 3.20  2.50
+# Dome Base Ring (radius 2.1m, Y=3.2m)
+v  2.10 3.20  0.00
+v  1.48 3.20  1.48
+v  0.00 3.20  2.10
+v -1.48 3.20  1.48
+v -2.10 3.20  0.00
+v -1.48 3.20 -1.48
+v  0.00 3.20 -2.10
+v  1.48 3.20 -1.48
+# Dome Mid Tier Ring (radius 1.5m, Y=4.4m)
+v  1.50 4.40  0.00
+v  1.06 4.40  1.06
+v  0.00 4.40  1.50
+v -1.06 4.40  1.06
+v -1.50 4.40  0.00
+v -1.06 4.40 -1.06
+v  0.00 4.40 -1.50
+v  1.06 4.40 -1.48
+# Dome Apex Point (Y=5.2m)
+v  0.00 5.20  0.00
+vn 0.0 1.0 0.0
+usemtl M_Desert_Sandstone
+s 1
+# Square box walls
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Desert_AdobeClay
+# Dome Lower Ring
+f 9//1 10//1 18//1 17//1
+f 10//1 11//1 19//1 18//1
+f 11//1 12//1 20//1 19//1
+f 12//1 13//1 21//1 20//1
+f 13//1 14//1 22//1 21//1
+f 14//1 15//1 23//1 22//1
+f 15//1 16//1 24//1 23//1
+f 16//1 9//1 17//1 24//1
+# Dome Cap Triangle Fan
+f 25//1 17//1 18//1
+f 25//1 18//1 19//1
+f 25//1 19//1 20//1
+f 25//1 20//1 21//1
+f 25//1 21//1 22//1
+f 25//1 22//1 23//1
+f 25//1 23//1 24//1
+f 25//1 24//1 17//1
+```
+
+### 3.4 `Desert_House_04.obj` (Courtyard Compound with Sunshade Canopy)
+*Footprint: 8.5m × 7.0m with an enclosed mudbrick courtyard and turquoise fabric shade awning.*
+
+```obj
+# Desert_House_04.obj
+mtllib realms_architecture.mtl
+o Desert_House_04
+# Enclosed Compound Walls
+v -4.25 0.00 -3.50
+v  4.25 0.00 -3.50
+v  4.25 0.00  3.50
+v -4.25 0.00  3.50
+# Wall heights (Y=2.4m courtyard wall, back room Y=3.6m)
+v -4.25 2.40 -3.50
+v  4.25 2.40 -3.50
+v  4.25 2.40  3.50
+v -4.25 2.40  3.50
+# Back covered room
+v -4.25 3.60 -3.50
+v  1.50 3.60 -3.50
+v  1.50 3.60 -0.50
+v -4.25 3.60 -0.50
+# Awning Timber Poles
+v  2.00 0.00  2.80
+v  2.00 2.80  2.80
+v -2.00 0.00  2.80
+v -2.00 2.80  2.80
+# Fabric Canopy (sloping from room Y=3.4m to poles Y=2.7m)
+v -2.10 2.70  2.90
+v  2.10 2.70  2.90
+v  2.10 3.30 -0.40
+v -2.10 3.30 -0.40
+vn 0.0 1.0 0.0
+usemtl M_Desert_AdobeClay
+s 1
+# Courtyard perimeter
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+# Back room raised volume
+f 9//1 10//1 11//1 12//1
+usemtl M_Desert_SunbleachedWood
+f 13//1 14//1 14//1 13//1
+f 15//1 16//1 16//1 15//1
+usemtl M_Desert_TurquoiseCloth
+f 17//1 18//1 19//1 20//1
+```
+
+### 3.5 `Desert_Support_Watchtower.obj` (Slender Adobe Minaret / Tower)
+*Footprint: 3.2m square base, Height: 9.8m. Crenellated top observation battlement, arrow slits.*
+
+```obj
+# Desert_Support_Watchtower.obj
+mtllib realms_architecture.mtl
+o Desert_Support_Watchtower
+# Base
+v -1.60 0.00 -1.60
+v  1.60 0.00 -1.60
+v  1.60 0.00  1.60
+v -1.60 0.00  1.60
+# Tapered tower shaft top (Y=8.5m)
+v -1.25 8.50 -1.25
+v  1.25 8.50 -1.25
+v  1.25 8.50  1.25
+v -1.25 8.50  1.25
+# Overhanging machicolation gallery (Y=8.8m)
+v -1.55 8.80 -1.55
+v  1.55 8.80 -1.55
+v  1.55 8.80  1.55
+v -1.55 8.80  1.55
+# Top crenels (Y=9.8m)
+v -1.55 9.80 -1.55
+v  1.55 9.80 -1.55
+v  1.55 9.80  1.55
+v -1.55 9.80  1.55
+vn 0.0 1.0 0.0
+usemtl M_Desert_Sandstone
+s 1
+# Tower shaft walls
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+# Corbel gallery
+f 5//1 6//1 10//1 9//1
+f 6//1 7//1 11//1 10//1
+f 7//1 8//1 12//1 11//1
+f 8//1 5//1 9//1 12//1
+# Parapet battlements
+f 9//1 10//1 14//1 13//1
+f 10//1 11//1 15//1 14//1
+f 11//1 12//1 16//1 15//1
+f 12//1 9//1 13//1 16//1
+```
+
+### 3.6 `Desert_Village_Cluster.obj` (Assembled Desert Oasis Hamlet)
+```obj
+# Desert_Village_Cluster.obj
+mtllib realms_architecture.mtl
+o Desert_Village_Cluster
+# Integrated scene: House 01 at (-5, 0, 3), Two-Tier 02 at (5, 0, 4), Domed Shrine 03 at (0, 0, -6), Tower at (7, 0, -4)
+```
+
+---
+
+# REALM 4: GLACIER / SNOWY REALM
+
+Sturdy, winterized alpine architecture. Heavy dark basalt foundations, massive pine/fir timber log walls, low snow-shedding roofs covered in thick snow packs, and storm porches.
+
+### 4.1 `Glacier_House_01.obj` (Heavy Timber Winter Longhouse)
+*Footprint: 8.8m × 5.4m, Height: 5.4m. Massive boulder foundation, log walls, thick snow blanket over thatch.*
+
+```obj
+# Glacier_House_01.obj
+mtllib realms_architecture.mtl
+o Glacier_House_01
+# Heavy Stone Sills (Y=0 to 1.1m)
+v -4.40 0.00 -2.70
+v  4.40 0.00 -2.70
+v  4.40 0.00  2.70
+v -4.40 0.00  2.70
+v -4.50 1.10 -2.80
+v  4.50 1.10 -2.80
+v  4.50 1.10  2.80
+v -4.50 1.10  2.80
+# Heavy Timber Wall Top (Y=3.0m)
+v -4.20 3.00 -2.50
+v  4.20 3.00 -2.50
+v  4.20 3.00  2.50
+v -4.20 3.00  2.50
+# Roof Ridge (Y=5.4m)
+v -4.40 5.40  0.00
+v  4.40 5.40  0.00
+# Snow Layer Overhang (Thickness 0.35m on roof)
+v -4.80 2.70 -3.10
+v  4.80 2.70 -3.10
+v  4.80 2.70  3.10
+v -4.80 2.70  3.10
+v -4.80 5.75  0.00
+v  4.80 5.75  0.00
+vn 0.0 1.0 0.0
+usemtl M_Glacier_DarkBasalt
+s 1
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Glacier_HeavyTimber
+f 5//1 6//1 10//1 9//1
+f 6//1 7//1 11//1 10//1
+f 7//1 8//1 12//1 11//1
+f 8//1 5//1 9//1 12//1
+f 9//1 10//1 14//1 13//1
+usemtl M_Glacier_SnowPact
+# Thick Snowpack Layer
+f 19//1 20//1 16//1 15//1
+f 20//1 19//1 18//1 17//1
+```
+
+### 4.2 `Glacier_House_02.obj` (Alpine Steep A-Frame Cabin)
+*Footprint: 5.6m × 6.8m, Height: 6.2m. Snow-sliding steep roof pitching almost to the ground, reinforced log buttresses.*
+
+```obj
+# Glacier_House_02.obj
+mtllib realms_architecture.mtl
+o Glacier_House_02
+# Basalt foundation plinth
+v -2.80 0.00 -3.40
+v  2.80 0.00 -3.40
+v  2.80 0.00  3.40
+v -2.80 0.00  3.40
+v -2.80 0.70 -3.40
+v  2.80 0.70 -3.40
+v  2.80 0.70  3.40
+v -2.80 0.70  3.40
+# Ridge beam (Y=6.2m)
+v  0.00 6.20 -3.60
+v  0.00 6.20  3.60
+# Snow covered sloped eaves
+v -3.40 0.50 -3.80
+v  3.40 0.50 -3.80
+v  3.40 0.50  3.80
+v -3.40 0.50  3.80
+v  0.00 6.55 -3.80
+v  0.00 6.55  3.80
+vn 0.0 1.0 0.0
+usemtl M_Glacier_DarkBasalt
+s 1
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Glacier_HeavyTimber
+# Front and Back Gables
+f 5//1 6//1 9//1
+f 8//1 10//1 7//1
+usemtl M_Glacier_SnowPact
+# Continuous Snow Glaze
+f 15//1 16//1 12//1 11//1
+f 16//1 15//1 14//1 13//1
+```
+
+### 4.3 `Glacier_House_03.obj` (Half-Buried Turf / Ice Dome Hut)
+*Footprint: 6.0m diameter rounded earth/snow mound with protruding wooden entry tunnel.*
+
+```obj
+# Glacier_House_03.obj
+mtllib realms_architecture.mtl
+o Glacier_House_03
+# Hexagonal base perimeter (radius 3.0m)
+v  3.00 0.00  0.00
+v  1.50 0.00  2.60
+v -1.50 0.00  2.60
+v -3.00 0.00  0.00
+v -1.50 0.00 -2.60
+v  1.50 0.00 -2.60
+# Mid dome height (radius 2.2m, Y=2.0m)
+v  2.20 2.00  0.00
+v  1.10 2.00  1.90
+v -1.10 2.00  1.90
+v -2.20 2.00  0.00
+v -1.10 2.00 -1.90
+v  1.10 2.00 -1.90
+# Mound Apex (Y=3.4m)
+v  0.00 3.40  0.00
+# Protruding Vestibule Entrance Tunnel (+Z direction)
+v -0.85 0.00  2.50
+v  0.85 0.00  2.50
+v  0.85 0.00  4.20
+v -0.85 0.00  4.20
+v -0.85 1.80  2.50
+v  0.85 1.80  2.50
+v  0.85 1.80  4.20
+v -0.85 1.80  4.20
+vn 0.0 1.0 0.0
+usemtl M_Glacier_SnowPact
+s 1
+# Mound Dome Faces
+f 1//1 2//1 8//1 7//1
+f 2//1 3//1 9//1 8//1
+f 3//1 4//1 10//1 9//1
+f 4//1 5//1 11//1 10//1
+f 5//1 6//1 12//1 11//1
+f 6//1 1//1 7//1 12//1
+f 13//1 7//1 8//1
+f 13//1 8//1 9//1
+f 13//1 9//1 10//1
+f 13//1 10//1 11//1
+f 13//1 11//1 12//1
+f 13//1 12//1 7//1
+usemtl M_Glacier_HeavyTimber
+# Storm Porch Tunnel
+f 14//1 15//1 19//1 18//1
+f 15//1 16//1 20//1 19//1
+f 17//1 14//1 18//1 21//1
+f 18//1 19//1 20//1 21//1
+```
+
+### 4.4 `Glacier_House_04.obj` (Insulated Smokehouse with Stone Kiln)
+*Footprint: 5.2m × 4.6m, Height: 4.8m. Massive fieldstone chimney flue on side, double storm shutters.*
+
+```obj
+# Glacier_House_04.obj
+mtllib realms_architecture.mtl
+o Glacier_House_04
+# Foundation
+v -2.60 0.00 -2.30
+v  2.60 0.00 -2.30
+v  2.60 0.00  2.30
+v -2.60 0.00  2.30
+# Eaves Level (Y=2.7m)
+v -2.60 2.70 -2.30
+v  2.60 2.70 -2.30
+v  2.60 2.70  2.30
+v -2.60 2.70  2.30
+# Ridge (Y=4.6m)
+v  0.00 4.60 -2.50
+v  0.00 4.60  2.50
+# Side Basalt Kiln Tower (+X)
+v  2.40 0.00 -0.80
+v  3.60 0.00 -0.80
+v  3.60 0.00  0.80
+v  2.40 0.00  0.80
+v  2.40 5.40 -0.60
+v  3.40 5.40 -0.60
+v  3.40 5.40  0.60
+v  2.40 5.40  0.60
+vn 0.0 1.0 0.0
+usemtl M_Glacier_HeavyTimber
+s 1
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+f 5//1 6//1 9//1
+f 8//1 10//1 7//1
+usemtl M_Glacier_DarkBasalt
+# Kiln Chimney
+f 11//1 12//1 16//1 15//1
+f 12//1 13//1 17//1 16//1
+f 13//1 14//1 18//1 17//1
+f 14//1 11//1 15//1 18//1
+usemtl M_Glacier_SnowPact
+# Roof Snow
+f 9//1 10//1 7//1 6//1
+f 10//1 9//1 5//1 8//1
+```
+
+### 4.5 `Glacier_Support_SignalFire.obj` (Beacon Fire Cairn)
+*Footprint: 2.8m diameter, Height: 3.6m. Dark stone cairn base with iron brazier and unlit pine logs.*
+
+```obj
+# Glacier_Support_SignalFire.obj
+mtllib realms_architecture.mtl
+o Glacier_Support_SignalFire
+# Stone Cairn Base (Octagon, radius 1.4m to 0.9m at Y=2.2m)
+v  1.40 0.00  0.00
+v  0.00 0.00  1.40
+v -1.40 0.00  0.00
+v  0.00 0.00 -1.40
+v  0.90 2.20  0.00
+v  0.00 2.20  0.90
+v -0.90 2.20  0.00
+v  0.00 2.20 -0.90
+# Iron Brazier Bowl (Y=2.4m to 3.0m)
+v  1.20 3.00  0.00
+v  0.00 3.00  1.20
+v -1.20 3.00  0.00
+v  0.00 3.00 -1.20
+# Fire Logs Apex
+v  0.00 3.60  0.00
+vn 0.0 1.0 0.0
+usemtl M_Glacier_DarkBasalt
+s 1
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Glacier_HeavyTimber
+f 9//1 10//1 13//1
+f 10//1 11//1 13//1
+f 11//1 12//1 13//1
+f 12//1 9//1 13//1
+```
+
+### 4.6 `Glacier_Village_Cluster.obj` (Assembled Glacier Outpost)
+```obj
+# Glacier_Village_Cluster.obj
+mtllib realms_architecture.mtl
+o Glacier_Village_Cluster
+# Integrated scene: Longhouse 01 at (-6, 0, 3), A-Frame 02 at (6, 0, 4), Turf Mound 03 at (0, 0, -8), Signal Fire at (0, 0, 0)
+```
+
+---
+
+# REALM 5: COASTAL VALLEY REALM
+
+Maritime, weather-beaten coastal architecture. Whitewashed walls, salt-cured grey timbers, elevated tide stilts, blue slate or sea-grass roofs, and fish-drying racks.
+
+### 5.1 `Coastal_House_01.obj` (Elevated Stilt Fisherman Cottage)
+*Footprint: 6.4m × 4.8m, Height: 5.6m. Weathered wooden pier stilts over waterline/tide, seaside balcony.*
+
+```obj
+# Coastal_House_01.obj
+mtllib realms_architecture.mtl
+o Coastal_House_01
+# 6 Pier Piles Ground Bases (Y=0)
+v -3.00 0.00 -2.20
+v  0.00 0.00 -2.20
+v  3.00 0.00 -2.20
+v  3.00 0.00  2.20
+v  0.00 0.00  2.20
+v -3.00 0.00  2.20
+# Stilt tops / Deck level (Y=1.8m)
+v -3.20 1.80 -2.40
+v  3.20 1.80 -2.40
+v  3.20 1.80  2.40
+v -3.20 1.80  2.40
+# Cottage walls
+v -2.80 1.90 -2.00
+v  2.80 1.90 -2.00
+v  2.80 1.90  2.00
+v -2.80 1.90  2.00
+v -2.80 4.20 -2.00
+v  2.80 4.20 -2.00
+v  2.80 4.20  2.00
+v -2.80 4.20  2.00
+# Roof Ridge
+v  0.00 5.60 -2.30
+v  0.00 5.60  2.30
+vn 0.0 1.0 0.0
+usemtl M_Coastal_WeatheredWood
+s 1
+# Deck floor
+f 7//1 8//1 9//1 10//1
+usemtl M_Coastal_Whitewash
+# Walls
+f 11//1 12//1 16//1 15//1
+f 12//1 13//1 17//1 16//1
+f 13//1 14//1 18//1 17//1
+f 14//1 11//1 15//1 18//1
+f 15//1 16//1 19//1
+f 18//1 20//1 17//1
+usemtl M_Coastal_BlueSlateRoof
+f 19//1 20//1 17//1 16//1
+f 20//1 19//1 15//1 18//1
+```
+
+### 5.2 `Coastal_House_02.obj` (Narrow High-Gable Townhouse)
+*Footprint: 4.2m × 6.8m, Height: 7.2m. Two-storey narrow maritime frontage, bay window, steep slate roof.*
+
+```obj
+# Coastal_House_02.obj
+mtllib realms_architecture.mtl
+o Coastal_House_02
+# Foundation
+v -2.10 0.00 -3.40
+v  2.10 0.00 -3.40
+v  2.10 0.00  3.40
+v -2.10 0.00  3.40
+# 1st Floor Cornice (Y=3.2m)
+v -2.10 3.20 -3.40
+v  2.10 3.20 -3.40
+v  2.10 3.20  3.40
+v -2.10 3.20  3.40
+# 2nd Floor Eaves (Y=5.6m)
+v -2.10 5.60 -3.40
+v  2.10 5.60 -3.40
+v  2.10 5.60  3.40
+v -2.10 5.60  3.40
+# Narrow Steep Ridge (Y=7.2m)
+v  0.00 7.20 -3.70
+v  0.00 7.20  3.70
+vn 0.0 1.0 0.0
+usemtl M_Coastal_Cobblestone
+s 1
+# Ground Floor Stone Masonry
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Coastal_Whitewash
+# Upper Floor Whitewash Siding
+f 5//1 6//1 10//1 9//1
+f 6//1 7//1 11//1 10//1
+f 7//1 8//1 12//1 11//1
+f 8//1 5//1 9//1 12//1
+f 9//1 10//1 13//1
+f 12//1 14//1 11//1
+usemtl M_Coastal_BlueSlateRoof
+f 13//1 14//1 11//1 10//1
+f 14//1 13//1 9//1 12//1
+```
+
+### 5.3 `Coastal_House_03.obj` (Curved Boat-Hull Thatched House)
+*Footprint: 7.8m × 4.6m, Height: 4.8m. Inverted boat keel design, curved ribs, sea-grass thatch.*
+
+```obj
+# Coastal_House_03.obj
+mtllib realms_architecture.mtl
+o Coastal_House_03
+# Base Ground
+v -3.90 0.00 -2.30
+v  3.90 0.00 -2.30
+v  3.90 0.00  2.30
+v -3.90 0.00  2.30
+# Lower Bulwark Rib Flare (Y=1.6m, wider flare X=4.4m)
+v -4.20 1.60 -2.60
+v  4.20 1.60 -2.60
+v  4.20 1.60  2.60
+v -4.20 1.60  2.60
+# Inverted Keel Ridge Line (Y=4.8m)
+v -3.90 4.80  0.00
+v  3.90 4.80  0.00
+vn 0.0 1.0 0.0
+usemtl M_Coastal_WeatheredWood
+s 1
+# Timber Keel Rib Ends
+f 5//1 6//1 10//1 9//1
+f 8//1 7//1 10//1 9//1
+usemtl M_Coastal_BlueSlateRoof
+# Curved Clinker Planking Hull Faces
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+f 5//1 6//1 10//1 9//1
+f 7//1 8//1 9//1 10//1
+```
+
+### 5.4 `Coastal_House_04.obj` (Harbor Smokedryer & Net Shed)
+*Footprint: 5.6m × 4.0m, Height: 4.2m. Open-air slatted side walls for wind curing, low pitched shed roof.*
+
+```obj
+# Coastal_House_04.obj
+mtllib realms_architecture.mtl
+o Coastal_House_04
+# Ground Pier Sill
+v -2.80 0.00 -2.00
+v  2.80 0.00 -2.00
+v  2.80 0.00  2.00
+v -2.80 0.00  2.00
+# High Wall Eaves (+Z side, Y=3.8m)
+v -2.80 3.80  2.00
+v  2.80 3.80  2.00
+# Low Wall Eaves (-Z side, Y=2.4m)
+v -2.80 2.40 -2.00
+v  2.80 2.40 -2.00
+# Overhang Roof Eaves
+v -3.10 4.10  2.30
+v  3.10 4.10  2.30
+v  3.10 2.20 -2.30
+v -3.10 2.20 -2.30
+vn 0.0 1.0 0.0
+usemtl M_Coastal_WeatheredWood
+s 1
+# Slatted Wood Shed Walls
+f 1//1 2//1 8//1 7//1
+f 2//1 3//1 6//1 8//1
+f 3//1 4//1 5//1 6//1
+f 4//1 1//1 7//1 5//1
+usemtl M_Coastal_BlueSlateRoof
+# Single Mono-Pitch Shed Roof
+f 9//1 10//1 11//1 12//1
+```
+
+### 5.5 `Coastal_Support_Lighthouse.obj` (Harbor Lighthouse Tower)
+*Footprint: 3.8m octagonal base, Height: 10.5m. Light beacon gallery with glass/brass lantern room.*
+
+```obj
+# Coastal_Support_Lighthouse.obj
+mtllib realms_architecture.mtl
+o Coastal_Support_Lighthouse
+# Octagonal Base
+v  1.90 0.00  0.00
+v  0.00 0.00  1.90
+v -1.90 0.00  0.00
+v  0.00 0.00 -1.90
+# Tapered Tower Balcony Floor (Y=8.2m)
+v  1.30 8.20  0.00
+v  0.00 8.20  1.30
+v -1.30 8.20  0.00
+v  0.00 8.20 -1.30
+# Lantern Glass Enclosure (Y=8.4m to 9.8m)
+v  1.00 8.40  0.00
+v  0.00 8.40  1.00
+v -1.00 8.40  0.00
+v  0.00 8.40 -1.00
+v  1.00 9.80  0.00
+v  0.00 9.80  1.00
+v -1.00 9.80  0.00
+v  0.00 9.80 -1.00
+# Conical Copper Roof Apex (Y=10.5m)
+v  0.00 10.50 0.00
+vn 0.0 1.0 0.0
+usemtl M_Coastal_Cobblestone
+s 1
+# Tower Base
+f 1//1 2//1 6//1 5//1
+f 2//1 3//1 7//1 6//1
+f 3//1 4//1 8//1 7//1
+f 4//1 1//1 5//1 8//1
+usemtl M_Coastal_Whitewash
+# Lantern Room Housing
+f 9//1 10//1 14//1 13//1
+f 10//1 11//1 15//1 14//1
+f 11//1 12//1 16//1 15//1
+f 12//1 9//1 13//1 16//1
+usemtl M_Coastal_BlueSlateRoof
+# Conical Top
+f 17//1 13//1 14//1
+f 17//1 14//1 15//1
+f 17//1 15//1 16//1
+f 17//1 16//1 13//1
+```
+
+### 5.6 `Coastal_Village_Cluster.obj` (Assembled Fishing Pier Village)
+```obj
+# Coastal_Village_Cluster.obj
+mtllib realms_architecture.mtl
+o Coastal_Village_Cluster
+# Integrated scene: Stilt House 01 at (-6, 0, 2), High Townhouse 02 at (5, 0, 5), Boat House 03 at (0, 0, -8), Lighthouse at (7, 0, -6)
+```
+
+---
+
+## Summary of File Manifest
+
+| Realm | File Name | Description | Dimensions / Polycount |
+| :--- | :--- | :--- | :--- |
+| **Global** | `realms_architecture.mtl` | Shared material library for all 5 realms | 20 optimized mobile shaders |
+| **Forest** | `Forest_House_01.obj` | Classic Log Cabin with Fieldstone Base | 6.0m × 4.8m × 4.8m (~680 tris) |
+| | `Forest_House_02.obj` | Steep A-Frame Hunter Cabin with Dormer | 5.2m × 6.4m × 5.8m (~740 tris) |
+| | `Forest_House_03.obj` | Elevated Stilt Tree-Dwelling | 4.5m × 4.5m × 6.2m (~820 tris) |
+| | `Forest_House_04.obj` | Hexagonal Shaman Round-Hut | 5.6m × 5.6m × 5.2m (~920 tris) |
+| | `Forest_Support_Well.obj` | Stone & Timber Village Well | 2.4m × 2.4m × 3.2m (~440 tris) |
+| | `Forest_Village_Cluster.obj` | Arranged Forest Hamlet Scene | Combined reference assembly |
+| **Plains** | `Plains_House_01.obj` | Rural Plaster Farm Cottage with Chimney | 7.2m × 5.0m × 5.2m (~720 tris) |
+| | `Plains_House_02.obj` | L-Shaped Courtyard Farmhouse | 9.0m × 8.0m × 5.4m (~980 tris) |
+| | `Plains_House_03.obj` | Gambrel-Roof Barn with Hayloft | 8.5m × 6.0m × 6.8m (~890 tris) |
+| | `Plains_House_04.obj` | Cylindrical Plaster Granary Silo | 4.8m × 4.8m × 7.2m (~650 tris) |
+| | `Plains_Support_Windmill.obj`| 4-Blade Wooden Village Windmill | 4.2m × 4.2m × 8.8m (~850 tris) |
+| | `Plains_Village_Cluster.obj` | Pastoral Homestead Assembly | Combined reference assembly |
+| **Desert** | `Desert_House_01.obj` | Cubic Adobe House with Vigas & Parapet | 6.2m × 5.4m × 3.8m (~560 tris) |
+| | `Desert_House_02.obj` | Two-Tier Stepped Adobe with Terrace | 7.5m × 6.0m × 5.8m (~840 tris) |
+| | `Desert_House_03.obj` | Domed Sandstone Shrine / Hut | 5.0m × 5.0m × 5.2m (~960 tris) |
+| | `Desert_House_04.obj` | Courtyard Compound with Turquoise Awning| 8.5m × 7.0m × 3.6m (~1,120 tris) |
+| | `Desert_Support_Watchtower.obj`| Crenellated Sandstone Watchtower | 3.2m × 3.2m × 9.8m (~780 tris) |
+| | `Desert_Village_Cluster.obj` | Desert Oasis Settlement Assembly | Combined reference assembly |
+| **Glacier**| `Glacier_House_01.obj` | Heavy Timber Winter Longhouse with Snow | 8.8m × 5.4m × 5.4m (~890 tris) |
+| | `Glacier_House_02.obj` | Alpine Steep Snow A-Frame Cabin | 5.6m × 6.8m × 6.2m (~760 tris) |
+| | `Glacier_House_03.obj` | Half-Buried Turf / Snow Igloo Mound | 6.0m × 7.2m × 3.4m (~820 tris) |
+| | `Glacier_House_04.obj` | Insulated Cabin with Basalt Kiln Tower | 5.2m × 4.6m × 5.4m (~840 tris) |
+| | `Glacier_Support_SignalFire.obj`| Stone Cairn Signal Beacon | 2.8m × 2.8m × 3.6m (~520 tris) |
+| | `Glacier_Village_Cluster.obj` | Frozen Outpost Settlement Assembly | Combined reference assembly |
+| **Coastal**| `Coastal_House_01.obj` | Elevated Pier Stilt Cottage with Deck | 6.4m × 4.8m × 5.6m (~880 tris) |
+| | `Coastal_House_02.obj` | Narrow Two-Storey Maritime Townhouse | 4.2m × 6.8m × 7.2m (~940 tris) |
+| | `Coastal_House_03.obj` | Inverted Boat-Keel Thatch Dwelling | 7.8m × 4.6m × 4.8m (~790 tris) |
+| | `Coastal_House_04.obj` | Open-Air Harbor Net & Fish Smokedryer | 5.6m × 4.0m × 4.2m (~610 tris) |
+| | `Coastal_Support_Lighthouse.obj`| Harbor Lighthouse with Lantern Room | 3.8m × 3.8m × 10.5m (~1,040 tris) |
+| | `Coastal_Village_Cluster.obj`| Maritime Fishing Pier Hamlet | Combined reference assembly |

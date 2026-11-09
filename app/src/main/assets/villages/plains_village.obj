@@ -1,0 +1,226 @@
+mtllib realms_architecture.mtl
+o plains_village
+v -12.60000 0.00000 1.50000
+v -5.40000 0.00000 1.50000
+v -5.40000 0.00000 6.50000
+v -12.60000 0.00000 6.50000
+v -12.60000 2.80000 1.50000
+v -5.40000 2.80000 1.50000
+v -5.40000 2.80000 6.50000
+v -12.60000 2.80000 6.50000
+v -12.60000 5.20000 4.00000
+v -5.40000 5.20000 4.00000
+v -12.90000 2.60000 1.20000
+v -5.10000 2.60000 1.20000
+v -5.10000 2.60000 6.80000
+v -12.90000 2.60000 6.80000
+v -12.90000 5.35000 4.00000
+v -5.10000 5.35000 4.00000
+v -6.90000 3.50000 5.10000
+v -6.30000 3.50000 5.10000
+v -6.30000 3.50000 5.70000
+v -6.90000 3.50000 5.70000
+v -6.90000 5.80000 5.10000
+v -6.30000 5.80000 5.10000
+v -6.30000 5.80000 5.70000
+v -6.90000 5.80000 5.70000
+vn 0.00000 1.00000 0.00000
+vn 0.00000 0.00000 -1.00000
+vn 0.00000 0.00000 1.00000
+vn 1.00000 0.00000 0.00000
+vn -1.00000 0.00000 0.00000
+usemtl M_Plains_PlasterWall
+f 1//2 2//2 6//2 5//2
+usemtl M_Plains_PlasterWall
+f 2//4 3//4 7//4 6//4
+usemtl M_Plains_PlasterWall
+f 3//3 4//3 8//3 7//3
+usemtl M_Plains_PlasterWall
+f 4//5 1//5 5//5 8//5
+usemtl M_Plains_PlasterWall
+f 5//5 8//5 9//5
+usemtl M_Plains_PlasterWall
+f 7//4 6//4 10//4
+usemtl M_Plains_ClayTileRoof
+f 15//1 16//1 12//1 11//1
+usemtl M_Plains_ClayTileRoof
+f 16//1 15//1 14//1 13//1
+usemtl M_Plains_ClayTileRoof
+f 17//2 18//2 22//2 21//2
+usemtl M_Plains_ClayTileRoof
+f 18//4 19//4 23//4 22//4
+usemtl M_Plains_ClayTileRoof
+f 19//3 20//3 24//3 23//3
+usemtl M_Plains_ClayTileRoof
+f 20//5 17//5 21//5 24//5
+usemtl M_Plains_ClayTileRoof
+f 21//1 22//1 23//1 24//1
+v 4.00000 0.00000 0.00000
+v 8.00000 0.00000 0.00000
+v 8.00000 0.00000 8.00000
+v 4.00000 0.00000 8.00000
+v 8.00000 0.00000 4.00000
+v 13.00000 0.00000 4.00000
+v 13.00000 0.00000 8.00000
+v 4.00000 2.90000 0.00000
+v 8.00000 2.90000 0.00000
+v 8.00000 2.90000 8.00000
+v 4.00000 2.90000 8.00000
+v 13.00000 2.90000 4.00000
+v 13.00000 2.90000 8.00000
+v 6.00000 5.40000 -0.30000
+v 6.00000 5.40000 8.30000
+v 13.30000 5.10000 6.00000
+vn 0.00000 1.00000 0.00000
+usemtl M_Plains_PlasterWall
+f 25//6 26//6 33//6 32//6
+usemtl M_Plains_PlasterWall
+f 26//6 29//6 29//6 26//6
+usemtl M_Plains_PlasterWall
+f 29//6 30//6 36//6 33//6
+usemtl M_Plains_PlasterWall
+f 30//6 31//6 37//6 36//6
+usemtl M_Plains_PlasterWall
+f 31//6 27//6 34//6 37//6
+usemtl M_Plains_PlasterWall
+f 27//6 28//6 35//6 34//6
+usemtl M_Plains_PlasterWall
+f 28//6 25//6 32//6 35//6
+usemtl M_Plains_ClayTileRoof
+f 38//6 39//6 34//6 33//6
+usemtl M_Plains_ClayTileRoof
+f 39//6 38//6 32//6 35//6
+usemtl M_Plains_ClayTileRoof
+f 40//6 39//6 37//6 36//6
+v -4.25000 0.00000 -13.00000
+v 4.25000 0.00000 -13.00000
+v 4.25000 0.00000 -7.00000
+v -4.25000 0.00000 -7.00000
+v -4.25000 3.20000 -13.00000
+v 4.25000 3.20000 -13.00000
+v 4.25000 3.20000 -7.00000
+v -4.25000 3.20000 -7.00000
+v -3.00000 5.20000 -13.00000
+v 3.00000 5.20000 -13.00000
+v 3.00000 5.20000 -7.00000
+v -3.00000 5.20000 -7.00000
+v 0.00000 6.80000 -13.00000
+v 0.00000 6.80000 -7.00000
+vn 0.00000 1.00000 0.00000
+usemtl M_Plains_WoodBeam
+f 41//7 42//7 46//7 45//7
+usemtl M_Plains_WoodBeam
+f 42//7 43//7 47//7 46//7
+usemtl M_Plains_WoodBeam
+f 43//7 44//7 48//7 47//7
+usemtl M_Plains_WoodBeam
+f 44//7 41//7 45//7 48//7
+usemtl M_Plains_PlasterWall
+f 45//7 49//7 53//7 50//7 46//7
+usemtl M_Plains_PlasterWall
+f 48//7 47//7 51//7 54//7 52//7
+usemtl M_Plains_StrawThatched
+f 45//7 46//7 50//7 49//7
+usemtl M_Plains_StrawThatched
+f 47//7 48//7 52//7 51//7
+usemtl M_Plains_StrawThatched
+f 49//7 50//7 54//7 53//7
+usemtl M_Plains_StrawThatched
+f 51//7 52//7 53//7 54//7
+v 19.40000 0.00000 -8.00000
+v 18.70000 0.00000 -6.30000
+v 17.00000 0.00000 -5.60000
+v 15.30000 0.00000 -6.30000
+v 14.60000 0.00000 -8.00000
+v 15.30000 0.00000 -9.70000
+v 17.00000 0.00000 -10.40000
+v 18.70000 0.00000 -9.70000
+v 19.40000 4.80000 -8.00000
+v 18.70000 4.80000 -6.30000
+v 17.00000 4.80000 -5.60000
+v 15.30000 4.80000 -6.30000
+v 14.60000 4.80000 -8.00000
+v 15.30000 4.80000 -9.70000
+v 17.00000 4.80000 -10.40000
+v 18.70000 4.80000 -9.70000
+v 17.00000 7.20000 -8.00000
+v 19.80000 4.50000 -8.00000
+v 18.98000 4.50000 -6.02000
+v 17.00000 4.50000 -5.20000
+v 15.02000 4.50000 -6.02000
+v 14.20000 4.50000 -8.00000
+v 15.02000 4.50000 -9.98000
+v 17.00000 4.50000 -10.80000
+v 18.98000 4.50000 -9.98000
+vn 0.00000 1.00000 0.00000
+usemtl M_Plains_PlasterWall
+f 55//8 56//8 64//8 63//8
+usemtl M_Plains_PlasterWall
+f 56//8 57//8 65//8 64//8
+usemtl M_Plains_PlasterWall
+f 57//8 58//8 66//8 65//8
+usemtl M_Plains_PlasterWall
+f 58//8 59//8 67//8 66//8
+usemtl M_Plains_PlasterWall
+f 59//8 60//8 68//8 67//8
+usemtl M_Plains_PlasterWall
+f 60//8 61//8 69//8 68//8
+usemtl M_Plains_PlasterWall
+f 61//8 62//8 70//8 69//8
+usemtl M_Plains_PlasterWall
+f 62//8 55//8 63//8 70//8
+usemtl M_Plains_StrawThatched
+f 71//8 72//8 73//8
+usemtl M_Plains_StrawThatched
+f 71//8 73//8 74//8
+usemtl M_Plains_StrawThatched
+f 71//8 74//8 75//8
+usemtl M_Plains_StrawThatched
+f 71//8 75//8 76//8
+usemtl M_Plains_StrawThatched
+f 71//8 76//8 77//8
+usemtl M_Plains_StrawThatched
+f 71//8 77//8 78//8
+usemtl M_Plains_StrawThatched
+f 71//8 78//8 79//8
+usemtl M_Plains_StrawThatched
+f 71//8 79//8 72//8
+v -15.90000 0.00000 -9.00000
+v -18.00000 0.00000 -6.90000
+v -20.10000 0.00000 -9.00000
+v -18.00000 0.00000 -11.10000
+v -16.60000 7.20000 -9.00000
+v -18.00000 7.20000 -7.60000
+v -19.40000 7.20000 -9.00000
+v -18.00000 7.20000 -10.40000
+v -18.00000 8.80000 -9.00000
+v -18.00000 7.50000 -7.40000
+v -18.00000 11.00000 -7.35000
+v -14.50000 7.50000 -7.35000
+v -18.00000 4.00000 -7.35000
+v -21.50000 7.50000 -7.35000
+vn 0.00000 1.00000 0.00000
+usemtl M_Plains_PlasterWall
+f 80//9 81//9 85//9 84//9
+usemtl M_Plains_PlasterWall
+f 81//9 82//9 86//9 85//9
+usemtl M_Plains_PlasterWall
+f 82//9 83//9 87//9 86//9
+usemtl M_Plains_PlasterWall
+f 83//9 80//9 84//9 87//9
+usemtl M_Plains_ClayTileRoof
+f 88//9 84//9 85//9
+usemtl M_Plains_ClayTileRoof
+f 88//9 85//9 86//9
+usemtl M_Plains_ClayTileRoof
+f 88//9 86//9 87//9
+usemtl M_Plains_ClayTileRoof
+f 88//9 87//9 84//9
+usemtl M_Plains_WoodBeam
+f 89//9 90//9 90//9 89//9
+usemtl M_Plains_WoodBeam
+f 89//9 91//9 91//9 89//9
+usemtl M_Plains_WoodBeam
+f 89//9 92//9 92//9 89//9
+usemtl M_Plains_WoodBeam
+f 89//9 93//9 93//9 89//9

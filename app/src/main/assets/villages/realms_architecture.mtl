@@ -1,0 +1,109 @@
+# ==========================================
+# REALMS ARCHITECTURE SHARED MATERIAL LIBRARY
+# ==========================================
+
+# --- 1. Forest Realm ---
+newmtl M_Forest_WoodLog
+Kd 0.38 0.26 0.16
+Ks 0.08 0.08 0.08
+Ns 10.0
+
+newmtl M_Forest_DarkTimber
+Kd 0.22 0.15 0.10
+Ks 0.05 0.05 0.05
+Ns 8.0
+
+newmtl M_Forest_ThatchRoof
+Kd 0.48 0.42 0.22
+Ks 0.04 0.04 0.04
+Ns 6.0
+
+newmtl M_Forest_MossStone
+Kd 0.28 0.38 0.24
+Ks 0.10 0.10 0.10
+Ns 12.0
+
+# --- 2. Plains Realm ---
+newmtl M_Plains_PlasterWall
+Kd 0.88 0.84 0.76
+Ks 0.12 0.12 0.12
+Ns 15.0
+
+newmtl M_Plains_WoodBeam
+Kd 0.45 0.32 0.20
+Ks 0.06 0.06 0.06
+Ns 8.0
+
+newmtl M_Plains_ClayTileRoof
+Kd 0.72 0.34 0.22
+Ks 0.18 0.18 0.18
+Ns 20.0
+
+newmtl M_Plains_StrawThatched
+Kd 0.82 0.72 0.38
+Ks 0.05 0.05 0.05
+Ns 6.0
+
+# --- 3. Desert Realm ---
+newmtl M_Desert_AdobeClay
+Kd 0.84 0.68 0.48
+Ks 0.08 0.08 0.08
+Ns 10.0
+
+newmtl M_Desert_Sandstone
+Kd 0.74 0.58 0.38
+Ks 0.10 0.10 0.10
+Ns 12.0
+
+newmtl M_Desert_SunbleachedWood
+Kd 0.62 0.54 0.44
+Ks 0.05 0.05 0.05
+Ns 8.0
+
+newmtl M_Desert_TurquoiseCloth
+Kd 0.18 0.65 0.68
+Ks 0.15 0.15 0.15
+Ns 15.0
+
+# --- 4. Glacier Realm ---
+newmtl M_Glacier_DarkBasalt
+Kd 0.20 0.22 0.25
+Ks 0.15 0.15 0.20
+Ns 25.0
+
+newmtl M_Glacier_HeavyTimber
+Kd 0.28 0.22 0.18
+Ks 0.06 0.06 0.06
+Ns 10.0
+
+newmtl M_Glacier_SnowPact
+Kd 0.94 0.96 0.98
+Ks 0.35 0.40 0.45
+Ns 40.0
+
+newmtl M_Glacier_BlueIce
+Kd 0.55 0.78 0.92
+d 0.85
+Ks 0.80 0.90 0.95
+Ns 85.0
+
+# --- 5. Coastal Valley Realm ---
+newmtl M_Coastal_WeatheredWood
+Kd 0.52 0.48 0.44
+Ks 0.08 0.08 0.08
+Ns 10.0
+
+newmtl M_Coastal_Whitewash
+Kd 0.86 0.88 0.88
+Ks 0.15 0.15 0.15
+Ns 18.0
+
+newmtl M_Coastal_Cobblestone
+Kd 0.44 0.46 0.46
+Ks 0.12 0.12 0.12
+Ns 14.0
+
+newmtl M_Coastal_BlueSlateRoof
+Kd 0.26 0.38 0.48
+Ks 0.22 0.22 0.25
+Ns 28.0

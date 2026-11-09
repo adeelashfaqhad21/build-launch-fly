@@ -1022,10 +1022,73 @@ class WorldScene(
             )
             out.add(InstancedPart(mesh, instanced, material))
         }
+        out.addAll(buildRealmVillages(assets, textures))
         // The itch.io aircraft kit arrives as a zip; pull out the pad-side props it holds.
         out.addAll(buildKitProps(assets, textures))
         // And the Kenney Castle Kit raises a ruin on every realm's skyline.
         out.addAll(buildCastle(assets))
+        return out
+    }
+
+
+    /** One assembled, realm-specific village and its world placement. */
+    private class VillageSite(val x: Float, val z: Float, val heading: Float)
+
+    /** The source pack's Plains settlement is the game's Highland Valley realm. */
+    private fun villageAsset(): Pair<String, Float> = when (definition.id) {
+        WorldId.FOREST -> "forest_village.obj" to 6.2f
+        WorldId.MOUNTAIN -> "plains_village.obj" to 11.0f
+        WorldId.DESERT -> "desert_village.obj" to 9.8f
+        WorldId.SNOW -> "glacier_village.obj" to 6.55f
+        WorldId.OCEAN -> "coastal_village.obj" to 10.5f
+    }
+
+    /** Two candidate settlement sites per realm, plus a reserve if a site falls in water. */
+    private fun villageSites(): List<VillageSite> = when (definition.id) {
+        WorldId.FOREST -> listOf(VillageSite(-190f, -310f, 0.25f), VillageSite(420f, -610f, -0.85f), VillageSite(-540f, 280f, 1.4f))
+        WorldId.MOUNTAIN -> listOf(VillageSite(210f, -330f, -0.3f), VillageSite(-470f, -590f, 0.8f), VillageSite(590f, -430f, 2.0f))
+        WorldId.DESERT -> listOf(VillageSite(-220f, -360f, 0.65f), VillageSite(480f, -620f, -1.1f), VillageSite(-600f, 250f, 1.6f))
+        WorldId.SNOW -> listOf(VillageSite(230f, -380f, 0.45f), VillageSite(-470f, -650f, -0.9f), VillageSite(600f, -420f, 2.2f))
+        WorldId.OCEAN -> listOf(VillageSite(-250f, -400f, 1.0f), VillageSite(500f, -660f, -1.2f), VillageSite(-600f, 260f, 0.7f))
+    }
+
+    /**
+     * Loads the five supplied architectural families as material-coloured village meshes.
+     * Each composite contains four houses plus its realm's well, windmill, watchtower,
+     * signal beacon or lighthouse. The assembled village is instanced at two dry sites.
+     */
+    private fun buildRealmVillages(assets: AssetManager, textures: TextureFactory): List<InstancedPart> {
+        val (asset, height) = villageAsset()
+        val parts = AnimalLoader.load(assets, "villages/$asset", "villages/realms_architecture.mtl", height)
+        if (parts.isEmpty()) return emptyList()
+
+        val sites = villageSites().filter { site ->
+            !Vegetation.isInsideLaunchFacility(site.x, site.z) &&
+                terrain.height(site.x, site.z) >= definition.waterLevel + 1f
+        }.take(2)
+        if (sites.isEmpty()) return emptyList()
+
+        val matrices = FloatArray(sites.size * 16)
+        val matrix = Mat4()
+        for ((index, site) in sites.withIndex()) {
+            val ground = terrain.height(site.x, site.z)
+            matrix.setTrs(site.x, ground - 0.15f, site.z, 0f, site.heading, 0f, 1f, 1f, 1f)
+            System.arraycopy(matrix.m, 0, matrices, index * 16, 16)
+            registerObstacle(site.x, site.z, ground + height, 22f)
+        }
+
+        val out = ArrayList<InstancedPart>(parts.size)
+        for ((index, part) in parts.withIndex()) {
+            val name = "realmVillage${definition.id}$index"
+            val mesh = Mesh(name, part.data)
+            val instanced = InstancedMesh(name, part.data, sites.size)
+            instanced.setInstances(matrices, sites.size)
+            out.add(InstancedPart(mesh, instanced, Material(
+                albedo = textures.white,
+                tint = Vec3(part.color.x, part.color.y, part.color.z),
+                roughness = 0.94f, metallic = 0f, uvScale = 1f
+            )))
+        }
         return out
     }
 
