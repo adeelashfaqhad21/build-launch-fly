@@ -1052,7 +1052,9 @@ class WorldScene(
         val matrix = Mat4()
 
         for (spec in kitDressing()) {
-            val key = "${spec.kit}/${spec.model}"
+            // The height is part of the key: the same model is placed at two sizes in a few
+            // places, and each size needs its own mesh — the loader normalises to the height.
+            val key = "${spec.kit}/${spec.model}@${spec.height}"
             val data = meshes.getOrPut(key) {
                 PropLoader.load(
                     assets,

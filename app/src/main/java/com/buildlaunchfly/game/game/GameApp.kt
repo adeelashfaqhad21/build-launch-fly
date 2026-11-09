@@ -753,6 +753,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         for (part in currentScene.heroPlants) sceneRenderer.shadowInstanced(part.instanced)
         for (part in currentScene.animalParts) sceneRenderer.shadowInstanced(part.instanced)
+        // The airfield buildings, town props and castle obstacles are solid objects standing
+        // in the open; without this they floated over the ground with no shadow at all.
+        for (part in currentScene.structures) sceneRenderer.shadowInstanced(part.instanced)
         sceneRenderer.endShadowPass()
 
         sceneRenderer.drawSky()
