@@ -973,9 +973,8 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
 
         if (showSling) {
-            // The timber rig only. The elastic band's stretched strips are not drawn: they read
-            // as a bright multi-coloured ribbon across the aircraft instead of a slingshot,
-            // and the pull is shown by the aircraft itself moving back in the rig.
+            // Draw the timber posts here. The continuous yellow/cream elastic is assembled
+            // from the six live segment transforms and drawn over the aircraft immediately below.
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
         }
 
