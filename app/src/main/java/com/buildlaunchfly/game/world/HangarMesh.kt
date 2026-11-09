@@ -180,9 +180,25 @@ class HangarMesh(
     private fun buildFloorData(): MeshData {
         val b = MeshBuilder()
 
-        // Plank floor under the whole shed. The bench, stool, boxes and drum standing on it
-        // are imported Furniture Kit models, see [props].
-        b.addBox(0f, -0.09f, 0f, HALF_WIDTH, 0.09f, HALF_LENGTH, 3.4f)
+        // Keep the plank floor clear of the asphalt runway. A full-width floor slab
+        // underneath the deck caused coplanar overlap at the entrance and visible timber
+        // beneath the runway in the first hangar section.
+        // Rear workshop floor behind the slingshot plane (z = 0…+13).
+        b.addBox(
+            0f, -0.09f, HALF_LENGTH * 0.5f,
+            HALF_WIDTH, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
+        // Forward side walkways leave the central 9 m runway footprint open (z = -13…0).
+        val sideHalfWidth = (HALF_WIDTH - RAMP_WIDTH * 0.5f) * 0.5f
+        val sideCenterX = RAMP_WIDTH * 0.25f + sideHalfWidth
+        b.addBox(
+            -sideCenterX, -0.09f, -HALF_LENGTH * 0.5f,
+            sideHalfWidth, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
+        b.addBox(
+            sideCenterX, -0.09f, -HALF_LENGTH * 0.5f,
+            sideHalfWidth, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
 
         return b.build()
     }
@@ -337,8 +353,9 @@ class HangarMesh(
     }
 
     /**
-     * Ground height of the launch deck in hangar-local coordinates. Returns null outside
-     * the asphalt footprint so the normal terrain remains authoritative there.
+     * Ramp elevation above the pad in hangar-local coordinates. The caller must add the
+     * pad's world-space Y before comparing this with the world's terrain height.
+     * Returns null outside the asphalt footprint.
      */
     fun rampHeightAt(localX: Float, localZ: Float): Float? {
         if (kotlin.math.abs(localX) > RAMP_WIDTH * 0.5f) return null
