@@ -342,13 +342,14 @@ class WorldScene(
         // shipped.
         val assetManager = assets
         val birdFiles = assetManager?.list("birds")?.toSet().orEmpty()
-        val importedBird = when {
-            assetManager == null -> null
-            "parrot.glb" in birdFiles ->
-                GlbLoader.load(assetManager, "birds/parrot.glb", BIRD_HEIGHT)
-            "bird.json" in birdFiles ->
-                RtsModelLoader.load(assetManager, "birds/bird.json", BIRD_HEIGHT)
-            else -> null
+        val importedBird: MeshData? = assetManager?.let { manager ->
+            when {
+                "parrot.glb" in birdFiles ->
+                    GlbLoader.load(manager, "birds/parrot.glb", BIRD_HEIGHT)
+                "bird.json" in birdFiles ->
+                    RtsModelLoader.load(manager, "birds/bird.json", BIRD_HEIGHT)
+                else -> null
+            }
         }
         birdsMesh = InstancedMesh("birds", importedBird ?: buildBirdData(), birdCount.coerceAtLeast(1))
         animalsMesh = InstancedMesh("animals", buildAnimalData(), animalCount.coerceAtLeast(1))
