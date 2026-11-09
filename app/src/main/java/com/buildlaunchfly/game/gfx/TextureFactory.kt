@@ -28,6 +28,7 @@ class TextureFactory(
     val leaf: Texture2D
     val soil: Texture2D
     val planks: Texture2D
+    val asphalt: Texture2D
     val waterNormals: Texture2D
 
     private val surfaces = HashMap<SurfaceKind, Texture2D>()
@@ -91,6 +92,7 @@ class TextureFactory(
         planks = register(
             imported("planks") ?: Texture2D.create("planks", texSize, texSize, plankTexture(texSize))
         )
+        asphalt = register(Texture2D.create("asphalt", texSize, texSize, asphaltTexture(texSize)))
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
     }
 
@@ -265,6 +267,16 @@ class TextureFactory(
 
         val base = (0.62f + grain * 0.09f + fine * 0.04f - knot) * seam
         rgb(base, base * 0.78f, base * 0.56f)
+    }
+
+    /** Fine-grained, neutral charcoal aggregate for the runway; intentionally not timber. */
+    private fun asphaltTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
+        val broad = Noise.fbm2(u * 8f, v * 8f, 3, 2f, 0.5f, seed + 601)
+        val aggregate = Noise.value2(u * 190f, v * 190f, seed + 607)
+        val fleck = Noise.value2(u * 420f, v * 420f, seed + 613)
+        val lum = (0.19f + broad * 0.025f + aggregate * 0.035f + fleck * 0.012f)
+            .coerceIn(0.08f, 0.30f)
+        rgb(lum, lum * 1.01f, lum * 1.025f)
     }
 
     private fun barkTexture(size: Int): ByteArray = gen(size) { _, _, u, v ->
