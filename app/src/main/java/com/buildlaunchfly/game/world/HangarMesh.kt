@@ -190,7 +190,7 @@ class HangarMesh(
         )
         // Forward side walkways leave the central 9 m runway footprint open (z = -13…0).
         val sideHalfWidth = (HALF_WIDTH - RAMP_WIDTH * 0.5f) * 0.5f
-        val sideCenterX = RAMP_WIDTH * 0.25f + sideHalfWidth
+        val sideCenterX = RAMP_WIDTH * 0.5f + sideHalfWidth
         b.addBox(
             -sideCenterX, -0.09f, -HALF_LENGTH * 0.5f,
             sideHalfWidth, 0.09f, HALF_LENGTH * 0.5f, 3.4f
