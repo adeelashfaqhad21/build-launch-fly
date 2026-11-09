@@ -137,12 +137,13 @@ class CameraDirector(private val camera: Camera) {
 
     companion object {
         /**
-         * Camera height above the pad and distance behind the aircraft. The launch shot sits
-         * under the hangar eave (wall height is about 4.6 m) so the roof never fills the view,
-         * and far enough back that the whole rig and both wing tips frame the aircraft.
+         * Camera height above the pad and distance behind the aircraft. Both are chosen for a
+         * launch that happens inside the shed: the aircraft now stands on the floor, so the
+         * camera is at eye level a few metres behind it, under the eave, and stays inside the
+         * back wall during the pull.
          */
-        const val SEATED_HEIGHT = 3.6f
-        const val SEATED_DISTANCE = 11.5f
+        const val SEATED_HEIGHT = 2.6f
+        const val SEATED_DISTANCE = 5.5f
 
         /** Fixed rear-side oblique of the hangar view (Ref-2), not an animation. */
         const val HANGAR_BASE_ANGLE = -0.30f

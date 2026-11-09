@@ -22,8 +22,15 @@ import kotlin.math.sqrt
  */
 object SlingshotLayout {
 
-    /** Height of the tow point above the pad: the aircraft's seat in the band. */
-    const val SEAT_HEIGHT = 4.55f
+    /**
+     * Height of the aircraft's fuselage centre above the hangar floor. The landing wheels sit
+     * on the boards; the aircraft is not hung in the band.
+     */
+    const val SEAT_HEIGHT = 1.02f
+
+    /** Where the parked aircraft stands inside the shed, ahead of the back wall and clear of
+     * the ramp, which starts at the open front. */
+    const val HOLD_Z = 3.0f
 
     /** Two wide posts, a little wider apart than the wingspan so the band clears the tips. */
     const val POLE_X = 3.30f
@@ -54,7 +61,7 @@ object SlingshotLayout {
     const val ANCHOR_Y = -0.12f
     const val ANCHOR_Z = 0.30f
 
-    val HOLD_POINT = Vec3(0f, SEAT_HEIGHT, 0f)
+    val HOLD_POINT = Vec3(0f, SEAT_HEIGHT, HOLD_Z)
 }
 
 /**
