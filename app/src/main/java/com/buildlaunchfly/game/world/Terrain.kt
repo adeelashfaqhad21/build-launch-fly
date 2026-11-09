@@ -50,7 +50,8 @@ class Terrain(val definition: WorldDefinition) {
         // Keep the generated world terrain below the dedicated asphalt launch deck.
         // Without this clearance, the per-world height field can poke through the ramp
         // and look like a second, overlapping runway.
-        val rampHalfWidth = 4.5f
+        // Include the half-metre edge curbs as well as the 9 m asphalt surface.
+        val rampHalfWidth = 5.0f
         if (kotlin.math.abs(x) <= rampHalfWidth && z in -48f..0f) {
             val progress = ((-z) / 48f).coerceIn(0f, 1f)
             val rampRise = 4.2f *
