@@ -11,7 +11,6 @@ import com.buildlaunchfly.game.gfx.SurfaceKind
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
-import com.buildlaunchfly.game.slingshot.SlingshotLayout
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.pow
@@ -267,10 +266,8 @@ class HangarMesh(
     }
 
     /**
-     * Full-width forward launch deck reconstructed around the reference composition.
-     * The aircraft faces -Z; the deck begins immediately ahead of its nose and runs straight
-     * out through the open hangar front. It is a broad tapered wedge, not a short crosswise
-     * timber strip.
+     * Full-width forward launch deck from the Kotlin reference. The aircraft faces -Z;
+     * the 9 m asphalt surface starts at the slingshot plane and rises smoothly for 48 m.
      */
     private fun buildRampData(): MeshData {
         val b = MeshBuilder()
