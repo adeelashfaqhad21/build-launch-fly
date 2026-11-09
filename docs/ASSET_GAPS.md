@@ -4,6 +4,9 @@ Purpose: everything the game still draws with generated (procedural) code, what 
 asset would replace it, and what is already in `app/src/main/assets/`. This is the shopping
 list that has to be filled before the generated geometry can be deleted.
 
+Which packs to fetch, with links and where to put them, is in
+[`DOWNLOADS.md`](DOWNLOADS.md).
+
 ## What is imported today
 
 **~129 imported files** ship in `app/src/main/assets/`:
