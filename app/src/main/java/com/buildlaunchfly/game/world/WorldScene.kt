@@ -12,6 +12,7 @@ import com.buildlaunchfly.game.gfx.Material
 import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
+import com.buildlaunchfly.game.gfx.Noise
 import com.buildlaunchfly.game.gfx.ObjLoader
 import com.buildlaunchfly.game.gfx.ParticleRenderer
 import com.buildlaunchfly.game.gfx.PropLoader
@@ -381,13 +382,14 @@ class WorldScene(
             emptyList()
         }
 
-        structures = if (assets != null) {
+        val coastalRoad = if (definition.id == WorldId.OCEAN) buildCoastalRoad(textures) else emptyList()
+        structures = coastalRoad + (if (assets != null) {
             safeParts("buildings") { buildStructures(assets, textures) } +
                 safeParts("kit dressing") { buildKitDressing(assets) } +
                 safeParts("field boundaries") { buildFieldBoundaries(assets, textures) }
         } else {
             emptyList()
-        }
+        })
 
         waterDeep = definition.waterDeep
         waterShallow = definition.waterShallow
@@ -497,7 +499,15 @@ class WorldScene(
             HeroSpec("MapleTree_2", "MapleTree_Leaves.png", 6, 8.0f, 22, "MapleTree_Bark.jpg"),
             HeroSpec("MapleTree_4", "MapleTree_Leaves.png", 5, 7.2f, 57, "MapleTree_Bark.jpg"),
             HeroSpec("NormalTree_1", "NormalTree_Leaves.png", 6, 8.5f, 25, "NormalTree_Bark.jpg"),
-            HeroSpec("NormalTree_5", "NormalTree_Leaves.png", 5, 9.0f, 58, "NormalTree_Bark.jpg")
+            HeroSpec("NormalTree_5", "NormalTree_Leaves.png", 5, 9.0f, 58, "NormalTree_Bark.jpg"),
+            HeroSpec("BirchTree_3", "BirchTree_Leaves.png", 5, 7.4f, 89, "BirchTree_Bark.jpg"),
+            HeroSpec("BirchTree_4", "BirchTree_Leaves.png", 4, 7.8f, 90, "BirchTree_Bark.jpg"),
+            HeroSpec("BirchTree_5", "BirchTree_Leaves.png", 4, 7.6f, 91, "BirchTree_Bark.jpg"),
+            HeroSpec("MapleTree_3", "MapleTree_Leaves_BW.png", 4, 7.5f, 92, "MapleTree_Bark.jpg"),
+            HeroSpec("MapleTree_5", "MapleTree_Leaves.png", 4, 8.0f, 93, "MapleTree_Bark.jpg"),
+            HeroSpec("NormalTree_2", "NormalTree_Leaves.png", 4, 8.0f, 94, "NormalTree_Bark.jpg"),
+            HeroSpec("NormalTree_3", "NormalTree_Leaves.png", 4, 8.2f, 95, "NormalTree_Bark.jpg"),
+            HeroSpec("NormalTree_4", "NormalTree_Leaves.png", 4, 8.4f, 96, "NormalTree_Bark.jpg")
         )
         PlantStyle.GLACIER -> listOf(
             HeroSpec("PineTree_1", "PineTree_Leaves.png", 7, 7.5f, 3, "PineTree_Bark.jpg"),
@@ -1652,6 +1662,13 @@ class WorldScene(
 
             val h = terrain.height(x, z)
             if (h < definition.waterLevel + 1.5f) continue
+            // Imported near-field plants and trees form irregular stands, with open ground
+            // left between clusters instead of an evenly sprinkled asset field.
+            val broadPatch = Noise.fbm01(x * 0.007f, z * 0.007f, 3, definition.seed + seedOffset + 311)
+            val finePatch = Noise.fbm01(x * 0.026f, z * 0.026f, 2, definition.seed + seedOffset + 317)
+            val cover = broadPatch * 0.72f + finePatch * 0.28f
+            if (cover < 0.36f) continue
+            if (rng.nextFloat() > ((cover - 0.36f) / 0.48f).coerceIn(0.12f, 0.96f)) continue
             terrain.normal(x, z, normal)
             if (normal.y < 0.84f) continue
 
@@ -1695,6 +1712,53 @@ class WorldScene(
 
     private fun multiply(color: Vec3, factor: Float): Vec3 =
         Vec3(color.x * factor, color.y * factor, color.z * factor)
+
+    /** A narrow, raised metal service road follows the landward edge of Sapphire Coast. */
+    private fun buildCoastalRoad(textures: TextureFactory): List<InstancedPart> {
+        val builder = MeshBuilder()
+        val centerX = 104f
+        val halfWidth = 3.1f
+        val startZ = -1500f
+        val segmentLength = 20f
+        val segments = 145
+
+        for (index in 0 until segments) {
+            val z0 = startZ + index * segmentLength
+            val z1 = z0 + segmentLength
+            val y0 = terrain.height(centerX, z0) + 0.22f
+            val y1 = terrain.height(centerX, z1) + 0.22f
+
+            // The corner order keeps the deck's normal facing upward on sloping ground.
+            builder.addQuad(
+                Vec3(centerX - halfWidth, y0, z0),
+                Vec3(centerX - halfWidth, y1, z1),
+                Vec3(centerX + halfWidth, y1, z1),
+                Vec3(centerX + halfWidth, y0, z0),
+                uvScale = 5f
+            )
+
+            // A simple continuous seaward guardrail, supported by regularly spaced posts.
+            val railX = centerX + halfWidth - 0.12f
+            val railY = (y0 + y1) * 0.5f + 0.78f
+            builder.addBox(railX, railY, (z0 + z1) * 0.5f, 0.065f, 0.065f, segmentLength * 0.5f, 2f)
+            if (index % 2 == 0) {
+                builder.addBox(railX, (y0 + y1) * 0.5f + 0.36f, z0, 0.055f, 0.36f, 0.055f, 1f)
+            }
+        }
+
+        val data = builder.build()
+        val mesh = Mesh("coastalMetalRoad", data)
+        val instances = InstancedMesh("coastalMetalRoad", data, 1)
+        instances.setInstances(Mat4().m, 1)
+        val material = Material(
+            albedo = textures.metal,
+            tint = Vec3(0.72f, 0.78f, 0.82f),
+            roughness = 0.42f,
+            metallic = 0.82f,
+            uvScale = 2f
+        )
+        return listOf(InstancedPart(mesh, instances, material))
+    }
 
     private fun buildWaterData(): MeshData {
         val y = definition.waterLevel
