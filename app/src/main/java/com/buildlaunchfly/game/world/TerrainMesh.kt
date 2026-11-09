@@ -80,11 +80,23 @@ object TerrainMesh {
             }
         }
 
-        val indexCount = (nx - 1) * (nz - 1) * 6
-        val indices = IntArray(indexCount)
+        // The dedicated asphalt deck is the only surface that should occupy its
+        // footprint. Do not merely lower the procedural terrain there: even a lowered
+        // terrain sheet remains visible as a second strip through gaps and at shallow
+        // viewing angles. Omit the terrain cells under the deck entirely.
+        val indices = IntArray((nx - 1) * (nz - 1) * 6)
         var t = 0
         for (j in 0 until nz - 1) {
+            val z0 = zs[j]
+            val z1 = zs[j + 1]
             for (i in 0 until nx - 1) {
+                val x0 = xs[i]
+                val x1 = xs[i + 1]
+                val underRunway =
+                    x0 >= -4.5f && x1 <= 4.5f &&
+                    z0 >= -48f && z1 <= 0f
+                if (underRunway) continue
+
                 val a = j * nx + i
                 val b = j * nx + i + 1
                 val c = (j + 1) * nx + i + 1
@@ -98,7 +110,7 @@ object TerrainMesh {
             }
         }
 
-        return MeshData(vertices, indices)
+        return MeshData(vertices, indices.copyOf(t))
     }
 
     /** Merge exact local-detail samples into the broad terrain grid without duplicates. */
