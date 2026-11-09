@@ -317,7 +317,7 @@ class HangarMesh(
             b.addRod(
                 x, rampElevation(0f) + 0.16f, RAMP_START_Z,
                 x, rampElevation(1f) + 0.16f, RAMP_END_Z,
-                0.14f, 8
+                RAMP_CURB_WIDTH * 0.5f, 8
             )
         }
 
