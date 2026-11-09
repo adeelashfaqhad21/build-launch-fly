@@ -223,6 +223,8 @@ on its final commit.
 - **845d44c** — the bird reader is chosen from the files actually in the APK, so the missing
   `bird.json` no longer logs a load failure.
 - **9d811c8** — bird lookup written null-safe so it cannot fail to compile.
-- **this commit** — startup cannot die silently: `GameApp` catches the engine build and the
+- **f0f0222** — startup cannot die silently: `GameApp` catches the engine build and the
   splash prints the failure; `WorldScene` guards each asset group; `GlbLoader` refuses any
-  blob over 4 MB (the parrot is 12.2 MB).
+  blob over 4 MB (the parrot is 12.2 MB), so the flock falls back to the procedural birds.
+- **85d1dc6**, **efc9e74** — a world or a frame that throws is reported on the splash screen
+  instead of ending the process; the splash stays up while an error is set.
