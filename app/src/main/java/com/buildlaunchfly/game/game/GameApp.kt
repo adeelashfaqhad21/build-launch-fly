@@ -933,7 +933,8 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
                 for (prop in set.props) {
-                    sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
+                    hangarPropModel.setProduct(slingshotModel, prop.matrix)
+                    sceneRenderer.drawMesh(prop.mesh, prop.material, hangarPropModel)
                 }
             }
         }
