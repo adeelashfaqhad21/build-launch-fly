@@ -346,7 +346,8 @@ class WorldScene(
         animals = Wildlife.GroundAnimals(
             animalCount,
             Vec3(0f, terrain.padHeight, -180f),
-            definition.seed
+            definition.seed,
+            isExcluded = { x, z -> Vegetation.isInsideLaunchFacility(x, z) }
         )
 
         // The imported parrot (glTF binary) is the flock when it is in the APK; the older
@@ -1554,7 +1555,8 @@ class WorldScene(
                     val group = Wildlife.GroundAnimals(
                         count,
                         Vec3(0f, terrain.padHeight, -180f),
-                        definition.seed + 331 + seedOffset
+                        definition.seed + 331 + seedOffset,
+                        isExcluded = { x, z -> Vegetation.isInsideLaunchFacility(x, z) }
                     )
                     val meshes = ArrayList<InstancedPart>(parts.size)
                     for ((index, part) in parts.withIndex()) {
