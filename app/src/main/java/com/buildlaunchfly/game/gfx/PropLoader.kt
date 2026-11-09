@@ -30,7 +30,60 @@ object PropLoader {
         null
     }
 
-    private fun parseLines(lines: Sequence<String>, heightMeters: Float): MeshData? {
+    /**
+     * Loads [path] at a fixed [scale] (world units per model unit), base at y = 0 and plan
+     * centred on the origin. The modular Kenney kits are authored on one grid, so their
+     * pieces must all share a scale instead of each being normalised to its own height.
+     */
+    fun loadScaled(assets: AssetManager, path: String, scale: Float): MeshData? = try {
+        assets.open(path).bufferedReader().use { reader ->
+            parseLines(reader.lineSequence(), 1f, scale)
+        }
+    } catch (error: Throwable) {
+        Log.e(TAG, "Failed to load prop $path", error)
+        null
+    }
+
+    /** A model's measurements in its own units: larger plan extent, and height. */
+    class Extents(val size: Float, val height: Float)
+
+    /** Reads just the `v` lines of [path] to measure it before it is loaded. */
+    fun extents(assets: AssetManager, path: String): Extents? = try {
+        var minX = Float.MAX_VALUE
+        var minY = Float.MAX_VALUE
+        var minZ = Float.MAX_VALUE
+        var maxX = -Float.MAX_VALUE
+        var maxY = -Float.MAX_VALUE
+        var maxZ = -Float.MAX_VALUE
+
+        assets.open(path).bufferedReader().use { reader ->
+            for (line in reader.lineSequence()) {
+                if (!line.startsWith("v ")) continue
+                val p = line.trim().split(WHITESPACE)
+                if (p.size < 4) continue
+                val x = p[1].toFloatOrNull() ?: continue
+                val y = p[2].toFloatOrNull() ?: continue
+                val z = p[3].toFloatOrNull() ?: continue
+                if (x < minX) minX = x
+                if (y < minY) minY = y
+                if (z < minZ) minZ = z
+                if (x > maxX) maxX = x
+                if (y > maxY) maxY = y
+                if (z > maxZ) maxZ = z
+            }
+        }
+        if (minX > maxX) null
+        else Extents(maxOf(maxX - minX, maxZ - minZ), (maxY - minY).coerceAtLeast(0.0001f))
+    } catch (error: Throwable) {
+        Log.e(TAG, "Failed to measure prop $path", error)
+        null
+    }
+
+    private fun parseLines(
+        lines: Sequence<String>,
+        heightMeters: Float,
+        uniformScale: Float = -1f
+    ): MeshData? {
         val positions = ArrayList<Float>(8192)
         val texCoords = ArrayList<Float>(8192)
         val normals = ArrayList<Float>(8192)
@@ -67,7 +120,11 @@ object PropLoader {
         }
 
         if (vertices.size == 0) return null
-        normalise(vertices, heightMeters)
+        if (uniformScale > 0f) {
+            scaleUniform(vertices, uniformScale)
+        } else {
+            normalise(vertices, heightMeters)
+        }
 
         val vertexArray = FloatArray(vertices.size)
         System.arraycopy(vertices.data(), 0, vertexArray, 0, vertices.size)
@@ -173,6 +230,40 @@ object PropLoader {
         if (minX > maxX) return
 
         val scale = heightMeters / (maxY - minY).coerceAtLeast(0.0001f)
+        val cx = (minX + maxX) * 0.5f
+        val cz = (minZ + maxZ) * 0.5f
+        i = 0
+        while (i + 7 < vertices.size) {
+            data[i] = (data[i] - cx) * scale
+            data[i + 1] = (data[i + 1] - minY) * scale
+            data[i + 2] = (data[i + 2] - cz) * scale
+            i += 8
+        }
+    }
+
+    /** Fixed-scale transform: ×[scale], base at y = 0, centred in XZ. */
+    private fun scaleUniform(vertices: FloatList, scale: Float) {
+        val data = vertices.data()
+        var minX = Float.MAX_VALUE
+        var minY = Float.MAX_VALUE
+        var minZ = Float.MAX_VALUE
+        var maxX = -Float.MAX_VALUE
+        var maxZ = -Float.MAX_VALUE
+
+        var i = 0
+        while (i + 7 < vertices.size) {
+            val x = data[i]
+            val y = data[i + 1]
+            val z = data[i + 2]
+            if (x < minX) minX = x
+            if (y < minY) minY = y
+            if (z < minZ) minZ = z
+            if (x > maxX) maxX = x
+            if (z > maxZ) maxZ = z
+            i += 8
+        }
+        if (minX > maxX) return
+
         val cx = (minX + maxX) * 0.5f
         val cz = (minZ + maxZ) * 0.5f
         i = 0

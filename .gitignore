@@ -34,3 +34,8 @@ Thumbs.db
 
 # Local reference archives (the individual plates are tracked)
 docs/reference/*.zip
+
+
+# Unpacked third-party kits: the models actually used are copied into app/src/main/assets
+assets-source/kenney_nature-kit/
+assets-source/kenney_castle-kit/

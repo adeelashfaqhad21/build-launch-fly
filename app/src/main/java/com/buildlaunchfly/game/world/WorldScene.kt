@@ -616,51 +616,79 @@ class WorldScene(
             }
         }
 
-        // Whatever the Quaternius packs do not cover — desert cacti, coastal reeds, extra
-        // rocks — comes out of the Kenney Nature Kit archive.
-        buildKenneyPlants(assets, outPlants)
+        // Whatever the Quaternius packs do not cover — desert cacti, coastal palms, meadow
+        // grass — comes out of the Kenney Nature Kit.
+        buildKenneyPlants(assets, textures, outPlants)
     }
 
-    /** Model-name keywords per realm, matched against the Kenney archive's OBJ entries. */
-    private fun kenneyKeywords(): List<String> = when (plantStyle) {
-        PlantStyle.DESERT -> listOf("cactus", "rock")
-        PlantStyle.COAST -> listOf("plant", "grass", "rock")
-        PlantStyle.ALPINE -> listOf("rock", "plant")
-        PlantStyle.FOREST -> listOf("rock", "plant")
+    /** One Kenney Nature Kit model: exact file name, world height and how many per realm. */
+    private class KenneySpec(
+        val name: String,
+        val height: Float,
+        val count: Int,
+        val seedOffset: Int
+    )
+
+    /** Which exact Kenney models this realm grows, on top of the Quaternius set. */
+    private fun kenneySpecs(): List<KenneySpec> = when (plantStyle) {
+        PlantStyle.DESERT -> listOf(
+            KenneySpec("cactus_short", 1.9f, 12, 101),
+            KenneySpec("cactus_tall", 3.6f, 8, 102),
+            KenneySpec("rock_largeA", 1.2f, 10, 103)
+        )
+        PlantStyle.COAST -> listOf(
+            KenneySpec("tree_palm", 6.5f, 6, 111),
+            KenneySpec("plant_bushLarge", 1.6f, 14, 112),
+            KenneySpec("grass_large", 0.9f, 18, 113)
+        )
+        PlantStyle.ALPINE -> listOf(
+            KenneySpec("rock_largeA", 1.4f, 14, 121),
+            KenneySpec("plant_bushSmall", 0.8f, 12, 122),
+            KenneySpec("grass_large", 0.7f, 12, 123)
+        )
+        PlantStyle.FOREST -> listOf(
+            KenneySpec("plant_bush", 1.2f, 14, 131),
+            KenneySpec("plant_bushLarge", 1.7f, 10, 132),
+            KenneySpec("grass_large", 0.9f, 16, 133)
+        )
     }
 
     /**
-     * Kenney kits ship one shared palette texture and a folder of OBJs, so the archive is
-     * scanned for the first model whose name matches each keyword. A missing model is simply
-     * skipped, which keeps the worlds working if the pack layout changes.
+     * The Kenney Nature Kit ships no texture: every model is a handful of flat material
+     * colours in its MTL. [AnimalLoader] splits the OBJ by material and returns one mesh and
+     * one colour per group, which is exactly the shape an [InstancedPart] needs, so each part
+     * is drawn with the shared white texture tinted by its own colour.
      */
-    private fun buildKenneyPlants(assets: AssetManager, out: MutableList<InstancedPart>) {
-        val entries = ZipKit.read(assets, "kits/kenney_nature.zip")
-        if (entries.isEmpty()) return
-        val objects = entries.filter { it.name.lowercase().endsWith(".obj") }
-        if (objects.isEmpty()) return
-        val texture = ZipKit.textureFor(entries, objects.first().name)?.let {
-            AssetTextures.loadFromBytes(it.bytes, it.name)
-        } ?: return
-        val material = Material(
-            albedo = texture,
-            tint = Vec3(1f, 1f, 1f),
-            roughness = 0.90f,
-            metallic = 0f,
-            uvScale = 1f
-        )
+    private fun buildKenneyPlants(
+        assets: AssetManager,
+        textures: TextureFactory,
+        out: MutableList<InstancedPart>
+    ) {
+        for (spec in kenneySpecs()) {
+            val parts = AnimalLoader.load(
+                assets,
+                "models/nature/${spec.name}.obj",
+                "models/nature/${spec.name}.mtl",
+                1f
+            )
+            if (parts.isEmpty()) continue
 
-        for (keyword in kenneyKeywords()) {
-            val entry = objects.firstOrNull { it.name.lowercase().contains(keyword) } ?: continue
-            val text = String(entry.bytes, Charsets.UTF_8)
-            val data = PropLoader.loadFromText(text, entry.name, 1f) ?: continue
-            val set = heroScatter(heroCount(6), keyword.hashCode(), 1.6f)
+            val set = heroScatter(heroCount(spec.count), spec.seedOffset, spec.height)
             if (set.count == 0) continue
 
-            val mesh = Mesh("kenney$keyword", data)
-            val instanced = InstancedMesh("kenney$keyword", data, set.count)
-            instanced.setInstances(set.matrices, set.count)
-            out.add(InstancedPart(mesh, instanced, material))
+            for ((index, part) in parts.withIndex()) {
+                val mesh = Mesh("kenney${spec.name}$index", part.data)
+                val instanced = InstancedMesh("kenney${spec.name}$index", part.data, set.count)
+                instanced.setInstances(set.matrices, set.count)
+                val material = Material(
+                    albedo = textures.white,
+                    tint = part.color,
+                    roughness = 0.90f,
+                    metallic = 0f,
+                    uvScale = 1f
+                )
+                out.add(InstancedPart(mesh, instanced, material))
+            }
         }
     }
 
@@ -814,6 +842,8 @@ class WorldScene(
         }
         // The itch.io aircraft kit arrives as a zip; pull out the pad-side props it holds.
         out.addAll(buildKitProps(assets, textures))
+        // And the Kenney Castle Kit raises a ruin on every realm's skyline.
+        out.addAll(buildCastle(assets))
         return out
     }
 
@@ -864,6 +894,111 @@ class WorldScene(
         }
         return out
     }
+    // ---- Kenney Castle Kit -------------------------------------------------
+
+    /** Where a castle ruin stands: one tower, and a wall run heading off along +X. */
+    private class CastleSite(
+        val x: Float,
+        val z: Float,
+        val heading: Float,
+        val wallModules: Int
+    )
+
+    private fun castleSites(): List<CastleSite> = when (definition.id) {
+        WorldId.FOREST -> listOf(CastleSite(-96f, -156f, 0.35f, 4))
+        WorldId.MOUNTAIN -> listOf(CastleSite(104f, -186f, -0.45f, 3))
+        WorldId.SNOW -> listOf(CastleSite(-88f, -172f, 0.60f, 3))
+        WorldId.OCEAN -> listOf(CastleSite(118f, -224f, 1.20f, 2))
+        WorldId.DESERT -> listOf(CastleSite(-108f, -204f, -0.80f, 2))
+    }
+
+    /**
+     * A ruined tower and its wall, built from the Kenney Castle Kit. The kit is authored on a
+     * single 1-unit grid, so every piece is loaded at one shared scale, chosen so the finished
+     * tower stands [TOWER_HEIGHT] metres tall; the walls then keep the artist's proportions.
+     */
+    private fun buildCastle(assets: AssetManager): List<InstancedPart> {
+        val towerPieces = listOf("tower-square-base", "tower-square-mid", "tower-square-roof")
+        val wallPieces = listOf("wall", "wall-doorway")
+
+        val measured = LinkedHashMap<String, PropLoader.Extents>()
+        for (name in towerPieces + wallPieces) {
+            PropLoader.extents(assets, "models/castle/$name.obj")?.let { measured[name] = it }
+        }
+        if (measured.isEmpty()) return emptyList()
+
+        val towerUnits = towerPieces.sumOf { (measured[it]?.height ?: 0f).toDouble() }.toFloat()
+        if (towerUnits <= 0f) return emptyList()
+        val scale = TOWER_HEIGHT / towerUnits
+
+        val meshes = LinkedHashMap<String, MeshData>()
+        for (name in measured.keys) {
+            PropLoader.loadScaled(assets, "models/castle/$name.obj", scale)?.let {
+                meshes[name] = it
+            }
+        }
+        if (meshes.isEmpty()) return emptyList()
+
+        val texture = AssetTextures.load(assets, "models/castle/colormap.png")
+            ?: return emptyList()
+
+        val placements = LinkedHashMap<String, ArrayList<Float>>()
+        val slot = Mat4()
+
+        fun place(name: String, x: Float, y: Float, z: Float, heading: Float) {
+            if (name !in meshes) return
+            slot.setTrs(x, y, z, 0f, heading, 0f, 1f)
+            val list = placements.getOrPut(name) { ArrayList(48) }
+            for (value in slot.m) list.add(value)
+        }
+
+        val towerHalf = (measured["tower-square-base"]?.size ?: 0f) * scale * 0.5f
+        val wallWidth = (measured["wall"]?.size ?: 0f) * scale
+
+        for (site in castleSites()) {
+            if (terrain.height(site.x, site.z) < definition.waterLevel + 1f) continue
+
+            var lift = terrain.height(site.x, site.z) - 0.25f
+            for (name in towerPieces) {
+                if (name !in meshes) continue
+                place(name, site.x, lift, site.z, site.heading)
+                lift += (measured[name]?.height ?: 0f) * scale
+            }
+
+            if (wallWidth <= 0f) continue
+            for (index in 0 until site.wallModules) {
+                val name = if (index == 0) "wall-doorway" else "wall"
+                if (name !in meshes) continue
+                val x = site.x + towerHalf + wallWidth * (index + 0.5f)
+                place(name, x, terrain.height(x, site.z) - 0.25f, site.z, site.heading)
+            }
+        }
+
+        val material = Material(
+            albedo = texture,
+            tint = Vec3(1f, 1f, 1f),
+            roughness = 0.92f,
+            metallic = 0f,
+            uvScale = 1f
+        )
+
+        val out = ArrayList<InstancedPart>(placements.size)
+        for ((name, values) in placements) {
+            val data = meshes[name] ?: continue
+            val count = values.size / 16
+            if (count == 0) continue
+
+            val matrices = FloatArray(count * 16)
+            for (index in matrices.indices) matrices[index] = values[index]
+
+            val mesh = Mesh("castle$name", data)
+            val instanced = InstancedMesh("castle$name", data, count)
+            instanced.setInstances(matrices, count)
+            out.add(InstancedPart(mesh, instanced, material))
+        }
+        return out
+    }
+
     private class ShipSpec(
         val asset: String,
         val height: Float,
@@ -1327,5 +1462,10 @@ class WorldScene(
         builder.addBox(0.16f, 0.20f, -0.30f, 0.05f, 0.20f, 0.05f)
         builder.addBox(-0.16f, 0.20f, -0.30f, 0.05f, 0.20f, 0.05f)
         return builder.build()
+    }
+
+    private companion object {
+        /** Height the imported castle tower is scaled to, in metres. */
+        const val TOWER_HEIGHT = 15f
     }
 }

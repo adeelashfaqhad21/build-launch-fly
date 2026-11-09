@@ -12,8 +12,13 @@ Pack contents (75 files, version 2.0): a modular low-poly medieval set — wall 
 towers, gates, stairs, roofs, doors, windows, banners and flags — in GLTF / FBX / OBJ with a
 single shared palette texture. The OBJ models are the ones the game loads.
 
-Intended use in this project: the timber/stone hangar shell, its open front wall and roof,
-plus the ruins and stone-arch obstacles along the flight course.
+Intended use in this project: a ruin on every realm's skyline — a three-piece tower
+(tower-square-base, tower-square-mid, tower-square-roof) with a wall run beside it
+(wall, wall-doorway) — dressed with the kit's own colormap.png atlas.
 
-Shipped as: app/src/main/assets/kits/kenney_castle.zip
-Read in memory at load time (gfx/ZipKit); no build-time unpack step.
+Shipped as: the pieces actually placed are copied into app/src/main/assets/models/castle/
+with the shared colormap.png; the model .obj files are read at load time by
+gfx/PropLoader.loadScaled, which applies one shared scale to the whole modular set so the
+stacked tower lines up. The 2 MB source archive is kept out of the APK; the open-source kit
+stays in assets-source/.
+

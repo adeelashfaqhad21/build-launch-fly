@@ -9,9 +9,14 @@ CC0: no attribution is required and commercial use is allowed. Attribution is gi
 and in the README as a courtesy.
 
 Pack contents (330 files): low-poly trees, palms, rocks, stones, bushes, flowers, grass,
-mushroom and plant models, in GLTF / FBX / OBJ plus a single shared palette texture
-(Textures/colormap.png). The OBJ models are the ones the game loads.
+mushroom and plant models, in GLTF / FBX / OBJ. The OBJ models are the ones the game loads.
 
-Shipped as: app/src/main/assets/kits/kenney_nature.zip
-The archive is read in memory at load time (gfx/ZipKit), so no build-time unpack step is
-needed, and the game only pays texture memory for the models it actually places.
+The Nature Kit models carry no texture: each one is a handful of flat material colours
+(`Kd`) in its MTL, so they are drawn with the shared white map tinted by each group's own
+colour.
+
+Shipped as: the models actually placed are copied into
+app/src/main/assets/models/nature/ (cactus_short, cactus_tall, plant_bush, plant_bushLarge,
+plant_bushSmall, grass, grass_large, rock_largeA, tree_palm, with their .mtl files). The
+12 MB source archive is kept out of the APK; the open-source kit stays in assets-source/.
+

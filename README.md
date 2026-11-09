@@ -63,6 +63,12 @@ so they dress the hangar approach and line the first part of every flight. **The
 every quality level** — only the number of copies follows the graphics setting — so the
 imported packs are never invisible on a mid-range phone.
 
+The **Kenney Nature Kit** (CC0) adds what that pack leaves out: saguaro cacti in the desert,
+palms and tall grass on the coast, extra bushes and boulders in the forest and the alpine
+realms. Those models carry no texture at all — each one is a handful of flat material colours
+in its MTL — so they are split by material at load time and drawn with the shared white map
+tinted by each group's own colour, exactly like the animals and ships.
+
 **All five realms are unlocked while the game is in development** (`PlayerProfile.ALL_WORLDS_UNLOCKED`),
 so every environment can be tested; the distance-gated progression is retained behind that
 switch for the release pass.
@@ -103,6 +109,12 @@ a windmill and a watchtower in the forest; town centre and tower house in the al
 a dock on the coast; a mine in the desert; crates and a barrel at the launch pad; and large
 mountain meshes building the skyline 300–700 m out. Loaded through `gfx/PropLoader` with each
 model's own PNG texture.
+
+The **Kenney Castle Kit** (CC0) raises a ruin on every realm's skyline: a three-piece tower
+(base, mid, roof) with a wall run beside it. The kit is authored on a single 1-unit grid, so
+all of its pieces load at one shared scale (`PropLoader.loadScaled`) chosen to make the tower
+15 m tall, rather than each part being normalised to its own height — otherwise the stacked
+tower would not line up. The pieces share the kit's `colormap.png` atlas.
 
 **Flight (`aircraft/FlightPhysics`)** — a glider model, because the brief makes the slingshot
 the only launch power: after release the aircraft flies on momentum and aerodynamics. Lift
@@ -231,6 +243,9 @@ Why the two APKs behaved differently before:
 
 - **Quaternius** (CC0): Ultimate Stylized Nature, Ultimate Animated Animals, Ships and
   Ultimate Fantasy RTS packs — `docs/licenses/Quaternius-*.txt`.
+- **Kenney** (CC0): [Nature Kit](https://kenney.nl/assets/nature-kit) and
+  [Castle Kit](https://kenney.nl/assets/castle-kit) —
+  `docs/licenses/Kenney-NatureKit-CC0.txt`, `docs/licenses/Kenney-CastleKit-CC0.txt`.
 - **Poly Haven** (CC0): the ten ground/terrain and wood/bark diffuse maps in
   `assets/terrain` — `docs/licenses/PolyHaven-CC0.txt`.
 - **"Low-Poly Aircraft Kit Free" by heyheythere** —
