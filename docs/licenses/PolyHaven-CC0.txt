@@ -21,6 +21,7 @@ Assets included in this build (1K JPG diffuse maps, under app/src/main/assets/te
   gravel.jpg       <- "Floor Pebbles 01"     https://polyhaven.com/a/floor_pebbles_01
   planks.jpg       <- "Wood Planks"          https://polyhaven.com/a/wood_planks
   bark.jpg         <- "Bark Willow 02"       https://polyhaven.com/a/bark_willow_02
+  metal.jpg        <- "Rusty Metal 02"       https://polyhaven.com/a/rusty_metal_02
 
 Also downloaded to assets-source/terrain/ for future use:
   planks_raw.jpg   <- "Raw Plank Wall"       https://polyhaven.com/a/raw_plank_wall

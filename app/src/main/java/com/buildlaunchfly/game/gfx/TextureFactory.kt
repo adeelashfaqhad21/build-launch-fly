@@ -72,7 +72,9 @@ class TextureFactory(
             imported("gravel") ?: Texture2D.create("gravel", texSize, texSize, rockTexture(texSize))
         )
 
-        metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
+        metal = register(
+            imported("metal") ?: Texture2D.create("metal", texSize, texSize, metalTexture(texSize))
+        )
         rubber = register(Texture2D.create("rubber", texSize, texSize, rubberTexture(texSize)))
         hazard = register(Texture2D.create("hazard", texSize, texSize, hazardTexture(texSize)))
         bark = register(
