@@ -97,7 +97,9 @@ a ridge beam with exposed rafters, tie beams and purlins, a plank floor, a closi
 a heavy timber door frame at the open front, and the clutter of a working airfield (hay bales,
 crates, a barrel, a bench and stool, a lamp hanging from the ridge). A **six-metre launch ramp**
 rises one metre directly in front of the open end, so the aircraft runs out of the shed and up
-the slope; the ramp lip also adds a small upward push to the launch.
+the slope; the ramp lip also adds a small upward push to the launch. The furniture standing on
+the floor — workbench, stool, bench, boxes and drum — is imported from the **Kenney Furniture
+Kit** (CC0), split by its flat material colours the same way as the nature and castle models.
 
 **Scale** — the slingshot stands 4.85 m tall with 3.3 m post spacing, and the aircraft is drawn
 at 1.5× so both are the hero elements of the launch shot, as in the plates.
@@ -245,9 +247,11 @@ Why the two APKs behaved differently before:
 
 - **Quaternius** (CC0): Ultimate Stylized Nature, Ultimate Animated Animals, Ships and
   Ultimate Fantasy RTS packs — `docs/licenses/Quaternius-*.txt`.
-- **Kenney** (CC0): [Nature Kit](https://kenney.nl/assets/nature-kit) and
-  [Castle Kit](https://kenney.nl/assets/castle-kit) —
-  `docs/licenses/Kenney-NatureKit-CC0.txt`, `docs/licenses/Kenney-CastleKit-CC0.txt`.
+- **Kenney** (CC0): [Nature Kit](https://kenney.nl/assets/nature-kit),
+  [Castle Kit](https://kenney.nl/assets/castle-kit) and
+  [Furniture Kit](https://kenney.nl/assets/furniture-kit) —
+  `docs/licenses/Kenney-NatureKit-CC0.txt`, `docs/licenses/Kenney-CastleKit-CC0.txt`,
+  `docs/licenses/Kenney-FurnitureKit-CC0.txt`.
 - **Poly Haven** (CC0): the ten ground/terrain and wood/bark diffuse maps in
   `assets/terrain` — `docs/licenses/PolyHaven-CC0.txt`.
 - **"Low-Poly Aircraft Kit Free" by heyheythere** —

@@ -44,16 +44,19 @@ Remains open:
   disc animates.
 - the Poly-Google plane in `assets-source/Planes /` is a ready-made **second airframe**.
 
-## 2. Hangar and launch ramp — still generated
+## 2. Hangar and launch ramp — shell still generated
 
-`world/HangarMesh.kt` (277 lines): plank wall on studs, open right side, gable roof with
-rafters/ties/purlins, door frame, plank floor, back wall, hay bales, crates, barrel, bench,
-stool, lamp, and the 6 m launch ramp.
+`world/HangarMesh.kt` builds the shell (plank wall on studs, open right side, gable roof with
+rafters/ties/purlins, door frame, plank floor, back wall) and the 6 m launch ramp.
 
-Needed: an imported timber shed (shell + roof + interior props) and a ramp module. None of
-the packs in use has a hangar. The Kenney Castle Kit's `wall-narrow-wood*`, `tree-log`,
-`wall-pillar` and `flag*` could dress it, but the shell itself still needs a real building
-pack (Quaternius *Modular Buildings*, Kenney *Furniture Kit*, or a dedicated barn model).
+**Imported now:** the furniture standing on the floor — workbench, stool, bench, two boxes and
+a drum — comes from the Kenney Furniture Kit (CC0) in `assets/models/furniture`, split by its
+flat material colours and placed by `HangarMesh.props`. The procedural hay bales, crates,
+barrel, bench and stool were removed.
+
+Still needed: an imported timber **shed shell and ramp** (the walls, roof and 6 m ramp are
+still built in code). None of the packs in use has a barn; Kenney's Castle Kit `wall-narrow-wood*`
+and `tree-log` could dress the walls, and Fantasy Town Kit has building shells.
 
 ## 3. Slingshot — still generated
 

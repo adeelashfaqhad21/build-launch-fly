@@ -1,11 +1,14 @@
 package com.buildlaunchfly.game.world
 
+import android.content.res.AssetManager
+import com.buildlaunchfly.game.gfx.AnimalLoader
 import com.buildlaunchfly.game.gfx.Material
 import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.TextureFactory
 import com.buildlaunchfly.game.math.M
+import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -24,7 +27,13 @@ import kotlin.math.sqrt
  * Built in metres relative to the pad: forward is -Z, so the camera looks in from +Z and out
  * through the open front toward the valley.
  */
-class HangarMesh(textures: TextureFactory) {
+class HangarMesh(
+    private val textures: TextureFactory,
+    private val assets: AssetManager? = null
+) {
+
+    /** One material group of an imported prop, with where it stands in the shed. */
+    class HangarProp(val mesh: Mesh, val material: Material, val matrix: Mat4)
 
     /** Plank wall, open-side posts and the front door frame. */
     val wallMesh: Mesh
@@ -32,7 +41,7 @@ class HangarMesh(textures: TextureFactory) {
     /** Gable panels, ridge, rafters, ties and purlins. */
     val roofMesh: Mesh
 
-    /** Plank floor plus the shed clutter. */
+    /** Plank floor. The furniture standing on it is imported, see [props]. */
     val floorMesh: Mesh
 
     /** Hanging lamp and its shade. */
@@ -40,6 +49,9 @@ class HangarMesh(textures: TextureFactory) {
 
     /** Short upward ramp in front of the open end: the launch run-out. */
     val rampMesh: Mesh
+
+    /** Kenney Furniture Kit props standing inside the shed, one entry per material group. */
+    val props: List<HangarProp>
 
     /** Weathered dark planks for the walls. */
     val wallMaterial = Material(
@@ -83,6 +95,7 @@ class HangarMesh(textures: TextureFactory) {
         floorMesh = Mesh("hangarFloor", buildFloorData())
         metalMesh = Mesh("hangarMetal", buildMetalData())
         rampMesh = Mesh("hangarRamp", buildRampData())
+        props = buildProps(assets)
     }
 
     private fun buildWallData(): MeshData {
@@ -155,31 +168,49 @@ class HangarMesh(textures: TextureFactory) {
     private fun buildFloorData(): MeshData {
         val b = MeshBuilder()
 
-        // Plank floor under the whole shed.
+        // Plank floor under the whole shed. The bench, stool, boxes and drum standing on it
+        // are imported Furniture Kit models, see [props].
         b.addBox(0f, -0.09f, 0f, HALF_WIDTH, 0.09f, HALF_LENGTH, 3.4f)
 
-        // Hay bales stacked against the back left corner.
-        b.addBox(-HALF_WIDTH + 1.0f, 0.55f, HALF_LENGTH - 1.6f, 0.55f, 0.55f, 0.75f, 1.8f)
-        b.addBox(-HALF_WIDTH + 1.0f, 0.55f, HALF_LENGTH - 3.4f, 0.55f, 0.55f, 0.75f, 1.8f)
-        b.addBox(-HALF_WIDTH + 1.0f, 1.65f, HALF_LENGTH - 2.4f, 0.52f, 0.52f, 0.70f, 1.8f)
+        return b.build()
+    }
 
-        // Crates by the open side.
-        b.addBox(HALF_WIDTH - 1.1f, 0.50f, HALF_LENGTH - 2.0f, 0.50f, 0.50f, 0.50f, 1.8f)
-        b.addBox(HALF_WIDTH - 1.25f, 1.35f, HALF_LENGTH - 1.9f, 0.36f, 0.36f, 0.36f, 1.8f)
+    /**
+     * The working clutter of the shed, out of the Kenney Furniture Kit (CC0). Its models carry
+     * no texture, only flat `Kd` colours, so each is split by material the way the nature and
+     * castle kits are and drawn with the shared white map tinted by its own colour.
+     */
+    private fun buildProps(manager: AssetManager?): List<HangarProp> {
+        if (manager == null) return emptyList()
 
-        // Barrel near the front right.
-        b.addCylinder(HALF_WIDTH - 1.2f, 0.55f, -HALF_LENGTH + 2.6f, 0.36f, 0.31f, 1.10f, 12, true, true, 1.8f)
+        val out = ArrayList<HangarProp>(PROP_SPECS.size)
 
-        // Workbench and stool along the back wall.
-        b.addBox(0f, 1.00f, HALF_LENGTH - 1.0f, 2.0f, 0.08f, 0.55f, 2.0f)
-        for (sx in intArrayOf(-1, 1)) {
-            for (sz in intArrayOf(-1, 1)) {
-                b.addBox(sx * 1.75f, 0.48f, HALF_LENGTH - 1.0f + sz * 0.44f, 0.08f, 0.48f, 0.08f, 1.6f)
+        for (spec in PROP_SPECS) {
+            val parts = AnimalLoader.load(
+                manager,
+                "models/furniture/${spec.name}.obj",
+                "models/furniture/${spec.name}.mtl",
+                spec.height
+            )
+            if (parts.isEmpty()) continue
+
+            // One matrix per prop: it is kept by every part of that prop and drawn each frame.
+            val matrix = Mat4()
+            matrix.setTrs(spec.x, 0f, spec.z, 0f, spec.heading, 0f, 1f)
+
+            for ((index, part) in parts.withIndex()) {
+                val mesh = Mesh("hangarProp${spec.name}$index", part.data)
+                val material = Material(
+                    albedo = textures.white,
+                    tint = part.color,
+                    roughness = 0.85f,
+                    metallic = 0f,
+                    uvScale = 1f
+                )
+                out.add(HangarProp(mesh, material, matrix))
             }
         }
-        b.addCylinder(1.5f, 0.30f, HALF_LENGTH - 2.2f, 0.27f, 0.24f, 0.60f, 9, true, true, 1.6f)
-
-        return b.build()
+        return out
     }
 
     private fun buildMetalData(): MeshData {
@@ -250,6 +281,7 @@ class HangarMesh(textures: TextureFactory) {
         floorMesh.dispose()
         metalMesh.dispose()
         rampMesh.dispose()
+        for (prop in props) prop.mesh.dispose()
     }
 
     companion object {
@@ -273,5 +305,28 @@ class HangarMesh(textures: TextureFactory) {
         const val RAMP_LENGTH = 6.0f
         const val RAMP_RISE = 1.0f
         const val RAMP_HALF = 3.40f
+
+        /** One imported prop: model name, world height, plan position and heading. */
+        private class PropSpec(
+            val name: String,
+            val height: Float,
+            val x: Float,
+            val z: Float,
+            val heading: Float
+        )
+
+        /**
+         * The Furniture Kit props that stand on the floor: a workbench and stool along the back
+         * wall, a bench against the left planks, two boxes by the open side and a drum near the
+         * front right.
+         */
+        private val PROP_SPECS = listOf(
+            PropSpec("table", 0.95f, 0f, HALF_LENGTH - 1.6f, 0f),
+            PropSpec("stoolBar", 0.75f, 1.7f, HALF_LENGTH - 2.3f, 0.6f),
+            PropSpec("bench", 0.90f, -HALF_WIDTH + 1.6f, 2.0f, 1.5708f),
+            PropSpec("cardboardBoxClosed", 0.80f, HALF_WIDTH - 1.2f, HALF_LENGTH - 2.0f, 0.2f),
+            PropSpec("cardboardBoxClosed", 0.55f, HALF_WIDTH - 1.2f, HALF_LENGTH - 2.9f, -0.4f),
+            PropSpec("trashcan", 1.00f, HALF_WIDTH - 1.2f, -HALF_LENGTH + 2.6f, 0f)
+        )
     }
 }

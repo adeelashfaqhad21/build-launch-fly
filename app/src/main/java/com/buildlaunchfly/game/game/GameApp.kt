@@ -174,7 +174,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         aircraft = AircraftMesh(textureFactory, context.assets).also { it.updateFor(build) }
         slingMesh = SlingshotMesh(textureFactory)
-        hangar = HangarMesh(textureFactory)
+        hangar = HangarMesh(textureFactory, context.assets)
         loadProgressValue = 0.55f
 
         rebuildScene(profile.selectedWorld)
@@ -737,6 +737,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
                 sceneRenderer.shadowMesh(set.rampMesh, slingshotModel)
+                for (prop in set.props) sceneRenderer.shadowMesh(prop.mesh, prop.matrix)
             }
         }
         for (tree in currentScene.trees) {
@@ -803,6 +804,9 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
+                for (prop in set.props) {
+                    sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
+                }
             }
         } else if (showHangarRoof) {
             // The launch shot is still under the eave, like Ref-3's dark roof strip, with the
