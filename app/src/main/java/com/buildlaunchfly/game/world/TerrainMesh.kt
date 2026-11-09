@@ -10,8 +10,20 @@ import kotlin.math.sqrt
 object TerrainMesh {
 
     fun build(terrain: Terrain): MeshData {
-        val xs = axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f)
-        val zs = axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f)
+        // The 9 m x 48 m runway begins beyond the hangar roof edge. Add exact edge
+        // samples and 1.5 m longitudinal samples at its shifted world-space coordinates
+        // so terrain triangles stay below the asphalt deck.
+        val xs = mergeSamples(
+            axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f),
+            floatArrayOf(-5.0f, -4.5f, 4.5f, 5.0f)
+        )
+        val rampZ = FloatArray(33) { index ->
+            HangarMesh.RAMP_END_Z + HangarMesh.RAMP_WORLD_OFFSET_Z + index * 1.5f
+        }
+        val zs = mergeSamples(
+            axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f),
+            rampZ
+        )
 
         val nx = xs.size
         val nz = zs.size
@@ -70,11 +82,24 @@ object TerrainMesh {
             }
         }
 
-        val indexCount = (nx - 1) * (nz - 1) * 6
-        val indices = IntArray(indexCount)
+        // The dedicated asphalt deck is the only surface that should occupy its
+        // footprint. Do not merely lower the procedural terrain there: even a lowered
+        // terrain sheet remains visible as a second strip through gaps and at shallow
+        // viewing angles. Omit the terrain cells under the deck entirely.
+        val indices = IntArray((nx - 1) * (nz - 1) * 6)
         var t = 0
         for (j in 0 until nz - 1) {
+            val z0 = zs[j]
+            val z1 = zs[j + 1]
             for (i in 0 until nx - 1) {
+                val x0 = xs[i]
+                val x1 = xs[i + 1]
+                val underRunway =
+                    x0 >= -4.5f && x1 <= 4.5f &&
+                    z0 >= HangarMesh.RAMP_END_Z + HangarMesh.RAMP_WORLD_OFFSET_Z &&
+                    z1 <= HangarMesh.RAMP_START_Z + HangarMesh.RAMP_WORLD_OFFSET_Z
+                if (underRunway) continue
+
                 val a = j * nx + i
                 val b = j * nx + i + 1
                 val c = (j + 1) * nx + i + 1
@@ -88,8 +113,12 @@ object TerrainMesh {
             }
         }
 
-        return MeshData(vertices, indices)
+        return MeshData(vertices, indices.copyOf(t))
     }
+
+    /** Merge exact local-detail samples into the broad terrain grid without duplicates. */
+    private fun mergeSamples(base: FloatArray, extra: FloatArray): FloatArray =
+        (base.asList() + extra.asList()).distinct().sorted().toFloatArray()
 
     /**
      * Ascending axis samples: a uniform run between [innerMin] and [innerMax], then

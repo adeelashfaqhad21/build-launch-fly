@@ -28,8 +28,24 @@ object Vegetation {
     /** Grass clumps: tall crossed blades, narrow tuft, low clump. */
     const val GRASS_SPECIES = 3
 
-    /** Radius around the launch pad, in metres, that trees are kept out of. */
-    private const val LAUNCH_CLEAR_RADIUS = 55f
+    /**
+     * Reserved square for the complete launch facility: hangar, aircraft, slingshot,
+     * runway/ramp and landing area. World dressing must never be scattered inside it.
+     * The 160 m square leaves a clean apron around the 48 m ramp and 26 m hangar.
+     */
+    const val FACILITY_HALF_EXTENT = 80f
+
+    /**
+     * Shared exclusion test used by every procedural and imported scatter path.
+     * The default 8 m margin keeps large crowns, rocks and props from overhanging the plot.
+     */
+    fun isInsideLaunchFacility(
+        x: Float,
+        z: Float,
+        margin: Float = 8f
+    ): Boolean =
+        kotlin.math.abs(x) <= FACILITY_HALF_EXTENT + margin &&
+            kotlin.math.abs(z) <= FACILITY_HALF_EXTENT + margin
 
     fun scatterTrees(
         terrain: Terrain,
@@ -50,13 +66,13 @@ object Vegetation {
 
         while (placed < count && attempts < maxAttempts) {
             attempts++
-            // The player may steer anywhere, so timber covers the whole playable world rather
-            // than a corridor in front of the hangar.
+            // The reserved facility is a clean square, not merely a small circular tree gap.
+            // All world vegetation starts outside its boundary.
             val x = -1150f + rng.nextFloat() * 2300f
             val z = -1900f + rng.nextFloat() * 2600f
-            // The hangar, the ramp and the first seconds of the launch stay clear: timber
-            // starts where the aircraft has already picked up height.
-            if (x * x + z * z < LAUNCH_CLEAR_RADIUS * LAUNCH_CLEAR_RADIUS) continue
+            // Mature crowns can overhang their trunk by several metres; keep a wider
+            // buffer than the small-prop exclusion used by shrubs and grass.
+            if (isInsideLaunchFacility(x, z, margin = 20f)) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
@@ -101,6 +117,7 @@ object Vegetation {
             attempts++
             val x = -620f + rng.nextFloat() * 1400f
             val z = -2200f + rng.nextFloat() * 2500f
+            if (isInsideLaunchFacility(x, z)) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
@@ -144,6 +161,7 @@ object Vegetation {
             attempts++
             val x = -1100f + rng.nextFloat() * 2400f
             val z = -3000f + rng.nextFloat() * 3600f
+            if (isInsideLaunchFacility(x, z)) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.8f) continue
             terrain.normal(x, z, normal)
@@ -198,6 +216,7 @@ object Vegetation {
             attempts++
             val x = centerX + (rng.nextFloat() * 2f - 1f) * radius
             val z = centerZ + (rng.nextFloat() * 2f - 1f) * radius
+            if (isInsideLaunchFacility(x, z)) continue
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 0.4f) continue
             terrain.normal(x, z, normal)

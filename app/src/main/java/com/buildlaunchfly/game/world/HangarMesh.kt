@@ -7,12 +7,13 @@ import com.buildlaunchfly.game.gfx.Mesh
 import com.buildlaunchfly.game.gfx.MeshBuilder
 import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.gfx.TextureFactory
+import com.buildlaunchfly.game.gfx.SurfaceKind
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Mat4
 import com.buildlaunchfly.game.math.Vec3
-import com.buildlaunchfly.game.slingshot.SlingshotLayout
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.pow
 
 /**
  * The hangar from the reference plates: a big timber shed the aircraft is launched out of.
@@ -36,6 +37,9 @@ class HangarMesh(
 
     /** Plank wall, open-side posts and the front door frame. */
     val wallMesh: Mesh
+
+    /** Launch-view wall variant without the rear wall behind the moving chase camera. */
+    val launchWallMesh: Mesh
 
     /** Gable panels, ridge, rafters, ties and purlins. */
     val roofMesh: Mesh
@@ -70,10 +74,10 @@ class HangarMesh(
         uvScale = 3.4f
     )
 
-    /** Dark, solid launch-deck surface, visually distinct from the timber hangar floor. */
+    /** Neutral charcoal asphalt, deliberately distinct from every timber surface. */
     val rampMaterial = Material(
-        albedo = textures.planks,
-        tint = Vec3(0.34f, 0.29f, 0.24f),
+        albedo = textures.asphalt,
+        tint = Vec3(0.92f, 0.92f, 0.92f),
         roughness = 0.96f,
         metallic = 0f,
         uvScale = 5.5f
@@ -98,7 +102,8 @@ class HangarMesh(
     )
 
     init {
-        wallMesh = Mesh("hangarWall", buildWallData())
+        wallMesh = Mesh("hangarWall", buildWallData(includeBackWall = true))
+        launchWallMesh = Mesh("hangarLaunchWall", buildWallData(includeBackWall = false))
         roofMesh = Mesh("hangarRoof", buildRoofData())
         floorMesh = Mesh("hangarFloor", buildFloorData())
         metalMesh = Mesh("hangarMetal", buildMetalData())
@@ -106,14 +111,19 @@ class HangarMesh(
         props = buildProps(assets)
     }
 
-    private fun buildWallData(): MeshData {
+    private fun buildWallData(includeBackWall: Boolean): MeshData {
         val b = MeshBuilder()
 
         // Plank wall down the left side.
         b.addBox(-HALF_WIDTH, WALL_HEIGHT * 0.5f, 0f, 0.16f, WALL_HEIGHT * 0.5f, HALF_LENGTH, 3.2f)
 
-        // Back wall closing the far end.
-        b.addBox(0f, WALL_HEIGHT * 0.5f, HALF_LENGTH, HALF_WIDTH + 0.16f, WALL_HEIGHT * 0.5f, 0.16f, 3.2f)
+        // The launch camera follows the aircraft toward the rear during pull-back.
+        // Keep the rear wall for inspection view, but omit it from the launch-view variant
+        // so it cannot sit between the camera and the aircraft/slingshot composition.
+        if (includeBackWall) {
+            b.addBox(0f, WALL_HEIGHT * 0.5f, HALF_LENGTH,
+                HALF_WIDTH + 0.16f, WALL_HEIGHT * 0.5f, 0.16f, 3.2f)
+        }
 
         // Vertical studs on the inside face of the left wall.
         var z = -HALF_LENGTH + 1.4f
@@ -127,10 +137,13 @@ class HangarMesh(
             b.addBox(HALF_WIDTH, WALL_HEIGHT * 0.5f, pz, 0.17f, WALL_HEIGHT * 0.5f, 0.17f, 2.4f)
         }
 
-        // Heavy door posts and header framing the open front.
-        b.addBox(-HALF_WIDTH, WALL_HEIGHT * 0.5f, -HALF_LENGTH, 0.22f, WALL_HEIGHT * 0.5f, 0.22f, 2.4f)
-        b.addBox(HALF_WIDTH, WALL_HEIGHT * 0.5f, -HALF_LENGTH, 0.22f, WALL_HEIGHT * 0.5f, 0.22f, 2.4f)
-        b.addBox(0f, WALL_HEIGHT - 0.35f, -HALF_LENGTH, HALF_WIDTH + 0.25f, 0.26f, 0.24f, 2.4f)
+        // Heavy door posts and header frame the exact 13.5 m × 8.5 m open front.
+        b.addBox(-OPEN_DOOR_HALF_WIDTH, OPEN_DOOR_HEIGHT * 0.5f, -HALF_LENGTH,
+            0.22f, OPEN_DOOR_HEIGHT * 0.5f, 0.22f, 2.4f)
+        b.addBox(OPEN_DOOR_HALF_WIDTH, OPEN_DOOR_HEIGHT * 0.5f, -HALF_LENGTH,
+            0.22f, OPEN_DOOR_HEIGHT * 0.5f, 0.22f, 2.4f)
+        b.addBox(0f, OPEN_DOOR_HEIGHT - 0.18f, -HALF_LENGTH,
+            OPEN_DOOR_HALF_WIDTH + 0.25f, 0.18f, 0.24f, 2.4f)
 
         return b.build()
     }
@@ -176,9 +189,29 @@ class HangarMesh(
     private fun buildFloorData(): MeshData {
         val b = MeshBuilder()
 
-        // Plank floor under the whole shed. The bench, stool, boxes and drum standing on it
-        // are imported Furniture Kit models, see [props].
-        b.addBox(0f, -0.09f, 0f, HALF_WIDTH, 0.09f, HALF_LENGTH, 3.4f)
+        // The runway now begins beyond the hangar's front roof edge, so the shed keeps
+        // a continuous timber floor instead of an empty central trench.
+        // Rear workshop floor behind the launcher plane (z = 0…+13).
+        b.addBox(
+            0f, -0.09f, HALF_LENGTH * 0.5f,
+            HALF_WIDTH, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
+        // Restore the central 9 m floor strip: the asphalt ramp now starts outside the shed.
+        b.addBox(
+            0f, -0.09f, -HALF_LENGTH * 0.5f,
+            RAMP_WIDTH * 0.5f, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
+        // Side walkways complete the full hangar floor.
+        val sideHalfWidth = (HALF_WIDTH - RAMP_WIDTH * 0.5f) * 0.5f
+        val sideCenterX = RAMP_WIDTH * 0.5f + sideHalfWidth
+        b.addBox(
+            -sideCenterX, -0.09f, -HALF_LENGTH * 0.5f,
+            sideHalfWidth, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
+        b.addBox(
+            sideCenterX, -0.09f, -HALF_LENGTH * 0.5f,
+            sideHalfWidth, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
 
         return b.build()
     }
@@ -189,36 +222,63 @@ class HangarMesh(
      * castle kits are and drawn with the shared white map tinted by its own colour.
      */
     private fun buildProps(manager: AssetManager?): List<HangarProp> {
-        if (manager == null) return emptyList()
+        val out = ArrayList<HangarProp>(PROP_SPECS.size + 1)
 
-        val out = ArrayList<HangarProp>(PROP_SPECS.size)
-
-        for (spec in PROP_SPECS) {
-            val parts = AnimalLoader.load(
-                manager,
-                "models/furniture/${spec.name}.obj",
-                "models/furniture/${spec.name}.mtl",
-                spec.height
-            )
-            if (parts.isEmpty()) continue
-
-            // One matrix per prop: it is kept by every part of that prop and drawn each frame.
-            val matrix = Mat4()
-            matrix.setTrs(spec.x, 0f, spec.z, 0f, spec.heading, 0f, 1f)
-
-            for ((index, part) in parts.withIndex()) {
-                val mesh = Mesh("hangarProp${spec.name}$index", part.data)
-                val material = Material(
-                    albedo = textures.white,
-                    tint = part.color,
-                    roughness = 0.85f,
-                    metallic = 0f,
-                    uvScale = 1f
+        if (manager != null) {
+            for (spec in PROP_SPECS) {
+                val parts = AnimalLoader.load(
+                    manager,
+                    "models/furniture/${spec.name}.obj",
+                    "models/furniture/${spec.name}.mtl",
+                    spec.height
                 )
-                out.add(HangarProp(mesh, material, matrix))
+                if (parts.isEmpty()) continue
+
+                val matrix = Mat4()
+                matrix.setTrs(spec.x, 0f, spec.z, 0f, spec.heading, 0f, 1f)
+
+                for ((index, part) in parts.withIndex()) {
+                    val mesh = Mesh("hangarProp${spec.name}$index", part.data)
+                    val material = Material(
+                        albedo = textures.white,
+                        tint = part.color,
+                        roughness = 0.85f,
+                        metallic = 0f,
+                        uvScale = 1f
+                    )
+                    out.add(HangarProp(mesh, material, matrix))
+                }
             }
         }
+
+        // The six bale positions are taken directly from the Kotlin reference layout.
+        val hayMatrix = Mat4()
+        hayMatrix.identity()
+        val hayMaterial = Material(
+            albedo = textures.surface(SurfaceKind.SAND),
+            tint = Vec3(1.0f, 0.82f, 0.43f),
+            roughness = 0.99f,
+            metallic = 0f,
+            uvScale = 2.2f
+        )
+        out.add(HangarProp(Mesh("hangarHayBales", buildHayBalesData()), hayMaterial, hayMatrix))
         return out
+    }
+
+    private fun buildHayBalesData(): MeshData {
+        val b = MeshBuilder()
+        val positions = arrayOf(
+            Vec3(-6.2f, 0.4f, -4.0f),
+            Vec3(-5.8f, 0.4f, -2.5f),
+            Vec3(-6.0f, 1.2f, -3.2f),
+            Vec3(6.0f, 0.4f, -3.5f),
+            Vec3(5.8f, 1.2f, -3.0f),
+            Vec3(6.2f, 0.4f, -1.8f)
+        )
+        for (p in positions) {
+            b.addBox(p.x, p.y, p.z, 0.65f, 0.40f, 0.45f, 2.0f)
+        }
+        return b.build()
     }
 
     private fun buildMetalData(): MeshData {
@@ -235,76 +295,98 @@ class HangarMesh(
     }
 
     /**
-     * Full-width forward launch deck reconstructed around the reference composition.
-     * The aircraft faces -Z; the deck begins immediately ahead of its nose and runs straight
-     * out through the open hangar front. It is a broad tapered wedge, not a short crosswise
-     * timber strip.
+     * Full-width forward launch deck from the Kotlin reference. The aircraft faces -Z;
+     * the 9 m asphalt surface starts at the slingshot plane and rises smoothly for 48 m.
      */
     private fun buildRampData(): MeshData {
         val b = MeshBuilder()
+        val halfWidth = RAMP_WIDTH * 0.5f
 
-        val nearZ = RAMP_START_Z
-        val farZ = RAMP_END_Z
-        val nearHalf = RAMP_NEAR_HALF_WIDTH
-        val farHalf = RAMP_FAR_HALF_WIDTH
-        val nearY = RAMP_NEAR_HEIGHT
-        val farY = RAMP_FAR_HEIGHT
+        // Tessellated top surface follows the reference cubic elevation profile rather than
+        // one flat wedge, so the 48 m asphalt run rises smoothly from the hangar floor.
+        for (i in 0 until RAMP_SEGMENTS) {
+            val t0 = i.toFloat() / RAMP_SEGMENTS
+            val t1 = (i + 1).toFloat() / RAMP_SEGMENTS
+            val z0 = RAMP_START_Z + (RAMP_END_Z - RAMP_START_Z) * t0
+            val z1 = RAMP_START_Z + (RAMP_END_Z - RAMP_START_Z) * t1
+            val y0 = rampElevation(t0)
+            val y1 = rampElevation(t1)
 
-        // One continuous top plane, with the near edge wider than the far edge.
-        b.addQuad(
-            Vec3(-nearHalf, nearY, nearZ),
-            Vec3(nearHalf, nearY, nearZ),
-            Vec3(farHalf, farY, farZ),
-            Vec3(-farHalf, farY, farZ),
-            8f
-        )
+            b.addQuad(
+                Vec3(-halfWidth, y0, z0),
+                Vec3(halfWidth, y0, z0),
+                Vec3(halfWidth, y1, z1),
+                Vec3(-halfWidth, y1, z1),
+                5f
+            )
 
-        // Solid tapered side aprons make the deck read as a built ramp from low camera angles.
-        b.addQuad(
-            Vec3(-nearHalf, 0.02f, nearZ),
-            Vec3(-nearHalf, nearY, nearZ),
-            Vec3(-farHalf, farY, farZ),
-            Vec3(-farHalf, 0.02f, farZ),
-            5f
-        )
-        b.addQuad(
-            Vec3(nearHalf, 0.02f, nearZ),
-            Vec3(farHalf, 0.02f, farZ),
-            Vec3(farHalf, farY, farZ),
-            Vec3(nearHalf, nearY, nearZ),
-            5f
-        )
-
-        // Heavy longitudinal bearers under the deck and cross-ties at three support stations.
-        for (side in intArrayOf(-1, 1)) {
-            b.addRod(
-                side * (nearHalf - 0.18f), 0.08f, nearZ,
-                side * (farHalf - 0.18f), farY - 0.12f, farZ,
-                0.14f, 8
+            // Solid side aprons close the raised deck down to ground level.
+            b.addQuad(
+                Vec3(-halfWidth, 0.02f, z0),
+                Vec3(-halfWidth, y0, z0),
+                Vec3(-halfWidth, y1, z1),
+                Vec3(-halfWidth, 0.02f, z1),
+                4f
+            )
+            b.addQuad(
+                Vec3(halfWidth, 0.02f, z0),
+                Vec3(halfWidth, 0.02f, z1),
+                Vec3(halfWidth, y1, z1),
+                Vec3(halfWidth, y0, z0),
+                4f
             )
         }
-        for (t in floatArrayOf(0.25f, 0.50f, 0.75f)) {
-            val z = nearZ + (farZ - nearZ) * t
-            val y = nearY + (farY - nearY) * t
-            val half = nearHalf + (farHalf - nearHalf) * t
-            b.addRod(-half + 0.15f, y - 0.08f, z, -half + 0.15f, 0.04f, z, 0.09f, 6)
-            b.addRod(half - 0.15f, y - 0.08f, z, half - 0.15f, 0.04f, z, 0.09f, 6)
-            b.addRod(-half + 0.15f, 0.04f, z, half - 0.15f, 0.04f, z, 0.08f, 6)
+
+        // Wooden edge curbs run the full 48 m length on both sides of the asphalt.
+        for (side in intArrayOf(-1, 1)) {
+            val x = side * (halfWidth + RAMP_CURB_WIDTH * 0.5f)
+            b.addRod(
+                x, rampElevation(0f) + 0.16f, RAMP_START_Z,
+                x, rampElevation(1f) + 0.16f, RAMP_END_Z,
+                RAMP_CURB_WIDTH * 0.5f, 8
+            )
         }
 
-        // Low edge guides run parallel to the flight path, never across it.
+        // Structural bearers and cross-ties support the long incline below the asphalt deck.
         for (side in intArrayOf(-1, 1)) {
+            val x = side * (halfWidth - 0.22f)
             b.addRod(
-                side * (nearHalf - 0.10f), nearY + 0.12f, nearZ,
-                side * (farHalf - 0.10f), farY + 0.12f, farZ,
-                0.055f, 6
+                x, 0.08f, RAMP_START_Z,
+                x, rampElevation(1f) - 0.12f, RAMP_END_Z,
+                0.13f, 8
             )
+        }
+        for (t in floatArrayOf(0.20f, 0.40f, 0.60f, 0.80f)) {
+            val z = RAMP_START_Z + (RAMP_END_Z - RAMP_START_Z) * t
+            val y = rampElevation(t)
+            b.addRod(-halfWidth + 0.18f, y - 0.12f, z,
+                halfWidth - 0.18f, y - 0.12f, z, 0.09f, 8)
         }
         return b.build()
     }
 
+    /**
+     * Ramp elevation above the pad in hangar-local coordinates. The caller must add the
+     * pad's world-space Y before comparing this with the world's terrain height.
+     * Returns null outside the asphalt footprint.
+     */
+    fun rampHeightAt(localX: Float, localZ: Float): Float? {
+        if (kotlin.math.abs(localX) > RAMP_WIDTH * 0.5f) return null
+        if (localZ > RAMP_START_Z || localZ < RAMP_END_Z) return null
+        val t = ((RAMP_START_Z - localZ) / (RAMP_START_Z - RAMP_END_Z))
+            .coerceIn(0f, 1f)
+        return rampElevation(t)
+    }
+
+    private fun rampElevation(t: Float): Float {
+        val u = t.coerceIn(0f, 1f)
+        return RAMP_ELEVATION *
+            (1.15f * u.pow(1.4f) - 0.15f * u.pow(2.8f)).coerceIn(0f, 1f)
+    }
+
     fun dispose() {
         wallMesh.dispose()
+        launchWallMesh.dispose()
         roofMesh.dispose()
         floorMesh.dispose()
         metalMesh.dispose()
@@ -313,40 +395,28 @@ class HangarMesh(
     }
 
     companion object {
-        /** Half the interior width; big enough for the full-scale rig and aircraft. */
-        const val HALF_WIDTH = 5.30f
-
-        /** Half the interior length; deep enough for the launch camera to sit inside. */
-        const val HALF_LENGTH = 10.50f
-
-        /** Eave height; the ridge sits two metres above it. */
-        const val WALL_HEIGHT = 6.40f
-
-        const val RIDGE_Y = 8.55f
+        /** Reference interior dimensions: 16 m wide, 26 m deep, 9.5 m to the ridge. */
+        const val HALF_WIDTH = 8.0f
+        const val HALF_LENGTH = 13.0f
+        const val WALL_HEIGHT = 7.8f
+        const val RIDGE_Y = 9.5f
         const val PITCH = 0.40f
+        const val PANEL_HALF = 4.25f
+        const val TIE_Y = 6.7f
 
-        /** Half the length of one roof panel, measured along the slope. */
-        const val PANEL_HALF = 3.10f
-        const val TIE_Y = 6.30f
+        /** Reference open doorway: 13.5 m wide and 8.5 m high. */
+        const val OPEN_DOOR_HALF_WIDTH = 6.75f
+        const val OPEN_DOOR_HEIGHT = 8.5f
 
-        /**
-         * Launch ramp, measured from the tow point rather than from the shed: it starts 5–6 ft
-         * ahead of the aircraft (1.7 m), runs 10–11 ft in all (3.2 m), and its last 3–4 ft
-         * (1.1 m) climb to the lip. It is a narrow wheel track, not a deck: a ramp wider than
-         * it is long reads as a platform lying across the launch instead of a ramp along it.
-         */
-        /** The broad deck starts just ahead of the parked aircraft's nose. */
-        private val RAMP_START_Z = SlingshotLayout.HOLD_Z - 2.40f
-
-        /** Long forward run, extending through the open hangar front into the valley. */
-        private const val RAMP_LENGTH = 18.0f
-        private val RAMP_END_Z = RAMP_START_Z - RAMP_LENGTH
-
-        /** Reference-like tapered plan: broad at the aircraft, narrower at the far end. */
-        private const val RAMP_NEAR_HALF_WIDTH = 1.95f
-        private const val RAMP_FAR_HALF_WIDTH = 1.45f
-        private const val RAMP_NEAR_HEIGHT = 0.12f
-        private const val RAMP_FAR_HEIGHT = 1.25f
+        /** Reference runway starts at the slingshot plane and runs forward along -Z. */
+        const val RAMP_START_Z = 0.0f
+        const val RAMP_END_Z = -48.0f
+        /** World-space shift: ramp and slingshot plane sit 2.5 m beyond the -Z roof edge. */
+        const val RAMP_WORLD_OFFSET_Z = -15.5f
+        private const val RAMP_WIDTH = 9.0f
+        private const val RAMP_ELEVATION = 4.2f
+        private const val RAMP_CURB_WIDTH = 0.5f
+        private const val RAMP_SEGMENTS = 32
 
         /** One imported prop: model name, world height, plan position and heading. */
         private class PropSpec(

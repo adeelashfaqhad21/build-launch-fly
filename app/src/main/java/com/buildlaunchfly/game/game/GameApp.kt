@@ -100,7 +100,11 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private val aircraftModel = Mat4()
     private val propellerModel = Mat4()
+    /** Launcher/ramp sit beyond the hangar roof edge; the shed remains at the pad. */
     private val slingshotModel = Mat4()
+    private val hangarModel = Mat4()
+    private val launchOrigin = Vec3()
+    private val hangarPropModel = Mat4()
 
     /** One matrix per band segment: the sling is a single elastic drawn in pieces. */
     private val bandLocal = Array(SlingshotMesh.BAND_SEGMENTS) { Mat4() }
@@ -108,6 +112,8 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private val seatPosition = Vec3()
     private val padPosition = Vec3()
+    /** Reused world-space position of the aircraft while it is being pulled back. */
+    private val cameraAircraftPosition = Vec3()
     private val focusPoint = Vec3()
     private val dragScratch = FloatArray(2)
     private val flightInput = FlightInput()
@@ -224,21 +230,14 @@ class GameApp(private val context: Context, private val input: InputState) {
         val padY = scene?.terrain?.padHeight ?: 6f
         padPosition.set(0f, padY, 0f)
         seatPosition.set(
-            padPosition.x + SlingshotLayout.HOLD_POINT.x,
-            padPosition.y + SlingshotLayout.HOLD_POINT.y,
-            padPosition.z + SlingshotLayout.HOLD_POINT.z
+            launchOrigin.x + SlingshotLayout.HOLD_POINT.x,
+            launchOrigin.y + SlingshotLayout.HOLD_POINT.y,
+            launchOrigin.z + SlingshotLayout.HOLD_POINT.z
         )
         physics.reset(seatPosition)
         physics.visualScale = AIRCRAFT_VISUAL_SCALE
 
-        cameraDirector.snapTo(
-            Vec3(
-                seatPosition.x,
-                padPosition.y + CameraDirector.SEATED_HEIGHT,
-                padPosition.z + CameraDirector.SEATED_DISTANCE
-            ),
-            seatPosition
-        )
+        snapLaunchCamera()
 
         applyAudioVolumes()
         audio.start()
@@ -247,6 +246,22 @@ class GameApp(private val context: Context, private val input: InputState) {
         hud?.onStateChanged(state)
         loadProgressValue = 1f
         Log.i(TAG, "Engine ready\n${build.summary()}")
+    }
+
+    private fun snapLaunchCamera() {
+        camera.fovYDegrees = CameraDirector.SEATED_FOV
+        cameraDirector.snapTo(
+            Vec3(
+                seatPosition.x,
+                seatPosition.y + CameraDirector.SEATED_CAMERA_HEIGHT,
+                seatPosition.z + CameraDirector.SEATED_DISTANCE
+            ),
+            Vec3(
+                seatPosition.x,
+                launchOrigin.y + CameraDirector.SEATED_TARGET_HEIGHT,
+                (seatPosition.z + launchOrigin.z) * 0.5f - 0.25f
+            )
+        )
     }
 
     fun loadProgress(): Float = loadProgressValue
@@ -282,7 +297,9 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         applyEnvironment(definition, sceneRenderer)
         padPosition.set(0f, newScene.terrain.padHeight, 0f)
-        slingshotModel.identity().translate(padPosition.x, padPosition.y, padPosition.z)
+        launchOrigin.set(padPosition.x, padPosition.y, padPosition.z + HangarMesh.RAMP_WORLD_OFFSET_Z)
+        hangarModel.identity().translate(padPosition.x, padPosition.y, padPosition.z)
+        slingshotModel.identity().translate(launchOrigin.x, launchOrigin.y, launchOrigin.z)
         audio.setAmbience(definition.ambience)
         hud?.onWorldChanged(definition)
         Log.i(TAG, "World ready: ${definition.displayName} (pad ${newScene.terrain.padHeight})")
@@ -579,16 +596,26 @@ class GameApp(private val context: Context, private val input: InputState) {
                         padPosition.y + HANGAR_CAMERA_HEIGHT,
                         padPosition.z
                     )
-                    // Kept inside the shed: the plank wall is at half-width 5.3 m, so a wider
-                    // orbit would put the camera outside and the wall between it and the plane.
+                    // The reference posts span 8.4 m. Keep enough camera distance to frame
+                    // both posts and the aircraft while staying inside the 26 m hangar depth.
                     cameraDirector.updateOrbitAircraft(
-                        hangarFocus, time, dt, orbitRadius.coerceIn(3.5f, 5.0f), orbitOffset
+                        hangarFocus, time, dt, orbitRadius.coerceIn(8.0f, 9.5f), orbitOffset
                     )
                 }
                 CameraMode.ORBIT_SLINGSHOT -> cameraDirector.updateOrbitSlingshot(
-                    padPosition, time, dt, orbitOffset
+                    launchOrigin, time, dt, orbitOffset
                 )
-                CameraMode.LAUNCH -> cameraDirector.updateSeated(padPosition, seatPosition, pull, dt)
+                CameraMode.LAUNCH -> {
+                    // The camera must follow the live hold point. Following the static reset
+                    // position leaves the aircraft behind the camera as the player pulls back.
+                    val held = slingMesh?.holdPoint(pull) ?: SlingshotLayout.HOLD_POINT
+                    cameraAircraftPosition.set(
+                        launchOrigin.x + held.x,
+                        launchOrigin.y + held.y,
+                        launchOrigin.z + held.z
+                    )
+                    cameraDirector.updateSeated(launchOrigin, cameraAircraftPosition, pull, dt)
+                }
             }
             GameState.FLIGHT -> cameraDirector.updateFlight(
                 physics.position, physics.velocity, physics.speed(), dt
@@ -620,7 +647,12 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private fun updateFlight(dt: Float, currentScene: WorldScene) {
         val stats = build.stats()
-        val ground = currentScene.terrain.height(physics.position.x, physics.position.z)
+        val terrainGround = currentScene.terrain.height(physics.position.x, physics.position.z)
+        val rampGround = hangar?.rampHeightAt(
+            physics.position.x - launchOrigin.x,
+            physics.position.z - launchOrigin.z
+        )?.let { launchOrigin.y + it }
+        val ground = maxOf(terrainGround, rampGround ?: terrainGround)
         flightInput.pitch = steerPitch
         flightInput.roll = steerRoll
         physics.update(dt, stats, ground, flightInput)
@@ -662,9 +694,9 @@ class GameApp(private val context: Context, private val input: InputState) {
         val stats = build.stats()
         val speed = sling.launchSpeed(stretch, stats.mass)
         seatPosition.set(
-            padPosition.x + SlingshotLayout.HOLD_POINT.x,
-            padPosition.y + SlingshotLayout.HOLD_POINT.y,
-            padPosition.z + SlingshotLayout.HOLD_POINT.z
+            launchOrigin.x + SlingshotLayout.HOLD_POINT.x,
+            launchOrigin.y + SlingshotLayout.HOLD_POINT.y,
+            launchOrigin.z + SlingshotLayout.HOLD_POINT.z
         )
         physics.reset(seatPosition)
         physics.visualScale = AIRCRAFT_VISUAL_SCALE
@@ -738,16 +770,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         cameraMode = CameraMode.LAUNCH
         orbitOffset = 0f
         slingRecoilTimer = 0f
-        input.consumeRelease()
+        // A crash can happen while the player's finger is still down. Clear the complete
+        // touch state (including pointerDown and any queued release), or the next seated
+        // frame interprets the old gesture as a fresh pull and auto-loads the aircraft.
+        input.reset()
         audio.setFlight(0f, 0f, false)
-        cameraDirector.snapTo(
-            Vec3(
-                seatPosition.x,
-                padPosition.y + CameraDirector.SEATED_HEIGHT,
-                padPosition.z + CameraDirector.SEATED_DISTANCE
-            ),
-            seatPosition
-        )
+        snapLaunchCamera()
         hud?.onStateChanged(state)
     }
 
@@ -771,10 +799,14 @@ class GameApp(private val context: Context, private val input: InputState) {
         val aircraftMesh = aircraft ?: return
         val rig = slingMesh ?: return
         val definition = currentScene.definition
-        val showSling = (state == GameState.SEATED && cameraMode != CameraMode.ORBIT_AIRCRAFT) ||
-            slingRecoilTimer > 0f
-        val showHangar = state == GameState.SEATED && cameraMode == CameraMode.ORBIT_AIRCRAFT
-        val showHangarRoof = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
+        // The timber launcher, hangar and ramp are permanent facility geometry. Only the
+        // elastic band is transient; it is visible while seated and during its release recoil.
+        val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
+        val showHangar = state != GameState.SEATED || cameraMode == CameraMode.ORBIT_AIRCRAFT
+        // The roof is for hangar inspection only. It must stay out of the launch and flight
+        // paths; otherwise the aircraft visibly clips through it as soon as FLIGHT begins.
+        val showHangarRoof = state != GameState.FLIGHT && cameraMode == CameraMode.ORBIT_AIRCRAFT
+        val showLaunchHangar = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
         if (showSling) {
@@ -803,10 +835,11 @@ class GameApp(private val context: Context, private val input: InputState) {
             // The hangar shows the aircraft standing on the plank floor on its cradle; only the
             // launch setup hangs it up in the band.
             val parked = cameraMode == CameraMode.ORBIT_AIRCRAFT
+            val aircraftOrigin = if (parked) padPosition else launchOrigin
             aircraftModel.setTrs(
-                padPosition.x + hold.x,
-                padPosition.y + if (parked) HANGAR_PARK_HEIGHT else hold.y,
-                padPosition.z + hold.z,
+                aircraftOrigin.x + hold.x,
+                aircraftOrigin.y + if (parked) HANGAR_PARK_HEIGHT else hold.y,
+                aircraftOrigin.z + hold.z,
                 0.10f * pull, 0f, 0f,
                 AIRCRAFT_VISUAL_SCALE
             )
@@ -832,18 +865,26 @@ class GameApp(private val context: Context, private val input: InputState) {
             aircraftMesh.metalMesh?.let { sceneRenderer.shadowMesh(it, aircraftModel) }
             aircraftMesh.propellerMesh?.let { sceneRenderer.shadowMesh(it, propellerModel) }
         }
-        if (showSling) {
-            sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
-            for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
-        }
-        if (showHangar) {
+        // The posts remain in the world after launch; only the moving elastic is transient.
+        sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
+        // The elastic is only 7 cm thick. At this shadow-map scale its depth silhouette
+        // aliases across the aircraft and produces dark, interleaved marks at full pull.
+        // Keep the strap fully visible in the colour pass, but do not let it cast shadows.
+
+        if (showHangar || showLaunchHangar) {
             hangar?.let { set ->
-                sceneRenderer.shadowMesh(set.wallMesh, slingshotModel)
-                sceneRenderer.shadowMesh(set.roofMesh, slingshotModel)
-                sceneRenderer.shadowMesh(set.floorMesh, slingshotModel)
-                sceneRenderer.shadowMesh(set.metalMesh, slingshotModel)
+                sceneRenderer.shadowMesh(
+                    if (showHangar) set.wallMesh else set.launchWallMesh,
+                    hangarModel
+                )
+                if (showHangarRoof) sceneRenderer.shadowMesh(set.roofMesh, hangarModel)
+                sceneRenderer.shadowMesh(set.floorMesh, hangarModel)
+                sceneRenderer.shadowMesh(set.metalMesh, hangarModel)
                 sceneRenderer.shadowMesh(set.rampMesh, slingshotModel)
-                for (prop in set.props) sceneRenderer.shadowMesh(prop.mesh, prop.matrix)
+                for (prop in set.props) {
+                    hangarPropModel.setProduct(hangarModel, prop.matrix)
+                    sceneRenderer.shadowMesh(prop.mesh, hangarPropModel)
+                }
             }
         }
         for (tree in currentScene.trees) {
@@ -908,27 +949,30 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         if (showHangar) {
             hangar?.let { set ->
-                sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, hangarModel)
+                if (showHangarRoof) {
+                    sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, hangarModel)
+                }
+                sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, hangarModel)
+                sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
                 for (prop in set.props) {
-                    sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
+                    hangarPropModel.setProduct(hangarModel, prop.matrix)
+                    sceneRenderer.drawMesh(prop.mesh, prop.material, hangarPropModel)
                 }
             }
-        } else if (showHangarRoof) {
-            // The launch shot stands inside the shed: the plank wall, floor, roof, lamp and ramp
-            // are all drawn, because the camera now sits under the eave (3.6 m) rather than on
-            // top of the roof.
+        } else if (showLaunchHangar) {
+            // Keep the launch view open above and behind the aircraft. The roof is intentionally
+            // omitted here: the camera is inside the shed and the roof panels otherwise
+            // dominate the view or appear to intersect the aircraft during pull-back.
             hangar?.let { set ->
-                sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.launchWallMesh, set.wallMaterial, hangarModel)
+                sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, hangarModel)
+                sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
                 for (prop in set.props) {
-                    sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
+                    hangarPropModel.setProduct(hangarModel, prop.matrix)
+                    sceneRenderer.drawMesh(prop.mesh, prop.material, hangarPropModel)
                 }
             }
         }
@@ -951,12 +995,8 @@ class GameApp(private val context: Context, private val input: InputState) {
             )
         }
 
-        if (showSling) {
-            // The timber rig only. The elastic band's stretched strips are not drawn: they read
-            // as a bright multi-coloured ribbon across the aircraft instead of a slingshot,
-            // and the pull is shown by the aircraft itself moving back in the rig.
-            sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-        }
+        // Static timber posts remain visible in the facility after the aircraft launches.
+        sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
 
         if (aircraftMesh.hasImportedModel) {
             // The imported biplane is one welded mesh with its own propeller and airframe,
@@ -1023,9 +1063,9 @@ class GameApp(private val context: Context, private val input: InputState) {
             val angle = time * 6.5f + i * 1.7f
             val radius = spread * (0.3f + i * 0.14f)
             particles.emit(
-                padPosition.x + kotlin.math.cos(angle) * radius,
-                padPosition.y + SlingshotLayout.HOLD_POINT.y - 0.35f + (1f - remaining) * 2f,
-                padPosition.z + kotlin.math.sin(angle) * radius,
+                launchOrigin.x + kotlin.math.cos(angle) * radius,
+                launchOrigin.y + SlingshotLayout.HOLD_POINT.y - 0.35f + (1f - remaining) * 2f,
+                launchOrigin.z + kotlin.math.sin(angle) * radius,
                 0.55f + (1f - remaining) * 0.5f
             )
         }

@@ -28,27 +28,32 @@ object SlingshotLayout {
      */
     const val SEAT_HEIGHT = 0.85f
 
-    /** Where the parked aircraft stands inside the shed, ahead of the back wall and clear of
-     * the ramp, which starts at the open front. */
-    const val HOLD_Z = 3.0f
+    /**
+     * The reference aircraft spawn is 2.5 m behind the post plane. The game flies toward -Z,
+     * so the source reference's -2.5 m spawn is mirrored to +2.5 m here.
+     */
+    const val HOLD_Z = 2.5f
 
-    /** Two wide posts just outside the imported aircraft's 3.56 m wingspan. */
-    const val POLE_X = 2.05f
+    /** Post centreline half-span: 4.2 m on either side, exactly 8.4 m tip-to-tip. */
+    const val POLE_X = 4.2f
 
-    /** Taller than the aircraft, but scaled to the actual reference framing. */
-    const val POLE_HEIGHT = 2.65f
+    /** Visible height above the pad; the 2.4 m timber is planted 0.8 m into the ground. */
+    const val POLE_HEIGHT = 1.60f
 
-    /** Half-width of a post: about a third of a metre across, a chunky timber support. */
-    const val POLE_HALF = 0.17f
+    /** Half-width of the 0.45 m square timber supports. */
+    const val POLE_HALF = 0.225f
 
-    /** Slight outward splay of the posts toward their tips. */
-    const val POLE_SPLAY = 0.045f
+    /** The reference posts are vertical, with no outward splay. */
+    const val POLE_SPLAY = 0.0f
 
-    private const val TIP_X = POLE_X + 0.20f
-    private const val TIP_Y = POLE_HEIGHT - 0.06f
+    private const val TIP_X = 4.20f
+    private const val TIP_Y = 1.60f
 
     /** Horizontal half-span of a post at height [y]; the posts pivot at their feet. */
     fun postX(y: Float): Float = POLE_X + y * POLE_SPLAY
+
+    /** Post plane in the reference design; the two 2.4 m timbers are planted 0.8 m into the pad. */
+    const val POST_Z = 0f
 
     /** Where the band is tied at the top of each post. */
     val LEFT_PRONG = Vec3(-TIP_X, TIP_Y, 0f)
@@ -274,7 +279,7 @@ class SlingshotMesh(textures: TextureFactory) {
     }
 
     companion object {
-        const val DRAW_LENGTH = 2.7f
+        const val DRAW_LENGTH = 6.0f
 
         /** How far the band hangs below its chord when slack. */
         const val BAND_SAG = 0.22f
