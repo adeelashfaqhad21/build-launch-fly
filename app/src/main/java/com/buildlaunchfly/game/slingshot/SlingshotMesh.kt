@@ -28,20 +28,19 @@ object SlingshotLayout {
      */
     const val SEAT_HEIGHT = 0.85f
 
-    /** Where the parked aircraft stands inside the shed, ahead of the back wall and clear of
-     * the ramp, which starts at the open front. */
+    /** Aircraft hold point at the runway entrance, aligned with the slingshot centre. */
     const val HOLD_Z = 0.0f
 
-    /** Two wide posts just outside the imported aircraft's 3.56 m wingspan. */
+    /** Post centreline half-span: 4.2 m on either side, exactly 8.4 m tip-to-tip. */
     const val POLE_X = 4.2f
 
     /** Visible height above the pad; the 2.4 m timber is planted 0.8 m into the ground. */
     const val POLE_HEIGHT = 1.60f
 
-    /** Half-width of a post: about a third of a metre across, a chunky timber support. */
+    /** Half-width of the 0.45 m square timber supports. */
     const val POLE_HALF = 0.225f
 
-    /** Slight outward splay of the posts toward their tips. */
+    /** The reference posts are vertical, with no outward splay. */
     const val POLE_SPLAY = 0.0f
 
     private const val TIP_X = 4.20f
