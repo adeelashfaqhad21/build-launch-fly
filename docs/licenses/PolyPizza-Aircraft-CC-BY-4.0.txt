@@ -1,0 +1,23 @@
+Poly Pizza — aircraft models
+
+Poly Pizza (https://poly.pizza) hosts the models below. All three are licensed
+**Creative Commons Attribution 4.0** (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/):
+attribution is required, commercial use is allowed.
+
+Downloads supplied in assets-source/Planes /:
+
+1. "samolet" by vrlab development
+   https://poly.pizza/m/6OgsLgd7vKM
+   Tagged #Biplane. **This is the one shipped in the game**, as
+   app/src/main/assets/aircraft/biplane.zip.
+
+2. "Airplane" by Poly by Google
+   https://poly.pizza/m/8VysVKMXN2J
+   Not used.
+
+3. "very cute airplane" by Akash Rudra
+   https://poly.pizza/m/3UtIosDm9u-
+   Not used.
+
+Format: OBJ / GLTF. The engine reads the OBJ and PNG entries straight out of the zip at
+runtime (gfx/ZipKit + gfx/PropLoader), so no build-time unpack step is needed.

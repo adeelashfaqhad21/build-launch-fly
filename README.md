@@ -231,10 +231,15 @@ Why the two APKs behaved differently before:
 
 - **Quaternius** (CC0): Ultimate Stylized Nature, Ultimate Animated Animals, Ships and
   Ultimate Fantasy RTS packs — `docs/licenses/Quaternius-*.txt`.
+- **Poly Haven** (CC0): the five ground/terrain diffuse maps in `assets/terrain` —
+  `docs/licenses/PolyHaven-CC0.txt`.
 - **"Low-Poly Aircraft Kit Free" by heyheythere** —
   <https://heyheythere.itch.io/low-poly-aircraft-kit-free>, licensed **CC BY 4.0**
   (<https://creativecommons.org/licenses/by/4.0/>). Used: the windsock and traffic cone,
   loaded from the shipped kit archive. Licence record in
   `docs/licenses/LowPolyAircraftKit-CC-BY-4.0.txt`.
+- **"samolet" by vrlab development** — <https://poly.pizza/m/6OgsLgd7vKM>, licensed
+  **CC BY 4.0**. The vintage biplane, shipped as `assets/aircraft/biplane.zip`. Licence
+  record in `docs/licenses/PolyPizza-Aircraft-CC-BY-4.0.txt`.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the engine and UI architecture.
