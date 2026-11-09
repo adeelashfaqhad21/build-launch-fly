@@ -12,6 +12,8 @@ import android.util.Log
  */
 class SoundBank(context: Context) {
 
+    private val assets = context.assets
+
     private val pool: SoundPool = SoundPool.Builder()
         .setMaxStreams(6)
         .setAudioAttributes(
@@ -38,7 +40,7 @@ class SoundBank(context: Context) {
 
     private fun load(name: String) {
         try {
-            val descriptor = context.assets.openFd("audio/$name.ogg")
+            val descriptor = assets.openFd("audio/$name.ogg")
             val id = pool.load(descriptor, 1)
             descriptor.close()
             if (id != 0) ids[name] = id

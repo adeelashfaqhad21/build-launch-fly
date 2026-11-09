@@ -30,7 +30,8 @@ object GlbLoader {
         null
     }
 
-    fun parse(bytes: ByteArray, label: String, heightMetres: Float): MeshData? = try {
+    fun parse(bytes: ByteArray, label: String, heightMetres: Float): MeshData? {
+        return try {
         if (bytes.size < 12) return null
         val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
         if (buffer.int != GLB_MAGIC) return null
@@ -160,9 +161,10 @@ object GlbLoader {
         }
 
         MeshData(vertices, indices.toIntArray())
-    } catch (error: Throwable) {
-        Log.e(TAG, "Failed to parse $label", error)
-        null
+        } catch (error: Throwable) {
+            Log.e(TAG, "Failed to parse $label", error)
+            null
+        }
     }
 
     private fun readFloats(

@@ -5,8 +5,8 @@ import android.util.Log
 import org.json.JSONObject
 
 /**
- * Reads the BufferGeometry JSON that `emnh/rts-models` ships (`3d/*.json`): flat attribute
- * arrays for position, normal and uv, with an optional triangle index.
+ * Reads the BufferGeometry JSON that `emnh/rts-models` ships (one file per model in its `3d`
+ * folder): flat attribute arrays for position, normal and uv, with an optional triangle index.
  *
  * The result is the engine's interleaved layout (position 3 + normal 3 + uv 2), centred on
  * the origin and scaled so the model is [heightMetres] tall, which is what the world's
@@ -24,7 +24,8 @@ object RtsModelLoader {
         null
     }
 
-    fun parse(text: String, label: String, heightMetres: Float): MeshData? = try {
+    fun parse(text: String, label: String, heightMetres: Float): MeshData? {
+        return try {
         val root = JSONObject(text)
         val data = root.optJSONObject("data") ?: return null
         val attributes = data.optJSONObject("attributes") ?: return null
@@ -90,9 +91,10 @@ object RtsModelLoader {
         }
 
         MeshData(vertices, indices)
-    } catch (error: Throwable) {
-        Log.e(TAG, "Failed to parse model $label", error)
-        null
+        } catch (error: Throwable) {
+            Log.e(TAG, "Failed to parse model $label", error)
+            null
+        }
     }
 
     private fun floats(attribute: JSONObject?): FloatArray? {
