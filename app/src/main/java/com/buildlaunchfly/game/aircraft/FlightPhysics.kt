@@ -87,6 +87,8 @@ class FlightPhysics {
     private val up0 = Vec3()
     private val accel = Vec3()
     private val tmp = Vec3()
+    private val velocityDirection = Vec3()
+    private val liftDirection = Vec3()
     private val propLocal = Mat4()
 
     fun reset(origin: Vec3) {
@@ -204,7 +206,7 @@ class FlightPhysics {
         // The wing itself is working; the airspeed is not. That is what the warning is for: under
         // this speed even the best angle of attack cannot hold the aircraft up, so the way to fly
         // far is to trade height for speed instead of living on the stick.
-        stalled = hasWing && speed < stallSpeed(stats)
+        stalled = hasWing && (speed < stallSpeed(stats) || kotlin.math.abs(alpha) > ALPHA_STALL)
 
         val liftAccel = if (hasWing) q * refArea * cl / stats.mass else 0f
 
@@ -223,7 +225,21 @@ class FlightPhysics {
         }
 
         accel.set(0f, -GRAVITY, 0f)
-        accel.addScaled(up, liftAccel)
+        if (hasWing && liftAccel > 0f) {
+            // Aerodynamic lift is perpendicular to the relative airflow, not parallel to the
+            // fuselage's up axis. Project the banked wing-up vector onto the plane normal to
+            // velocity; this preserves bank steering without adding a false backwards force
+            // every time the pilot raises the nose.
+            if (speed > 1e-4f) {
+                velocityDirection.set(velocity).scale(1f / speed)
+                val alongAirflow = up.dot(velocityDirection)
+                liftDirection.set(up).addScaled(velocityDirection, -alongAirflow).normalize()
+                if (liftDirection.lengthSq() < 1e-6f) liftDirection.set(up)
+            } else {
+                liftDirection.set(up)
+            }
+            accel.addScaled(liftDirection, liftAccel)
+        }
         if (speed > 1e-4f) {
             tmp.set(velocity).scale(-1f / speed)
             accel.addScaled(tmp, dragAccel)

@@ -63,13 +63,22 @@ class HangarMesh(
         uvScale = 3.2f
     )
 
-    /** Warm tan planks for the floor, the ramp and the props. */
+    /** Warm tan planks for the hangar floor and furniture. */
     val floorMaterial = Material(
         albedo = textures.planks,
         tint = Vec3(0.95f, 0.81f, 0.63f),
         roughness = 0.90f,
         metallic = 0f,
         uvScale = 3.4f
+    )
+
+    /** Dark, solid launch-deck surface, visually distinct from the timber hangar floor. */
+    val rampMaterial = Material(
+        albedo = textures.planks,
+        tint = Vec3(0.34f, 0.29f, 0.24f),
+        roughness = 0.96f,
+        metallic = 0f,
+        uvScale = 5.5f
     )
 
     /** Exposed timber structure: ridge, rafters, ties, studs and the door frame. */
@@ -237,68 +246,72 @@ class HangarMesh(
      * board, not a step, and the incline is carried on two timber trestles, so it reads as a
      * built ramp from every camera angle.
      */
+    /**
+     * Full-width forward launch deck reconstructed around the reference composition.
+     * The aircraft faces -Z; the deck begins immediately ahead of its nose and runs straight
+     * out through the open hangar front. It is a broad tapered wedge, not a short crosswise
+     * timber strip.
+     */
     private fun buildRampData(): MeshData {
         val b = MeshBuilder()
 
-        val slope = atan2(RAMP_RISE, RAMP_LIFT)
-        val deckLen = sqrt(RAMP_LIFT * RAMP_LIFT + RAMP_RISE * RAMP_RISE)
-        val halfLen = deckLen * 0.5f
-        val halfThick = RAMP_THICKNESS * 0.5f
-        // Centre height that puts the *top* face of the tilted board on the lip line: 0.10 m at
-        // the knee and 0.42 m at the end.
-        val inclineY = RAMP_DECK_TOP + halfLen * sin(slope) - halfThick * cos(slope)
+        val nearZ = RAMP_START_Z
+        val farZ = RAMP_END_Z
+        val nearHalf = RAMP_NEAR_HALF_WIDTH
+        val farHalf = RAMP_FAR_HALF_WIDTH
+        val nearY = RAMP_NEAR_HEIGHT
+        val farY = RAMP_FAR_HEIGHT
 
-        // ---- flat run: a deck board from the end of the chamfer to the knee ----
-        val flatMidZ = (RAMP_DECK_START_Z + RAMP_KNEE_Z) * 0.5f
-        val flatHalfZ = (RAMP_DECK_START_Z - RAMP_KNEE_Z) * 0.5f
-        b.addBox(0f, RAMP_DECK_TOP - halfThick, flatMidZ, RAMP_HALF, halfThick, flatHalfZ, 3.2f)
-
-        // ---- lead-in: a chamfer board from the floor up to the deck, so the wheels roll on ----
-        val leadSlope = atan2(RAMP_DECK_TOP, RAMP_LEAD_IN)
-        val leadLen = sqrt(RAMP_LEAD_IN * RAMP_LEAD_IN + RAMP_DECK_TOP * RAMP_DECK_TOP)
-        val leadHalfLen = leadLen * 0.5f
-        val leadHalfThick = RAMP_THICKNESS * 0.35f
-        val leadY = RAMP_DECK_TOP - leadHalfLen * sin(leadSlope) - leadHalfThick * cos(leadSlope)
-        b.pushTrs(
-            0f, leadY, RAMP_START_Z - RAMP_LEAD_IN * 0.5f,
-            leadSlope, 0f, 0f, 1f
-        )
-        b.addBox(0f, 0f, 0f, RAMP_HALF, leadHalfThick, leadHalfLen, 3.2f)
-        b.pop()
-
-        // ---- take-off section: the inclined board rising off the knee to the lip ----
-        b.pushTrs(0f, inclineY, (RAMP_KNEE_Z + RAMP_END_Z) * 0.5f, slope, 0f, 0f, 1f)
-        b.addBox(0f, 0f, 0f, RAMP_HALF, halfThick, halfLen, 3.2f)
-        b.pop()
-
-        // ---- two trestles carrying the incline ----
-        for (index in 1..2) {
-            val t = index / 3f
-            val z = RAMP_KNEE_Z + (RAMP_END_Z - RAMP_KNEE_Z) * t
-            val height = RAMP_DECK_TOP + RAMP_RISE * t - RAMP_THICKNESS
-            if (height <= 0f) continue
-            b.addBox(0f, height * 0.5f, z, RAMP_HALF - 0.08f, height * 0.5f, 0.07f, 2.6f)
-        }
-
-        // ---- the front of the ramp, closed down to the floor under the lip ----
-        val faceHeight = RAMP_DECK_TOP + RAMP_RISE - RAMP_THICKNESS
-        b.addBox(
-            0f, faceHeight * 0.5f, RAMP_END_Z + 0.06f,
-            RAMP_HALF - 0.06f, faceHeight * 0.5f, 0.06f, 2.6f
+        // One continuous top plane, with the near edge wider than the far edge.
+        b.addQuad(
+            Vec3(-nearHalf, nearY, nearZ),
+            Vec3(nearHalf, nearY, nearZ),
+            Vec3(farHalf, farY, farZ),
+            Vec3(-farHalf, farY, farZ),
+            8f
         )
 
-        // ---- low kerb rails down both edges, so the ramp reads as a built structure ----
+        // Solid tapered side aprons make the deck read as a built ramp from low camera angles.
+        b.addQuad(
+            Vec3(-nearHalf, 0.02f, nearZ),
+            Vec3(-nearHalf, nearY, nearZ),
+            Vec3(-farHalf, farY, farZ),
+            Vec3(-farHalf, 0.02f, farZ),
+            5f
+        )
+        b.addQuad(
+            Vec3(nearHalf, 0.02f, nearZ),
+            Vec3(farHalf, 0.02f, farZ),
+            Vec3(farHalf, farY, farZ),
+            Vec3(nearHalf, nearY, nearZ),
+            5f
+        )
+
+        // Heavy longitudinal bearers under the deck and cross-ties at three support stations.
         for (side in intArrayOf(-1, 1)) {
-            val x = side * (RAMP_HALF - 0.07f)
-            b.addBox(x, RAMP_DECK_TOP + 0.08f, flatMidZ, 0.06f, 0.08f, flatHalfZ, 2.4f)
-            b.pushTrs(
-                x, inclineY + (halfThick + 0.08f) * cos(slope), (RAMP_KNEE_Z + RAMP_END_Z) * 0.5f,
-                slope, 0f, 0f, 1f
+            b.addRod(
+                side * (nearHalf - 0.18f), 0.08f, nearZ,
+                side * (farHalf - 0.18f), farY - 0.12f, farZ,
+                0.14f, 8
             )
-            b.addBox(0f, 0f, 0f, 0.06f, 0.08f, halfLen, 2.4f)
-            b.pop()
+        }
+        for (t in floatArrayOf(0.25f, 0.50f, 0.75f)) {
+            val z = nearZ + (farZ - nearZ) * t
+            val y = nearY + (farY - nearY) * t
+            val half = nearHalf + (farHalf - nearHalf) * t
+            b.addRod(-half + 0.15f, y - 0.08f, z, -half + 0.15f, 0.04f, z, 0.09f, 6)
+            b.addRod(half - 0.15f, y - 0.08f, z, half - 0.15f, 0.04f, z, 0.09f, 6)
+            b.addRod(-half + 0.15f, 0.04f, z, half - 0.15f, 0.04f, z, 0.08f, 6)
         }
 
+        // Low edge guides run parallel to the flight path, never across it.
+        for (side in intArrayOf(-1, 1)) {
+            b.addRod(
+                side * (nearHalf - 0.10f), nearY + 0.12f, nearZ,
+                side * (farHalf - 0.10f), farY + 0.12f, farZ,
+                0.055f, 6
+            )
+        }
         return b.build()
     }
 
@@ -334,34 +347,18 @@ class HangarMesh(
          * (1.1 m) climb to the lip. It is a narrow wheel track, not a deck: a ramp wider than
          * it is long reads as a platform lying across the launch instead of a ramp along it.
          */
-        private const val RAMP_GAP = 1.70f
-        private const val RAMP_LENGTH = 3.20f
-        private const val RAMP_LIFT = 1.10f
-        private const val RAMP_HALF = 0.75f
+        /** The broad deck starts just ahead of the parked aircraft's nose. */
+        private val RAMP_START_Z = SlingshotLayout.HOLD_Z - 2.40f
 
-        /** Height of the flat deck above the shed floor. */
-        private const val RAMP_DECK_TOP = 0.10f
-
-        /** Rise of the take-off section above the flat deck. */
-        private const val RAMP_RISE = 0.32f
-
-        /** Thickness of a deck board. */
-        private const val RAMP_THICKNESS = 0.10f
-
-        /** Length of the chamfer that meets the shed floor. */
-        private const val RAMP_LEAD_IN = 0.35f
-
-        /** Z the ramp's leading edge begins at: ahead of the tow point, forward being -Z. */
-        private val RAMP_START_Z = SlingshotLayout.HOLD_Z - RAMP_GAP
-
-        /** Z of the launching lip. The whole run, chamfer included, is [RAMP_LENGTH] long. */
+        /** Long forward run, extending through the open hangar front into the valley. */
+        private const val RAMP_LENGTH = 18.0f
         private val RAMP_END_Z = RAMP_START_Z - RAMP_LENGTH
 
-        /** Z where the chamfer reaches deck height. */
-        private val RAMP_DECK_START_Z = RAMP_START_Z - RAMP_LEAD_IN
-
-        /** Z where the flat run hands over to the take-off section. */
-        private val RAMP_KNEE_Z = RAMP_END_Z + RAMP_LIFT
+        /** Reference-like tapered plan: broad at the aircraft, narrower at the far end. */
+        private const val RAMP_NEAR_HALF_WIDTH = 4.20f
+        private const val RAMP_FAR_HALF_WIDTH = 2.75f
+        private const val RAMP_NEAR_HEIGHT = 0.12f
+        private const val RAMP_FAR_HEIGHT = 1.25f
 
         /** One imported prop: model name, world height, plan position and heading. */
         private class PropSpec(

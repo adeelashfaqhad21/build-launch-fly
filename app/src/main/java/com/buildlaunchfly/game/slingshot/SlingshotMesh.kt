@@ -33,10 +33,10 @@ object SlingshotLayout {
     const val HOLD_Z = 3.0f
 
     /** Two wide posts, a little wider apart than the wingspan so the band clears the tips. */
-    const val POLE_X = 3.30f
+    const val POLE_X = 4.00f
 
     /** Taller than the aircraft, as in the reference plates. */
-    const val POLE_HEIGHT = 4.85f
+    const val POLE_HEIGHT = 2.65f
 
     /** Half-width of a post: about a third of a metre across, a chunky timber support. */
     const val POLE_HALF = 0.17f
@@ -144,10 +144,12 @@ class SlingshotMesh(textures: TextureFactory) {
     /** Unit cylinder: radius 1 at the base, height 1, stretched to a segment by its matrix. */
     private fun buildBandData(): MeshData {
         val b = MeshBuilder()
-        b.addCylinder(
+        // Flat, broad elastic webbing rather than a round cable: the reference shows
+        // striped straps spanning the aircraft's wing plane.
+        b.addBox(
             0f, 0.5f, 0f,
-            BAND_RADIUS, BAND_RADIUS, 1f,
-            10, false, false, BAND_STRIPE_TILES
+            BAND_WIDTH * 0.5f, 0.5f, BAND_THICKNESS * 0.5f,
+            BAND_STRIPE_TILES
         )
         return b.build()
     }
@@ -277,8 +279,9 @@ class SlingshotMesh(textures: TextureFactory) {
         /** How far the band hangs below its chord when slack. */
         const val BAND_SAG = 0.22f
 
-        /** Uniform band thickness before the upgrade multiplier. */
-        private const val BAND_RADIUS = 0.10f
+        /** Visible strap width and edge thickness before the upgrade multiplier. */
+        private const val BAND_WIDTH = 0.28f
+        private const val BAND_THICKNESS = 0.07f
 
         /** Segments per arm; enough to read as one smooth elastic, few enough to stay cheap. */
         const val BAND_SEGMENTS_PER_ARM = 4

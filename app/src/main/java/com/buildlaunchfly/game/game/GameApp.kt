@@ -912,7 +912,7 @@ class GameApp(private val context: Context, private val input: InputState) {
                 sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
-                sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
                 for (prop in set.props) {
                     sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
                 }
@@ -990,6 +990,12 @@ class GameApp(private val context: Context, private val input: InputState) {
             aircraftMesh.propellerBlurMaterial.alpha = alpha
             if (alpha > 0.01f) {
                 sceneRenderer.drawMesh(blur, aircraftMesh.propellerBlurMaterial, propellerModel)
+            }
+        }
+        if (showSling) {
+            // Bands sit over the wing root in the launch plate, so draw them after the airframe.
+            for (band in bandWorld) {
+                sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, band)
             }
         }
 
