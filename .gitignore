@@ -46,9 +46,13 @@ assets-source/kenney_fantasy-ui-borders/
 assets-source/kenney_ui-pack/
 assets-source/kenney_interface-sounds/
 assets-source/kenney_impact-sounds/
+assets-source/kenney_rpg-audio/
 
 # Downloaded texture archives: only the colour maps that ship are copied into assets/terrain
 assets-source/ambientcg/
+
+# Downloaded model sources already copied into app/src/main/assets
+assets-source/parrot-light.glb
 
 
 # Unpacked plane sources: the airframe used is copied into app/src/main/assets/aircraft

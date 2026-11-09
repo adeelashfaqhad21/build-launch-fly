@@ -6,6 +6,8 @@ OpenGL ES 3.0, and the portrait UI system modelled on the reference plates.
 
 **Read first:**
 
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — the master plan: vision, audited status, issue
+  register, asset catalog and the phases in order.
 - [`docs/MASTER_BRIEF.md`](docs/MASTER_BRIEF.md) — the original creative and technical
   commission (historical reference; its landscape and realism requirements are superseded
   by the plates).
@@ -240,11 +242,11 @@ Why the two APKs behaved differently before:
 - UI ships as procedural vector drawing instead of 9-patch/SVG slices; the layout hooks are
   in `ui/UiFrame.kt` and `ui/UiIcons.kt`.
 - Wildlife: ground animals are Quaternius models (static pose, flat MTL colours) driven by the
-  existing scripted grazing paths, two or three species per realm — deer, fox and dog in the
-  forest, donkey and white horse in the desert, husky and wolf in the snow, cattle and alpaca
-  on the coast, stag and bull in the mountains. Birds use the imported `parrot.glb` through
-  `gfx/GlbLoader` (a BufferGeometry JSON and the old triangles remain as fallbacks); its
-  licence is not yet documented. Skeletal animation would need a skinning pass.
+  existing scripted grazing paths, two or three species per realm — deer, fox and a Shiba Inu
+  in the forest, donkey and white horse in the desert, husky and wolf in the snow, cattle and
+  alpaca on the coast, stag and bull in the mountains. Birds use the imported `parrot.glb`
+  through `gfx/GlbLoader` (a BufferGeometry JSON and the old triangles remain as fallbacks);
+  its licence is not yet documented. Skeletal animation would need a skinning pass.
 - Ecosystem layouts are still procedural: reference plates in `docs/reference/` guide art
   direction but are not baked into authored terrain or building assets.
 - Play Protect warnings on self-signed sideloads are outside the app's control; publishing to
