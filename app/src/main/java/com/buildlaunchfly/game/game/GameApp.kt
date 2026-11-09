@@ -621,7 +621,12 @@ class GameApp(private val context: Context, private val input: InputState) {
 
     private fun updateFlight(dt: Float, currentScene: WorldScene) {
         val stats = build.stats()
-        val ground = currentScene.terrain.height(physics.position.x, physics.position.z)
+        val terrainGround = currentScene.terrain.height(physics.position.x, physics.position.z)
+        val rampGround = hangar?.rampHeightAt(
+            physics.position.x - padPosition.x,
+            physics.position.z - padPosition.z
+        )
+        val ground = maxOf(terrainGround, rampGround ?: terrainGround)
         flightInput.pitch = steerPitch
         flightInput.roll = steerRoll
         physics.update(dt, stats, ground, flightInput)
