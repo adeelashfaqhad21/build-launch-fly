@@ -168,6 +168,9 @@ on its final commit.
 
 **Phase 2 — Realm dressing, by what the plates ask for** *(in progress)*
 - Realm-appropriate buildings where the fantasy houses read wrong (desert, coast, alpine).
+  **Desert done** — the half-timbered tower house and cottage are gone; the realm is a mining
+  outpost with the rock-cut mine, three mines on the horizon and its own mountains, dressed
+  by the industrial kit already standing around the airfield.
 - Field boundaries in the mountain realm from the Kenney Nature `fence_*` set already on
   disk. **Done** — forest, desert and highland runs in `WorldScene.buildFieldBoundaries`,
   sections spaced by the model's own width-to-height ratio.
@@ -214,4 +217,5 @@ on its final commit.
   props, castle obstacles) added to the shadow pass.
 - **645d7b9** — Phase 2: field boundaries for forest, desert and highland from the Kenney
   Nature `fence_simple` sections, spaced by the model's own width-to-height ratio.
-- **this commit** — Phase 1 closed with a decision on `leaf`; unused fence corner removed.
+- **c94649d** — Phase 1 closed with a decision on `leaf`; unused fence corner removed.
+- **this commit** — Phase 2: the desert becomes a mining outpost and gains a skyline.

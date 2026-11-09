@@ -799,16 +799,19 @@ class WorldScene(
                 )))
             }
             WorldId.DESERT -> {
+                // A mining outpost rather than a village: the half-timbered fantasy houses read
+                // wrong against sand, so the desert gets the rock-cut mine, the industrial
+                // buildings already standing around the airfield, and its own skyline.
                 specs.add(StructureSpec("Mine", 11f, listOf(
                     Triple(-70f, -145f, 0.7f),
+                    Triple(88f, -200f, -1.1f),
                     Triple(26f, -62f, -0.4f)
                 )))
-                specs.add(StructureSpec("TowerHouse_FirstAge", 15f, listOf(
-                    Triple(88f, -200f, -1.1f),
-                    Triple(-30f, -74f, 0.8f)
+                specs.add(StructureSpec("Mountain_Single", 110f, listOf(
+                    Triple(-340f, -540f, 0.5f)
                 )))
-                specs.add(StructureSpec("Houses_FirstAge_1_Level2", 8f, listOf(
-                    Triple(16f, -40f, 1.6f)
+                specs.add(StructureSpec("MountainLarge_Single", 150f, listOf(
+                    Triple(320f, -620f, 2.0f)
                 )))
             }
         }
