@@ -10,8 +10,18 @@ import kotlin.math.sqrt
 object TerrainMesh {
 
     fun build(terrain: Terrain): MeshData {
-        val xs = axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f)
-        val zs = axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f)
+        // The runway is only 9 m wide and 48 m long. The broad 8 m terrain grid
+        // cannot represent its edges or its curved clearance reliably; add exact edge
+        // samples and 1.5 m longitudinal samples so terrain triangles stay below asphalt.
+        val xs = mergeSamples(
+            axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f),
+            floatArrayOf(-5.0f, -4.5f, 4.5f, 5.0f)
+        )
+        val rampZ = FloatArray(33) { index -> -48f + index * 1.5f }
+        val zs = mergeSamples(
+            axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f),
+            rampZ
+        )
 
         val nx = xs.size
         val nz = zs.size
@@ -90,6 +100,10 @@ object TerrainMesh {
 
         return MeshData(vertices, indices)
     }
+
+    /** Merge exact local-detail samples into the broad terrain grid without duplicates. */
+    private fun mergeSamples(base: FloatArray, extra: FloatArray): FloatArray =
+        (base.asList() + extra.asList()).distinct().sorted().toFloatArray()
 
     /**
      * Ascending axis samples: a uniform run between [innerMin] and [innerMax], then
