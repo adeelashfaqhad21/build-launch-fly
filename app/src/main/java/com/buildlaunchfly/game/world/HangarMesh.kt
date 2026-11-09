@@ -409,8 +409,10 @@ class HangarMesh(
         const val OPEN_DOOR_HEIGHT = 8.5f
 
         /** Reference runway starts at the slingshot plane and runs forward along -Z. */
-        private const val RAMP_START_Z = 0.0f
-        private const val RAMP_END_Z = -48.0f
+        const val RAMP_START_Z = 0.0f
+        const val RAMP_END_Z = -48.0f
+        /** World-space shift: ramp and slingshot plane sit 2.5 m beyond the -Z roof edge. */
+        const val RAMP_WORLD_OFFSET_Z = -15.5f
         private const val RAMP_WIDTH = 9.0f
         private const val RAMP_ELEVATION = 4.2f
         private const val RAMP_CURB_WIDTH = 0.5f

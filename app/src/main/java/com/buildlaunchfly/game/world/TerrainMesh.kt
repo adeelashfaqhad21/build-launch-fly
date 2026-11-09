@@ -10,14 +10,16 @@ import kotlin.math.sqrt
 object TerrainMesh {
 
     fun build(terrain: Terrain): MeshData {
-        // The runway is only 9 m wide and 48 m long. The broad 8 m terrain grid
-        // cannot represent its edges or its curved clearance reliably; add exact edge
-        // samples and 1.5 m longitudinal samples so terrain triangles stay below asphalt.
+        // The 9 m x 48 m runway begins beyond the hangar roof edge. Add exact edge
+        // samples and 1.5 m longitudinal samples at its shifted world-space coordinates
+        // so terrain triangles stay below the asphalt deck.
         val xs = mergeSamples(
             axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f),
             floatArrayOf(-5.0f, -4.5f, 4.5f, 5.0f)
         )
-        val rampZ = FloatArray(33) { index -> -48f + index * 1.5f }
+        val rampZ = FloatArray(33) { index ->
+            HangarMesh.RAMP_END_Z + HangarMesh.RAMP_WORLD_OFFSET_Z + index * 1.5f
+        }
         val zs = mergeSamples(
             axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f),
             rampZ
@@ -94,7 +96,8 @@ object TerrainMesh {
                 val x1 = xs[i + 1]
                 val underRunway =
                     x0 >= -4.5f && x1 <= 4.5f &&
-                    z0 >= -48f && z1 <= 0f
+                    z0 >= HangarMesh.RAMP_END_Z + HangarMesh.RAMP_WORLD_OFFSET_Z &&
+                    z1 <= HangarMesh.RAMP_START_Z + HangarMesh.RAMP_WORLD_OFFSET_Z
                 if (underRunway) continue
 
                 val a = j * nx + i

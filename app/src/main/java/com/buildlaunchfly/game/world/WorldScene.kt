@@ -1958,7 +1958,8 @@ class WorldScene(
         /** Launch strip kept clear of solids: half-width, and the z range it covers. */
         const val LAUNCH_CORRIDOR_HALF_WIDTH = 7f
         const val LAUNCH_CORRIDOR_FRONT = 16f
-        const val LAUNCH_CORRIDOR_BACK = -30f
+        /** Covers the relocated 48 m runway plus a 16 m obstacle-free approach margin. */
+        const val LAUNCH_CORRIDOR_BACK = -80f
 
         /** A crown reaches this far above its trunk scale, as a multiple of it. */
         const val TREE_CANOPY_TOP = 1.55f

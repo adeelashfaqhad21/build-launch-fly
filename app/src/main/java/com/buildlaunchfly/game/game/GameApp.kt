@@ -297,7 +297,7 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         applyEnvironment(definition, sceneRenderer)
         padPosition.set(0f, newScene.terrain.padHeight, 0f)
-        launchOrigin.set(padPosition.x, padPosition.y, padPosition.z - LAUNCH_ASSEMBLY_FORWARD)
+        launchOrigin.set(padPosition.x, padPosition.y, padPosition.z + HangarMesh.RAMP_WORLD_OFFSET_Z)
         hangarModel.identity().translate(padPosition.x, padPosition.y, padPosition.z)
         slingshotModel.identity().translate(launchOrigin.x, launchOrigin.y, launchOrigin.z)
         audio.setAmbience(definition.ambience)
@@ -966,7 +966,7 @@ class GameApp(private val context: Context, private val input: InputState) {
             // omitted here: the camera is inside the shed and the roof panels otherwise
             // dominate the view or appear to intersect the aircraft during pull-back.
             hangar?.let { set ->
-                sceneRenderer.drawMesh(set.launchWallMesh, set.wallMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.launchWallMesh, set.wallMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
@@ -1122,9 +1122,6 @@ class GameApp(private val context: Context, private val input: InputState) {
 
         /** Height the aircraft stands at on the hangar floor, in metres above the pad. */
         const val HANGAR_PARK_HEIGHT = 0.85f
-
-        /** Launcher plane is 2.5 m beyond the hangar's -Z roof edge. */
-        private const val LAUNCH_ASSEMBLY_FORWARD = 15.5f
 
         /** Height the hangar camera is centred on: the parked aircraft, not the band. */
         const val HANGAR_CAMERA_HEIGHT = 1.7f
