@@ -1612,7 +1612,9 @@ class WorldScene(
             // beside or behind the launch path.
             val x = (rng.nextFloat() * 2f - 1f) * 105f
             val z = -36f - rng.nextFloat() * 360f
-            if (Vegetation.isInsideLaunchFacility(x, z)) continue
+            // Imported near-field trees can have broad crowns; keep their full footprint
+            // clear of the facility rather than testing only the trunk's centre.
+            if (Vegetation.isInsideLaunchFacility(x, z, margin = 18f)) continue
 
             val h = terrain.height(x, z)
             if (h < definition.waterLevel + 1.5f) continue
