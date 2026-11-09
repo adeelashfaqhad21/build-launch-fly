@@ -279,7 +279,7 @@ class SlingshotMesh(textures: TextureFactory) {
     }
 
     companion object {
-        const val DRAW_LENGTH = 6.0f
+        const val DRAW_LENGTH = 2.1f
 
         /** How far the band hangs below its chord when slack. */
         const val BAND_SAG = 0.22f

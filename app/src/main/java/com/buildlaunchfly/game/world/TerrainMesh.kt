@@ -15,14 +15,14 @@ object TerrainMesh {
         // so terrain triangles stay below the asphalt deck.
         val xs = mergeSamples(
             axis(-400f, 640f, 8f, -3600f, 5200f, 1.42f),
-            floatArrayOf(-5.0f, -4.5f, 4.5f, 5.0f)
+            floatArrayOf(-HangarMesh.HALF_WIDTH, -5.0f, -4.5f, 4.5f, 5.0f, HangarMesh.HALF_WIDTH)
         )
         val rampZ = FloatArray(33) { index ->
             HangarMesh.RAMP_END_Z + HangarMesh.RAMP_WORLD_OFFSET_Z + index * 1.5f
         }
         val zs = mergeSamples(
             axis(-1900f, 320f, 8f, -5200f, 1600f, 1.42f),
-            rampZ
+            rampZ + floatArrayOf(-HangarMesh.HALF_LENGTH, HangarMesh.HALF_LENGTH)
         )
 
         val nx = xs.size
@@ -98,7 +98,13 @@ object TerrainMesh {
                     x0 >= -4.5f && x1 <= 4.5f &&
                     z0 >= HangarMesh.RAMP_END_Z + HangarMesh.RAMP_WORLD_OFFSET_Z &&
                     z1 <= HangarMesh.RAMP_START_Z + HangarMesh.RAMP_WORLD_OFFSET_Z
-                if (underRunway) continue
+                // The plank floor is the ground surface inside the shed. Remove the
+                // coincident terrain triangles beneath it to prevent depth-buffer flicker
+                // and grass/terrain showing through the timber boards.
+                val underHangarFloor =
+                    x0 >= -HangarMesh.HALF_WIDTH && x1 <= HangarMesh.HALF_WIDTH &&
+                    z0 >= -HangarMesh.HALF_LENGTH && z1 <= HangarMesh.HALF_LENGTH
+                if (underRunway || underHangarFloor) continue
 
                 val a = j * nx + i
                 val b = j * nx + i + 1

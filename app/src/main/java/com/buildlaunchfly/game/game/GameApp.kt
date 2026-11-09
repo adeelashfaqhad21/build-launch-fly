@@ -803,9 +803,10 @@ class GameApp(private val context: Context, private val input: InputState) {
         // elastic band is transient; it is visible while seated and during its release recoil.
         val showSling = state == GameState.SEATED || slingRecoilTimer > 0f
         val showHangar = state != GameState.SEATED || cameraMode == CameraMode.ORBIT_AIRCRAFT
-        // The roof is for hangar inspection only. It must stay out of the launch and flight
-        // paths; otherwise the aircraft visibly clips through it as soon as FLIGHT begins.
-        val showHangarRoof = state != GameState.FLIGHT && cameraMode == CameraMode.ORBIT_AIRCRAFT
+        // Keep the hangar roof visible throughout launch preparation and pull-back.
+        // Remove it only after release so the aircraft cannot clip through the roof in flight.
+        val showHangarRoof = state == GameState.SEATED &&
+            (cameraMode == CameraMode.LAUNCH || cameraMode == CameraMode.ORBIT_AIRCRAFT)
         val showLaunchHangar = state == GameState.SEATED && cameraMode == CameraMode.LAUNCH
         val slingDraw = if (state == GameState.SEATED) pull else recoilDraw()
 
@@ -962,11 +963,13 @@ class GameApp(private val context: Context, private val input: InputState) {
                 }
             }
         } else if (showLaunchHangar) {
-            // Keep the launch view open above and behind the aircraft. The roof is intentionally
-            // omitted here: the camera is inside the shed and the roof panels otherwise
-            // dominate the view or appear to intersect the aircraft during pull-back.
+            // Keep the launch view open behind the aircraft while retaining the visible roof
+            // structure above the player during the complete pull-back.
             hangar?.let { set ->
                 sceneRenderer.drawMesh(set.launchWallMesh, set.wallMaterial, hangarModel)
+                if (showHangarRoof) {
+                    sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, hangarModel)
+                }
                 sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, hangarModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.rampMaterial, slingshotModel)
