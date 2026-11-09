@@ -189,15 +189,19 @@ class HangarMesh(
     private fun buildFloorData(): MeshData {
         val b = MeshBuilder()
 
-        // Keep the plank floor clear of the asphalt runway. A full-width floor slab
-        // underneath the deck caused coplanar overlap at the entrance and visible timber
-        // beneath the runway in the first hangar section.
-        // Rear workshop floor behind the slingshot plane (z = 0…+13).
+        // The runway now begins beyond the hangar's front roof edge, so the shed keeps
+        // a continuous timber floor instead of an empty central trench.
+        // Rear workshop floor behind the launcher plane (z = 0…+13).
         b.addBox(
             0f, -0.09f, HALF_LENGTH * 0.5f,
             HALF_WIDTH, 0.09f, HALF_LENGTH * 0.5f, 3.4f
         )
-        // Forward side walkways leave the central 9 m runway footprint open (z = -13…0).
+        // Restore the central 9 m floor strip: the asphalt ramp now starts outside the shed.
+        b.addBox(
+            0f, -0.09f, -HALF_LENGTH * 0.5f,
+            RAMP_WIDTH * 0.5f, 0.09f, HALF_LENGTH * 0.5f, 3.4f
+        )
+        // Side walkways complete the full hangar floor.
         val sideHalfWidth = (HALF_WIDTH - RAMP_WIDTH * 0.5f) * 0.5f
         val sideCenterX = RAMP_WIDTH * 0.5f + sideHalfWidth
         b.addBox(
