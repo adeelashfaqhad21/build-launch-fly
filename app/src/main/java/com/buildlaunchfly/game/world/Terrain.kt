@@ -3,6 +3,7 @@ package com.buildlaunchfly.game.world
 import com.buildlaunchfly.game.gfx.Noise
 import com.buildlaunchfly.game.math.M
 import com.buildlaunchfly.game.math.Vec3
+import kotlin.math.pow
 
 /**
  * Height field for one world. The launch pad is a flattened plateau at the origin and the
@@ -46,6 +47,18 @@ class Terrain(val definition: WorldDefinition) {
             val influence = 1f - M.smoothStep(26f, 88f, distance)
             h = M.lerp(h, padHeight, influence)
         }
+        // Keep the generated world terrain below the dedicated asphalt launch deck.
+        // Without this clearance, the per-world height field can poke through the ramp
+        // and look like a second, overlapping runway.
+        val rampHalfWidth = 4.5f
+        if (kotlin.math.abs(x) <= rampHalfWidth && z in -48f..0f) {
+            val progress = ((-z) / 48f).coerceIn(0f, 1f)
+            val rampRise = 4.2f *
+                (1.15f * progress.pow(1.4f) - 0.15f * progress.pow(2.8f))
+            val rampSurface = padHeight + rampRise
+            h = minOf(h, rampSurface - 0.35f)
+        }
+
         return h
     }
 
