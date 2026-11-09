@@ -359,7 +359,9 @@ class WorldScene(
         }
 
         structures = if (assets != null) {
-            buildStructures(assets, textures) + buildKitDressing(assets)
+            buildStructures(assets, textures) +
+                buildKitDressing(assets) +
+                buildFieldBoundaries(assets, textures)
         } else {
             emptyList()
         }
@@ -1104,6 +1106,119 @@ class WorldScene(
         return out
     }
 
+    /**
+     * One run of modular fencing along the ground: from ([startX], [startZ]) to
+     * ([endX], [endZ]). Runs sit off to the sides of the corridor, so they mark a field
+     * boundary and frame the launch without standing in the flight line.
+     */
+    private class FenceRun(
+        val startX: Float,
+        val startZ: Float,
+        val endX: Float,
+        val endZ: Float,
+        val maxSections: Int
+    )
+
+    /** The field boundaries each realm gets, if any. */
+    private fun fenceRuns(): List<FenceRun> = when (definition.id) {
+        WorldId.FOREST -> listOf(
+            FenceRun(-46f, -28f, -20f, -30f, 10),
+            FenceRun(18f, -66f, 42f, -68f, 10)
+        )
+        WorldId.MOUNTAIN -> listOf(
+            FenceRun(-48f, -36f, -18f, -38f, 11),
+            FenceRun(16f, -54f, 44f, -56f, 11)
+        )
+        WorldId.DESERT -> listOf(
+            FenceRun(-34f, -46f, -14f, -48f, 8)
+        )
+        else -> emptyList()
+    }
+
+    /**
+     * Field boundaries from the Kenney Nature Kit: modular sections laid end to end at a
+     * constant height, each one dropped onto the ground under its own posts. The step comes
+     * from the model's own width-to-height ratio, so the sections meet edge to edge instead
+     * of overlapping or leaving gaps, and a section that would stand in water is skipped.
+     */
+    private fun buildFieldBoundaries(
+        assets: AssetManager,
+        textures: TextureFactory
+    ): List<InstancedPart> {
+        val runs = fenceRuns()
+        if (runs.isEmpty()) return emptyList()
+
+        val model = "fence_simple"
+        val parts = AnimalLoader.load(
+            assets,
+            "models/nature/$model.obj",
+            "models/nature/$model.mtl",
+            FENCE_HEIGHT
+        )
+        if (parts.isEmpty()) return emptyList()
+
+        val extents = PropLoader.extents(assets, "models/nature/$model.obj") ?: return emptyList()
+        if (extents.height <= 0f) return emptyList()
+        val section = (extents.size / extents.height) * FENCE_HEIGHT * 0.98f
+        if (section <= 0f) return emptyList()
+
+        val matrices = ArrayList<Float>(runs.size * 11 * 16)
+        val matrix = Mat4()
+
+        for (run in runs) {
+            val dx = run.endX - run.startX
+            val dz = run.endZ - run.startZ
+            val length = kotlin.math.sqrt(dx * dx + dz * dz)
+            if (length <= 0f) continue
+
+            // The section is authored along +X, so trade that axis for the run direction.
+            val heading = kotlin.math.atan2(-dz, dx)
+            val stepX = dx / length
+            val stepZ = dz / length
+            val count = (length / section).toInt().coerceIn(0, run.maxSections)
+
+            for (index in 0..count) {
+                val distance = index * section
+                if (distance > length) break
+                val x = run.startX + stepX * distance
+                val z = run.startZ + stepZ * distance
+                val ground = terrain.height(x, z)
+                if (ground < definition.waterLevel + 0.4f) continue
+
+                matrix.setTrs(x, ground - 0.05f, z, 0f, heading, 0f, 1f)
+                for (value in matrix.m) matrices.add(value)
+            }
+        }
+
+        val placed = matrices.size / 16
+        if (placed == 0) return emptyList()
+
+        val instanceArray = FloatArray(placed * 16)
+        for (index in instanceArray.indices) instanceArray[index] = matrices[index]
+
+        val out = ArrayList<InstancedPart>(parts.size)
+        for ((index, part) in parts.withIndex()) {
+            val name = "fence$index"
+            val mesh = Mesh(name, part.data)
+            val instanced = InstancedMesh(name, part.data, placed)
+            instanced.setInstances(instanceArray, placed)
+            out.add(
+                InstancedPart(
+                    mesh,
+                    instanced,
+                    Material(
+                        albedo = textures.white,
+                        tint = Vec3(part.color.x, part.color.y, part.color.z),
+                        roughness = 0.9f,
+                        metallic = 0f,
+                        uvScale = 1f
+                    )
+                )
+            )
+        }
+        return out
+    }
+
     /** Every kit piece placed per realm, grouped by the kit it comes from. */
     private fun kitDressing(): List<KitSpec> {
         val out = ArrayList<KitSpec>(24)
@@ -1673,5 +1788,8 @@ class WorldScene(
 
         /** Height an imported bird model is scaled to, in metres. */
         const val BIRD_HEIGHT = 0.9f
+
+        /** Height a fence section is scaled to, in metres: about waist high on the player. */
+        const val FENCE_HEIGHT = 0.9f
     }
 }
