@@ -94,7 +94,7 @@ Priority is about what the player meets, not about effort.
 |---|---|---|
 | 4 | `birds/parrot.glb` has no documented licence; 12.2 MB for a distant flock. | Keep it (a licence note exists saying *unconfirmed*), but it is the first thing replaced if a small documented bird is found. Do not let it grow the release APK further. |
 | 5 | `birds/bird.json` is a supported path with no file behind it. | Keep the code path (it costs nothing and the loader is tested by it), but stop calling it a shipped fallback in the docs. |
-| 6 | `leaf` and `waterNormals` are still generated. | `leaf` has an imported replacement already in the APK (`quaternius/*_Leaves.png`); wire it. `waterNormals` needs a real normal map or a shader without one — no download in use has one. |
+| 6 | `leaf` and `waterNormals` are still generated. | `leaf` **stays generated**: the imported leaf maps in `quaternius/` are alpha cut-out cards for cross-plane canopies, so as an opaque albedo on closed geometry they would show the card, not foliage. It is the one tile that reads correctly as a tiling colour. `waterNormals` needs a real normal map or a shader without one — no download in use has one. |
 | 7 | The 140–400 m vegetation ring is procedural. | Keep until billboard cards exist; the imported trees are 5 200–35 000-line OBJs and cannot be instanced at that distance. |
 | 8 | The forest calls a Shiba Inu a "dog" in the code. | Rename the species label; the model is a Shiba and the realm should say so. |
 | 9 | `assets-source/kenney_rpg-audio/` and `assets-source/parrot-light.glb` are untracked and not ignored. | Add to `.gitignore`; the packs are staging, the game files are in `assets/`. |
@@ -159,15 +159,18 @@ on its final commit.
 - **Exit:** CI green on `main`; no document describes an observation nobody made.
 
 **Phase 1 — Finish the texture set**
-- `leaf`: load an imported leaf map from `quaternius/` instead of generating one.
+- `leaf`: decided against — see issue 6. Recorded so nobody reopens it without a
+  colour (not alpha) foliage tile.
 - `waterNormals`: keep the generated one and say so, or adopt a real normal map if one can
   be fetched directly.
-- **Exit:** `TextureFactory` generates nothing except the 1×1 white.
+- **Exit:** every remaining generated texture has a recorded decision, and
+  `TextureFactory` generates nothing except the 1×1 white and the two decided tiles.
 
-**Phase 2 — Realm dressing, by what the plates ask for**
+**Phase 2 — Realm dressing, by what the plates ask for** *(in progress)*
 - Realm-appropriate buildings where the fantasy houses read wrong (desert, coast, alpine).
 - Field boundaries in the mountain realm from the Kenney Nature `fence_*` set already on
-  disk.
+  disk. **Done** — forest, desert and highland runs in `WorldScene.buildFieldBoundaries`,
+  sections spaced by the model's own width-to-height ratio.
 - **Exit:** every realm reads as its own place at launch distance, with no asset that
   contradicts it.
 
@@ -205,5 +208,10 @@ on its final commit.
 
 - **8d1a306** — Phase 0: build fixed (SoundBank context capture, expression-body returns in
   the two bird loaders, a `/*` inside a KDoc that opened a nested comment).
-- **this commit** — Phase 0: this roadmap written; the three asset notes folded in; README
-  and `.gitignore` corrected.
+- **915367a** — Phase 0: this roadmap written; the three asset notes folded in; README and
+  `.gitignore` corrected.
+- **3283780** — kit pieces sized by their own height; `structures` (airfield buildings, town
+  props, castle obstacles) added to the shadow pass.
+- **645d7b9** — Phase 2: field boundaries for forest, desert and highland from the Kenney
+  Nature `fence_simple` sections, spaced by the model's own width-to-height ratio.
+- **this commit** — Phase 1 closed with a decision on `leaf`; unused fence corner removed.
