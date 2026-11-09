@@ -75,12 +75,16 @@ class TextureFactory(
         metal = register(Texture2D.create("metal", texSize, texSize, metalTexture(texSize)))
         rubber = register(Texture2D.create("rubber", texSize, texSize, rubberTexture(texSize)))
         hazard = register(Texture2D.create("hazard", texSize, texSize, hazardTexture(texSize)))
-        bark = register(Texture2D.create("bark", texSize, texSize, barkTexture(texSize)))
+        bark = register(
+            imported("bark") ?: Texture2D.create("bark", texSize, texSize, barkTexture(texSize))
+        )
         leaf = register(Texture2D.create("leaf", texSize, texSize, leafTexture(texSize)))
         soil = register(
             imported("soil") ?: Texture2D.create("soil", texSize, texSize, soilTexture(texSize))
         )
-        planks = register(Texture2D.create("planks", texSize, texSize, plankTexture(texSize)))
+        planks = register(
+            imported("planks") ?: Texture2D.create("planks", texSize, texSize, plankTexture(texSize))
+        )
         waterNormals = register(Texture2D.create("waterNormal", texSize, texSize, waterNormalTexture(texSize)))
     }
 

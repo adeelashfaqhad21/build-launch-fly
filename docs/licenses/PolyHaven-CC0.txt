@@ -19,5 +19,10 @@ Assets included in this build (1K JPG diffuse maps, under app/src/main/assets/te
   cracked_dry.jpg  <- "Dry Ground 01"        https://polyhaven.com/a/dry_ground_01
   cliff_rock.jpg   <- "Aerial Rocks 02"      https://polyhaven.com/a/aerial_rocks_02
   gravel.jpg       <- "Floor Pebbles 01"     https://polyhaven.com/a/floor_pebbles_01
+  planks.jpg       <- "Wood Planks"          https://polyhaven.com/a/wood_planks
+  bark.jpg         <- "Bark Willow 02"       https://polyhaven.com/a/bark_willow_02
+
+Also downloaded to assets-source/terrain/ for future use:
+  planks_raw.jpg   <- "Raw Plank Wall"       https://polyhaven.com/a/raw_plank_wall
 
 The files are downscaled on load (max 512 px) and uploaded mip-mapped.
