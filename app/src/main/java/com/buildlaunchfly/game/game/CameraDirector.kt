@@ -152,7 +152,7 @@ class CameraDirector(private val camera: Camera) {
          * beyond the shed without an occluding wall.
          */
         const val SEATED_HEIGHT = 2.6f
-        const val SEATED_DISTANCE = 18.5f
+        const val SEATED_DISTANCE = 22.0f
         const val SEATED_CAMERA_HEIGHT = 0.65f
         const val SEATED_TARGET_HEIGHT = 0.65f
         const val SEATED_FOV = 58f

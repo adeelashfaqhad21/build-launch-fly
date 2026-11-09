@@ -861,9 +861,10 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
         // The posts remain in the world after launch; only the moving elastic is transient.
         sceneRenderer.shadowMesh(rig.frameMesh, slingshotModel)
-        if (showSling) {
-            for (band in bandWorld) sceneRenderer.shadowMesh(rig.bandMesh, band)
-        }
+        // The elastic is only 7 cm thick. At this shadow-map scale its depth silhouette
+        // aliases across the aircraft and produces dark, interleaved marks at full pull.
+        // Keep the strap fully visible in the colour pass, but do not let it cast shadows.
+
         if (showHangar || showLaunchHangar) {
             hangar?.let { set ->
                 sceneRenderer.shadowMesh(
