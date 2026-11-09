@@ -118,6 +118,7 @@ Priority is about what the player meets, not about effort.
 | 16 | The ground reads as a white/bluish floor with no grass or soil. | The layered terrain program is the only shader whose absence leaves the ground drawn by whatever program was last bound (the sky). `drawTerrain` now falls back to the plain PBR program and the base layer, and a failed terrain shader is survivable while a failed lit or depth shader is reported on the splash. |
 | 17 | The plane is never on the ground, even in the hangar. | It was always drawn at the band's tow point (4.55 m up), including the hangar view. In `ORBIT_AIRCRAFT` it now stands on the plank floor at `HANGAR_PARK_HEIGHT`; the launch setup still hangs it in the band. |
 | 18 | The hangar and slingshot look disoriented. | In the hangar view the slingshot is no longer drawn, and the camera focus moved from the band height down to the parked aircraft, with the orbit clamped to 4.5–7 m so it stays inside the shed instead of swinging through the plank wall. |
+| 19 | The aircraft launches sideways, off its wing, and the hangar wall blocks the camera from getting behind it. | `AircraftModelLoader` now reads the airframe's own extents: the long horizontal axis is the fuselage, and it is turned so that axis lies on Z with the propeller end on -Z (the rig's forward axis). The hangar orbit was cut to 4 m so the camera stays inside the shed. |
 
 ## 4. Asset catalog
 

@@ -579,10 +579,10 @@ class GameApp(private val context: Context, private val input: InputState) {
                         padPosition.y + HANGAR_CAMERA_HEIGHT,
                         padPosition.z
                     )
-                    // Kept close enough that the orbit stays inside the shed instead of
-                    // swinging out through the plank wall.
+                    // Kept inside the shed: the plank wall is at half-width 5.3 m, so a wider
+                    // orbit would put the camera outside and the wall between it and the plane.
                     cameraDirector.updateOrbitAircraft(
-                        hangarFocus, time, dt, orbitRadius.coerceIn(4.5f, 7.0f), orbitOffset
+                        hangarFocus, time, dt, orbitRadius.coerceIn(3.5f, 5.0f), orbitOffset
                     )
                 }
                 CameraMode.ORBIT_SLINGSHOT -> cameraDirector.updateOrbitSlingshot(

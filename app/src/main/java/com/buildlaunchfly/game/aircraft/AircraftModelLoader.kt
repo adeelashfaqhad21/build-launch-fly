@@ -225,6 +225,93 @@ object AircraftModelLoader {
         }
 
         if (minX > maxX) return
+
+        // Turn the airframe onto the rig's axes. The model's long horizontal axis is the
+        // fuselage; the rig flies along -Z, so that axis has to end up on Z with the propeller
+        // toward -Z. Which end carries the propeller is read from the smallest material group
+        // (the propeller is a handful of triangles compared with a wing).
+        val bodyX = maxX - minX
+        val bodyZ = maxZ - minZ
+        val alongX = bodyX > bodyZ
+        val centreSourceX = (minX + maxX) * 0.5f
+        val centreSourceZ = (minZ + maxZ) * 0.5f
+
+        var propX = centreSourceX
+        var propZ = centreSourceZ
+        var smallest = Int.MAX_VALUE
+        for (group in groups.values) {
+            val count = group.vertices.size / 8
+            if (count in 1 until smallest) {
+                val data = group.vertices.data()
+                var sx = 0f
+                var sz = 0f
+                var i = 0
+                while (i + 7 < group.vertices.size) {
+                    sx += data[i]
+                    sz += data[i + 2]
+                    i += 8
+                }
+                smallest = count
+                propX = sx / count
+                propZ = sz / count
+            }
+        }
+
+        // Choose the quarter turn that puts the fuselage on Z with the propeller on -Z. When
+        // the airframe already points along Z and the marker sits mid-body, it is not a
+        // propeller at all, so the model is left exactly as authored.
+        val propOffsetZ = propZ - centreSourceZ
+        val quarterTurns = if (alongX) {
+            if (propX >= centreSourceX) 1 else 3
+        } else {
+            when {
+                propOffsetZ > bodyZ * 0.15f -> 2
+                else -> 0
+            }
+        }
+        if (quarterTurns != 0) {
+            var turns = quarterTurns
+            while (turns > 0) {
+                for (group in groups.values) {
+                    val data = group.vertices.data()
+                    var i = 0
+                    while (i + 7 < group.vertices.size) {
+                        val x = data[i]
+                        val z = data[i + 2]
+                        // Rotate -90 degrees about Y: +X goes to +Z.
+                        data[i] = z
+                        data[i + 2] = -x
+                        i += 8
+                    }
+                }
+                turns--
+            }
+        }
+
+        minX = Float.MAX_VALUE
+        minY = Float.MAX_VALUE
+        minZ = Float.MAX_VALUE
+        maxX = -Float.MAX_VALUE
+        maxY = -Float.MAX_VALUE
+        maxZ = -Float.MAX_VALUE
+        for (group in groups.values) {
+            val data = group.vertices.data()
+            var i = 0
+            while (i + 7 < group.vertices.size) {
+                val x = data[i]
+                val y = data[i + 1]
+                val z = data[i + 2]
+                if (x < minX) minX = x
+                if (y < minY) minY = y
+                if (z < minZ) minZ = z
+                if (x > maxX) maxX = x
+                if (y > maxY) maxY = y
+                if (z > maxZ) maxZ = z
+                i += 8
+            }
+        }
+        if (minX > maxX) return
+
         val sourceWidth = (maxX - minX).coerceAtLeast(0.0001f)
         val scale = targetWidth / sourceWidth
         val cx = (minX + maxX) * 0.5f
