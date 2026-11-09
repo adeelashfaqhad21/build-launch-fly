@@ -217,11 +217,15 @@ void main() {
     float highMask = smoothstep(uSnowLine, uSnowLine + 45.0, vWorldPos.y);
     albedo = mix(albedo, c, highMask);
 
-    // Bare earth: broad noise patches on ground that is not rock or snow, so grass never
-    // covers the whole landscape.
-    float patch = valueNoise(vWorldPos.xz * 0.020) * 0.62 +
-        valueNoise(vWorldPos.xz * 0.081) * 0.38;
+    // Bare earth: three noise scales, so the ground reads as meadows with ragged edges over
+    // large dry regions instead of a regular tiled pattern. The broadest octave (about 450 m)
+    // decides whole barren stretches; the finer ones break their edges up.
+    float broad = valueNoise(vWorldPos.xz * 0.0022);
+    float patch = valueNoise(vWorldPos.xz * 0.008) * 0.45 +
+        valueNoise(vWorldPos.xz * 0.031) * 0.30 +
+        valueNoise(vWorldPos.xz * 0.11) * 0.25;
     float soilMask = smoothstep(uSoilStart, uSoilEnd, patch);
+    soilMask = max(soilMask, smoothstep(0.56, 0.78, broad) * 0.92);
     soilMask *= (1.0 - rockMask) * (1.0 - highMask);
     vec3 d = texture(uTexD, vUv * 0.70).rgb;
     albedo = mix(albedo, d, soilMask * 0.85);

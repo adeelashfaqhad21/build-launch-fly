@@ -47,8 +47,8 @@ object Vegetation {
 
         while (placed < count && attempts < maxAttempts) {
             attempts++
-            val x = -760f + rng.nextFloat() * 1660f
-            val z = -2600f + rng.nextFloat() * 3000f
+            val x = -420f + rng.nextFloat() * 900f
+            val z = -1500f + rng.nextFloat() * 1620f
             val h = terrain.height(x, z)
             if (h < def.waterLevel + 1.6f) continue
             terrain.normal(x, z, normal)
@@ -56,8 +56,10 @@ object Vegetation {
             val density = Noise.fbm01(x * 0.0035f, z * 0.0035f, 2, seed + 5)
             if (density < 0.40f) continue
 
-            val height = 2.6f + rng.nextFloat() * 4.4f
-            val width = height * (0.26f + rng.nextFloat() * 0.20f)
+            // Full-grown timber: 5–13 m, so the aircraft flies between the crowns rather than
+            // over a field of saplings.
+            val height = 5.0f + rng.nextFloat() * 8.0f
+            val width = height * (0.30f + rng.nextFloat() * 0.22f)
             val species = if (rng.nextFloat() < coniferChance) {
                 coniferSlot(speciesCount)
             } else {
@@ -193,14 +195,19 @@ object Vegetation {
             terrain.normal(x, z, normal)
             if (normal.y < 0.82f) continue
 
-            // A broad meadow mask plus a finer break-up gives the patches ragged edges.
+            // A broad meadow mask plus two finer break-ups gives the patches ragged edges and
+            // clears completely bare ground between them.
             val meadow = Noise.fbm01(x * 0.012f, z * 0.012f, 3, seed + 67)
             val detail = Noise.fbm01(x * 0.05f, z * 0.05f, 2, seed + 71)
-            if (meadow * 0.75f + detail * 0.25f < patchThreshold) continue
+            val clumps = Noise.fbm01(x * 0.21f, z * 0.21f, 2, seed + 73)
+            val mask = meadow * 0.62f + detail * 0.24f + clumps * 0.14f
+            if (mask < patchThreshold) continue
+            // Thin the fringe out rather than cutting it off in a straight line.
+            if (rng.nextFloat() > ((mask - patchThreshold) / 0.42f).coerceIn(0.08f, 1f)) continue
 
-            // 0.90–1.25 m of blade height: roughly three to four feet.
-            val height = 0.90f + rng.nextFloat() * 0.35f
-            val width = 0.55f + rng.nextFloat() * 0.35f
+            // 0.6–1.6 m of blades, so a meadow is uneven instead of a repeated stamp.
+            val height = 0.60f + rng.nextFloat() * 1.00f
+            val width = 0.42f + rng.nextFloat() * 0.62f
             val species = speciesAt(x, z, seed, speciesCount, 29)
             matrix.setTrs(
                 x, h, z,

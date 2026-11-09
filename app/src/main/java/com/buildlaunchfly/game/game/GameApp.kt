@@ -893,10 +893,10 @@ class GameApp(private val context: Context, private val input: InputState) {
                 }
             }
         } else if (showHangarRoof) {
-            // The launch shot is still under the eave, like Ref-3's dark roof strip, with the
-            // ramp and the open end framing the way out.
+            // The launch shot is under the eave, like Ref-3's dark roof strip. Only the ramp is
+            // drawn: the roof itself sits above this camera and would fill the top of the
+            // screen with rafters during the aim.
             hangar?.let { set ->
-                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
             }
         }

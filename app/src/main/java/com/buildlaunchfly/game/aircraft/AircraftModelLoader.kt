@@ -269,6 +269,11 @@ object AircraftModelLoader {
                 else -> 0
             }
         }
+        Log.i(
+            TAG,
+            "airframe extents X=${"%.2f".format(bodyX)} Z=${"%.2f".format(bodyZ)} " +
+                "alongX=$alongX propOffsetZ=${"%.2f".format(propOffsetZ)} turns=$quarterTurns"
+        )
         if (quarterTurns != 0) {
             var turns = quarterTurns
             while (turns > 0) {

@@ -288,8 +288,10 @@ class WorldScene(
             (definition.grassCount * scale).toInt(),
             definition.seed,
             0f,
-            -90f,
-            320f
+            -110f,
+            // Concentrated around the launch and the first part of the flight, where the
+            // scattered instances are dense enough to read as meadow rather than dots.
+            190f
         )
         grassParts = buildParts(grassSets, "grass", grassMaterials) {
             buildGrassData(plantStyle, it)
