@@ -28,8 +28,11 @@ object SlingshotLayout {
      */
     const val SEAT_HEIGHT = 0.85f
 
-    /** Aircraft hold point at the runway entrance, aligned with the slingshot centre. */
-    const val HOLD_Z = 0.0f
+    /**
+     * The reference aircraft spawn is 2.5 m behind the post plane. The game flies toward -Z,
+     * so the source reference's -2.5 m spawn is mirrored to +2.5 m here.
+     */
+    const val HOLD_Z = 2.5f
 
     /** Post centreline half-span: 4.2 m on either side, exactly 8.4 m tip-to-tip. */
     const val POLE_X = 4.2f
