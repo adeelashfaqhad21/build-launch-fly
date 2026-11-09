@@ -58,9 +58,9 @@ object Vegetation {
             val density = Noise.fbm01(x * 0.0035f, z * 0.0035f, 2, seed + 5)
             if (density < 0.38f) continue
 
-            // Full-grown timber: 6–14 m, two to three times the aircraft's wingspan, so the
+            // Mature timber: 10–20 m (33–66 ft), so a 50–60 ft tree is the norm and the
             // aircraft passes between crowns instead of over a field of saplings.
-            val height = 6.0f + rng.nextFloat() * 8.0f
+            val height = 10.0f + rng.nextFloat() * 10.0f
             val width = height * (0.30f + rng.nextFloat() * 0.22f)
             val species = if (rng.nextFloat() < coniferChance) {
                 coniferSlot(speciesCount)

@@ -226,13 +226,13 @@ object AircraftModelLoader {
 
         if (minX > maxX) return
 
-        // Turn the airframe onto the rig's axes. The model's long horizontal axis is the
-        // fuselage; the rig flies along -Z, so that axis has to end up on Z with the propeller
-        // toward -Z. Which end carries the propeller is read from the smallest material group
-        // (the propeller is a handful of triangles compared with a wing).
+        // Turn the airframe onto the rig's axes. A biplane's wingspan is longer than its
+        // fuselage, so the *shorter* horizontal extent is the fuselage: it ends up on Z, with
+        // the propeller end toward -Z. Which end carries the propeller is read from the
+        // smallest material group (a propeller is a handful of triangles next to a wing).
         val bodyX = maxX - minX
         val bodyZ = maxZ - minZ
-        val alongX = bodyX > bodyZ
+        val alongX = bodyZ > bodyX
         val centreSourceX = (minX + maxX) * 0.5f
         val centreSourceZ = (minZ + maxZ) * 0.5f
 

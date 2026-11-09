@@ -714,6 +714,12 @@ class GameApp(private val context: Context, private val input: InputState) {
         resultTimer = 0f
         state = GameState.SEATED
         paused = false
+        // Every retry is a fresh launch: back to the aim camera, rig slack, and any release the
+        // player left on the results screen swallowed so a stray tap cannot fire the aircraft.
+        cameraMode = CameraMode.LAUNCH
+        orbitOffset = 0f
+        slingRecoilTimer = 0f
+        input.consumeRelease()
         audio.setFlight(0f, 0f, false)
         cameraDirector.snapTo(
             Vec3(
@@ -893,11 +899,18 @@ class GameApp(private val context: Context, private val input: InputState) {
                 }
             }
         } else if (showHangarRoof) {
-            // The launch shot is under the eave, like Ref-3's dark roof strip. Only the ramp is
-            // drawn: the roof itself sits above this camera and would fill the top of the
-            // screen with rafters during the aim.
+            // The launch shot stands inside the shed: the plank wall, floor, roof, lamp and ramp
+            // are all drawn, because the camera now sits under the eave (3.6 m) rather than on
+            // top of the roof.
             hangar?.let { set ->
+                sceneRenderer.drawMesh(set.wallMesh, set.wallMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.roofMesh, set.roofMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.floorMesh, set.floorMaterial, slingshotModel)
+                sceneRenderer.drawMesh(set.metalMesh, set.metalMaterial, slingshotModel)
                 sceneRenderer.drawMesh(set.rampMesh, set.floorMaterial, slingshotModel)
+                for (prop in set.props) {
+                    sceneRenderer.drawMesh(prop.mesh, prop.material, prop.matrix)
+                }
             }
         }
 
@@ -920,8 +933,10 @@ class GameApp(private val context: Context, private val input: InputState) {
         }
 
         if (showSling) {
+            // The timber rig only. The elastic band's stretched strips are not drawn: they read
+            // as a bright multi-coloured ribbon across the aircraft instead of a slingshot,
+            // and the pull is shown by the aircraft itself moving back in the rig.
             sceneRenderer.drawMesh(rig.frameMesh, rig.frameMaterial, slingshotModel)
-            for (band in bandWorld) sceneRenderer.drawMesh(rig.bandMesh, rig.bandMaterial, band)
         }
 
         if (aircraftMesh.hasImportedModel) {
