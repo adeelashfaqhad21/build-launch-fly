@@ -582,8 +582,8 @@ class GameApp(private val context: Context, private val input: InputState) {
                         padPosition.y + HANGAR_CAMERA_HEIGHT,
                         padPosition.z
                     )
-                    // Kept inside the shed: the plank wall is at half-width 5.3 m, so a wider
-                    // orbit would put the camera outside and the wall between it and the plane.
+                    // The reference posts span 8.4 m. Keep enough camera distance to frame
+                    // both posts and the aircraft while staying inside the 26 m hangar depth.
                     cameraDirector.updateOrbitAircraft(
                         hangarFocus, time, dt, orbitRadius.coerceIn(8.0f, 9.5f), orbitOffset
                     )
