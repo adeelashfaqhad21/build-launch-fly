@@ -176,7 +176,9 @@ object WorldCatalog {
         tintB = Vec3(0.70f, 0.72f, 0.78f),
         tintC = Vec3(0.88f, 0.95f, 1.02f),
         rockThreshold = 0.62f,
-        snowLine = -100f,
+        // Surface C is ROCK in this realm; keep the high-altitude overlay disabled so
+        // it cannot replace the snow base across the entire landscape.
+        snowLine = 4000f,
         treeCount = 900,
         rockCount = 1100,
         grassCount = 0,
