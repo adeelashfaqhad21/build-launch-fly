@@ -6,13 +6,15 @@ import com.buildlaunchfly.game.gfx.MeshData
 import com.buildlaunchfly.game.math.Vec3
 
 /**
- * Reads the imported biplane ("samolet" by vrlab development, CC BY 4.0).
+ * Loads the five world-specific aircraft from `assets/aircraft/worlds`.
  *
- * The source is one welded OBJ with no UVs and no texture: its colour comes from seven flat
- * `Kd` materials, so the file is split into one mesh per material and each part is drawn with
- * the shared white map tinted by that colour. The model is Y-up with the nose on -Z already,
- * so it only needs a uniform scale to the rig's wingspan, its base dropped to y = 0 and its
- * plan centred on the origin.
+ * Their shared OBJ coordinate contract is explicit: +X is wingspan, +Y is up and -Z is
+ * forward (nose). The rig also launches toward -Z. Do not infer orientation from the bounding
+ * box or from the smallest material group: a long fuselage can exceed the wingspan, and none
+ * of the current material groups is a reliable propeller marker.
+ *
+ * Colours are authored as RGB `Kd` values in the shared MTL. Each `usemtl` group becomes one
+ * mesh, drawn with the white texture tinted by that material's RGB colour.
  */
 object AircraftModelLoader {
 
@@ -226,97 +228,10 @@ object AircraftModelLoader {
 
         if (minX > maxX) return
 
-        // Turn the airframe onto the rig's axes. A biplane's wingspan is longer than its
-        // fuselage, so the *shorter* horizontal extent is the fuselage: it ends up on Z, with
-        // the propeller end toward -Z. Which end carries the propeller is read from the
-        // smallest material group (a propeller is a handful of triangles next to a wing).
-        val bodyX = maxX - minX
-        val bodyZ = maxZ - minZ
-        val alongX = bodyZ > bodyX
-        val centreSourceX = (minX + maxX) * 0.5f
-        val centreSourceZ = (minZ + maxZ) * 0.5f
-
-        var propX = centreSourceX
-        var propZ = centreSourceZ
-        var smallest = Int.MAX_VALUE
-        for (group in groups.values) {
-            val count = group.vertices.size / 8
-            if (count in 1 until smallest) {
-                val data = group.vertices.data()
-                var sx = 0f
-                var sz = 0f
-                var i = 0
-                while (i + 7 < group.vertices.size) {
-                    sx += data[i]
-                    sz += data[i + 2]
-                    i += 8
-                }
-                smallest = count
-                propX = sx / count
-                propZ = sz / count
-            }
-        }
-
-        // Choose the quarter turn that puts the fuselage on Z with the propeller on -Z. When
-        // the airframe already points along Z and the marker sits mid-body, it is not a
-        // propeller at all, so the model is left exactly as authored.
-        val propOffsetZ = propZ - centreSourceZ
-        val quarterTurns = if (alongX) {
-            if (propX >= centreSourceX) 1 else 3
-        } else {
-            when {
-                propOffsetZ > bodyZ * 0.15f -> 2
-                else -> 0
-            }
-        }
-        Log.i(
-            TAG,
-            "airframe extents X=${"%.2f".format(bodyX)} Z=${"%.2f".format(bodyZ)} " +
-                "alongX=$alongX propOffsetZ=${"%.2f".format(propOffsetZ)} turns=$quarterTurns"
-        )
-        if (quarterTurns != 0) {
-            var turns = quarterTurns
-            while (turns > 0) {
-                for (group in groups.values) {
-                    val data = group.vertices.data()
-                    var i = 0
-                    while (i + 7 < group.vertices.size) {
-                        val x = data[i]
-                        val z = data[i + 2]
-                        // Rotate -90 degrees about Y: +X goes to +Z.
-                        data[i] = z
-                        data[i + 2] = -x
-                        i += 8
-                    }
-                }
-                turns--
-            }
-        }
-
-        minX = Float.MAX_VALUE
-        minY = Float.MAX_VALUE
-        minZ = Float.MAX_VALUE
-        maxX = -Float.MAX_VALUE
-        maxY = -Float.MAX_VALUE
-        maxZ = -Float.MAX_VALUE
-        for (group in groups.values) {
-            val data = group.vertices.data()
-            var i = 0
-            while (i + 7 < group.vertices.size) {
-                val x = data[i]
-                val y = data[i + 1]
-                val z = data[i + 2]
-                if (x < minX) minX = x
-                if (y < minY) minY = y
-                if (z < minZ) minZ = z
-                if (x > maxX) maxX = x
-                if (y > maxY) maxY = y
-                if (z > maxZ) maxZ = z
-                i += 8
-            }
-        }
-        if (minX > maxX) return
-
+        // All five shipped models already use the rig's axes: +X wingspan, +Y up,
+        // and the nose toward -Z. Keep that authored orientation. A bounding-box heuristic
+        // incorrectly rotated AuroraScout and ViperStrike because their fuselages are longer
+        // than their wingspans; material-group size is not a valid propeller detector.
         val sourceWidth = (maxX - minX).coerceAtLeast(0.0001f)
         val scale = targetWidth / sourceWidth
         val cx = (minX + maxX) * 0.5f

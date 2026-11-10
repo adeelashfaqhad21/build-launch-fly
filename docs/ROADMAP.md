@@ -55,8 +55,9 @@ Our own identity is not copied: name, logo, art, copy and numbers stay original.
 
 ## 2. Where the build stands
 
-Nothing here has been seen running on a device since build `1870682`; every statement about
-appearance below is a reading of the code and the assets, not an observation.
+The latest working-branch CI build is **#415** (commit `62aa6579`), and its debug and signed
+release APK jobs passed. No new device screenshot has been supplied for this checkpoint, so
+appearance claims below remain by-inspection rather than device-verified.
 
 | System | State | Evidence / file |
 |---|---|---|
@@ -66,7 +67,7 @@ appearance below is a reading of the code and the assets, not an observation.
 | Ground | Imported. 15 diffuse/colour maps; three-layer blend on a photographic scale | `gfx/TextureFactory.kt`, `SceneRenderer` |
 | Vegetation | Near field (18–140 m) imported, per-realm; 140–400 m scatter still procedural | `Vegetation.kt`, `WorldScene.buildHeroProps` |
 | Wildlife | Ground: 11 Quaternius models, 2–3 species per realm on their own rings. Birds: imported `parrot.glb` via `gfx/GlbLoader` | `WorldScene.buildAnimalParts` |
-| Aircraft | Imported `samolet` biplane split by material; procedural airframe as fallback | `aircraft/AircraftModelLoader` |
+| Aircraft | Five world-specific imported aircraft split by shared MTL RGB material groups; procedural airframe remains the fallback | `aircraft/worlds/*.obj`, `aircraft_and_glacier.mtl`, `aircraft/AircraftModelLoader` |
 | Flight | Glider physics: lift curve to 16°, induced drag, stall, banked lift; the stick asks for an angle of attack inside the working part of the curve | `aircraft/FlightPhysics.kt` |
 | Obstacles | Every tree, building and kit prop is a solid cylinder in one grid the flight model queries each frame | `world/ObstacleField.kt`, `WorldScene` |
 | Slingshot | Two squared posts + one band; posts generated | `slingshot/SlingshotMesh.kt` |
@@ -119,7 +120,7 @@ Priority is about what the player meets, not about effort.
 | 16 | The ground reads as a white/bluish floor with no grass or soil. | The layered terrain program is the only shader whose absence leaves the ground drawn by whatever program was last bound (the sky). `drawTerrain` now falls back to the plain PBR program and the base layer, and a failed terrain shader is survivable while a failed lit or depth shader is reported on the splash. |
 | 17 | The plane is never on the ground, even in the hangar. | It was always drawn at the band's tow point (4.55 m up), including the hangar view. In `ORBIT_AIRCRAFT` it now stands on the plank floor at `HANGAR_PARK_HEIGHT`; the launch setup still hangs it in the band. |
 | 18 | The hangar and slingshot look disoriented. | In the hangar view the slingshot is no longer drawn, and the camera focus moved from the band height down to the parked aircraft, with the orbit clamped to 4.5–7 m so it stays inside the shed instead of swinging through the plank wall. |
-| 19 | The aircraft launches sideways, off its wing, and the hangar wall blocks the camera from getting behind it. | `AircraftModelLoader` now reads the airframe's own extents: the long horizontal axis is the fuselage, and it is turned so that axis lies on Z with the propeller end on -Z (the rig's forward axis). The hangar orbit was cut to 4 m so the camera stays inside the shed, and the launch camera sits under the eave (3.6 m) with the roof no longer drawn. |
+| 19 | The imported aircraft could be turned sideways when its fuselage was longer than its wingspan. | Fixed in the current loader: the five shipped OBJ files share an explicit coordinate contract (+X wingspan, +Y up, -Z nose/forward), which matches the rig. Do not infer orientation from the largest bounding-box axis or the smallest material group. The hangar camera remains a separate framing concern. |
 | 20 | Grass reads as a repeating pattern; soil and bare ground never break it up. | The terrain's bare-earth mask now mixes three noise scales (450 m, 125 m, 32 m) so grass grows in large irregular regions with ragged edges and dry stretches between, and `scatterGrass` varies blade height 0.6–1.6 m, thins its fringes with noise and adds a fine clump mask. |
 | 21 | Large trees and buildings are missing; objects look far below and too small. | Trees were scattered across ~5 km² (~1 per 1 500 m²) at 2.6–7 m tall, so the flight path had almost none. They are now 10–20 m tall and scattered over the whole playable world (±1150 m, −1900…+700 m) at 2.6× the count. |
 | 22 | Layout rebuild: the aircraft hung in the band 4.55 m up, inside the roof and over the ramp. | `SlingshotLayout.HOLD_POINT` is now **(0, 1.02, +3.0)**: fuselage centre one metre above the plank floor with the wheels on it, 3 m behind the posts and 13 m ahead of the ramp, which still starts at the door. The launch camera dropped to 2.6 m high, 5.5 m behind, so the aim view is inside the shed at aircraft height instead of above the roof. |
@@ -127,6 +128,7 @@ Priority is about what the player meets, not about effort.
 | 24 | Once it is nose-down it will not climb again, however fast it is going. | Same cause: at full pull the deep stall produced drag instead of lift. With the request inside the curve, a dive at speed builds the most lift the wing has (`q·S·CL/max`) and the flight path arcs back up; the nose follows because `MAX_PITCH` was raised to 1.50 rad so the attitude is never clipped below what the pull asks for. |
 | 25 | Trees and buildings are decoration: nothing tests them. | `world/ObstacleField` files every tree instance (crown height and width read from its own matrix), every building and every kit prop as an upright cylinder in a 32 m grid. `GameApp.updateFlight` asks it once a frame with a 1.5 m aircraft disc and calls `FlightPhysics.impact()` on a hit. Trees are kept 55 m clear of the launch pad so a take-off cannot end in a trunk. |
 | 26 | The ramp still reads as sideways: it was a 6.8 m-wide deck at the shed door, 13 m ahead of the aircraft, so it was wider than it was long and laid across the launch instead of along it. | `HangarMesh.buildRampData` is rebuilt as a narrow timber kicker on the launch axis: 1.5 m wide, its leading edge 1.7 m (5–6 ft) ahead of the tow point, 3.2 m (10–11 ft) long overall, with the last 1.1 m (3–4 ft) climbing 0.32 m to the lip behind a chamfer lead-in and two trestles. It is placed from `SlingshotLayout.HOLD_Z`, so the aircraft, the rig and the ramp cannot drift apart. |
+| 27 | Long-fuselage imported aircraft were rotated by the old bounding-box orientation heuristic. | Fixed in `AircraftModelLoader.normalise`: the five current OBJ assets already share +X wingspan, +Y up and -Z forward. The loader now preserves those authored axes and scales from X wingspan only. MTL `Kd` RGB values remain the source of each material's colour. |
 
 ## 4. Asset catalog
 
@@ -260,6 +262,8 @@ on its final commit.
   inside the lift curve so a dive can be pulled out of at speed, pitch authority follows
   airspeed, and every tree, building and prop is now a solid cylinder the flight model tests
   each frame.
-- **this commit** — the launch ramp rebuilt on the launch axis: a 1.5 m-wide timber kicker
-  starting 1.7 m ahead of the tow point, 3.2 m long, whose last 1.1 m climbs to the lip; the
-  old 6.8 m-wide deck across the shed door is gone.
+- **62aa6579** — five realm-specific village meshes and the shared architecture material
+  library added; CI run #415 passed on the working branch.
+- **this commit** — the imported-aircraft orientation heuristic removed. The five OBJ models
+  already share +X wingspan, +Y up and -Z forward; the loader no longer rotates long-fuselage
+  models sideways and continues to apply their RGB `Kd` material colours.
